@@ -1,14 +1,62 @@
 {
+  "name": "arquitectura_whatsapp",
+  "version": "1.0.0",
+  "description": "",
+  "type": "commonjs",
+  "main": "eslint/base.js",
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
-    "prepare": "husky install"
+    "lint:fix": "npm run lint -- --fix",
+    "prepare": "husky install",
+    "format:write": "npx prettier . --write",
+    "format:check": "npx prettier . --check",
+    "build:docs": "npm run build --workspace=docs",
+    "build:backend": "npm run build --workspace=backend",
+    "build:frontend": "cd apps/frontend && npm run build",
+    "dev:docs": "npm run dev --workspace=docs",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "cd apps/frontend && npm run dev",
+    "build:all": "concurrently -n build:docs,build:backend,build:frontend -c blue,green,yellow \"npm run build:docs\" \"npm run build:backend\" \"npm run build:frontend\"",
+    "preview:docs": "npm run preview --workspace=docs",
+    "preview:backend": "npm run preview --workspace=backend",
+    "preview:frontend": "cd apps/frontend && npm run preview",
+    "preview:all": "concurrently -n preview:docs,preview:backend,preview:frontend"
   },
   "lint-staged": {
     "*.{ts,tsx,js}": [
-      "eslint --fix"
+      "npm run lint:fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
     ]
   },
   "dependencies": {
-    "husky": "^9.1.7"
-  }
+    "@commitlint/config-conventional": "^20.0.0",
+    "commitlint": "^20.1.0",
+    "eslint-plugin-react": "^7.37.5",
+    "prettier": "^3.6.2"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.37.0",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.37.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^16.2.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leonardoPBF/Arquitectura_whatsapp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/leonardoPBF/Arquitectura_whatsapp/issues"
+  },
+  "homepage": "https://github.com/leonardoPBF/Arquitectura_whatsapp#readme"
 }

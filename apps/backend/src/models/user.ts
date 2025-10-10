@@ -11,7 +11,7 @@ const userSchema = new Schema<IUser>({
   number: { type: String, required: true, unique: true },
   name: { type: String },
   lastMessage: { type: String },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
 });
 
 export default mongoose.model<IUser>("User", userSchema);

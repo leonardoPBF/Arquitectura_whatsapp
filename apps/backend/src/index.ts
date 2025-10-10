@@ -8,15 +8,18 @@ dotenv.config();
 // 🔹 Conectar a MongoDB
 const connectionString = process.env.CONECTION;
 if (!connectionString) {
-  throw new Error("❌ CONECTION_STRING no está definido en las variables de entorno.");
+  throw new Error(
+    "❌ CONECTION_STRING no está definido en las variables de entorno.",
+  );
 }
-mongoose.connect(connectionString)
+mongoose
+  .connect(connectionString)
   .then(() => console.log("✅ Conectado a MongoDB"))
-  .catch(err => console.error("❌ Error MongoDB:", err));
+  .catch((err) => console.error("❌ Error MongoDB:", err));
 
 // 🔹 Inicializar WhatsApp Client
 const client = new Client({
-  authStrategy: new LocalAuth()
+  authStrategy: new LocalAuth(),
 });
 
 client.on("qr", (qr: string) => {
