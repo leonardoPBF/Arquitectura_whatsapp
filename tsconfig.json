@@ -1,12 +1,11 @@
 {
+  "extends": "./packages/config/tsconfig/base.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "CommonJS",
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true
+    "baseUrl": ".",
+    "paths": {
+      "@ui/*": ["packages/ui/src/*"],
+      "@utils/*": ["packages/utils/src/*"]
+    }
   },
-  "include": ["src/**/*.ts"]
+  "include": ["apps", "packages"]
 }
