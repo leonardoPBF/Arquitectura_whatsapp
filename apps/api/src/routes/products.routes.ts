@@ -1,16 +1,37 @@
-import express from "express";
-import { Product } from "../models/Product";
+import { Router } from "express";
+import { getProducts, createProduct } from "../controllers/products.controller.js";
+const router = Router();
 
-const router = express.Router();
 
-router.get("/", async (_, res) => {
-  const products = await Product.find();
-  res.json(products);
-});
+/**
+ * @swagger
+ * /api/products:
+ *   get:
+ *     summary: Obtener todos los productos
+ *     responses:
+ *       200:
+ *         description: Lista de productos.
+ *   post:
+ *     summary: Crear un nuevo producto
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               description:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Producto creado correctamente.
+ */
 
-router.post("/", async (req, res) => {
-  const product = await Product.create(req.body);
-  res.json(product);
-});
+router.get("/", getProducts);
+router.post("/", createProduct);
 
 export default router;

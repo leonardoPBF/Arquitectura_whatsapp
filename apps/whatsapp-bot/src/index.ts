@@ -28,7 +28,18 @@ client.on("ready", () => {
 });
 
 client.on("message", async (msg) => {
-  await handleMessage(client, msg);
+  try {
+    const contact = await msg.getContact();
+    const number = contact.number; // ✅ Número sin el @c.us
+    const name = contact.pushname || contact.name || "Desconocido";
+
+    console.log(`📩 Mensaje recibido de ${name} (${number}): ${msg.body}`);
+
+    // Ahora puedes pasar esta info al manejador de mensajes
+    await handleMessage(client, msg );
+  } catch (err) {
+    console.error("⚠️ Error al procesar el mensaje:", err);
+  }
 });
 
 client.initialize();
