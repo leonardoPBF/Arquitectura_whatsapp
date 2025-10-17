@@ -3,11 +3,11 @@ import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
 
-import productsRoutes from "./routes/products.routes.js";
-import ordersRoutes from "./routes/orders.routes.js";
-import customersRoutes from "./routes/customers.routes.js";
-import paymentsRoutes from "./routes/payments.routes.js";
-import sheetsRoutes from "./routes/sheets.routes.js";
+import productsRoutes from "./routes/products.routes";
+import ordersRoutes from "./routes/orders.routes";
+import customersRoutes from "./routes/customers.routes";
+import paymentsRoutes from "./routes/payments.routes";
+import sheetsRoutes from "./routes/sheets.routes";
 import { setupSwagger } from "./config/swagger";
 
 dotenv.config();
