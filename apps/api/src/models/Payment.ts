@@ -5,10 +5,14 @@ export interface IPayment extends Document {
   orderNumber: string;
   customerId: Schema.Types.ObjectId;
   amount: number;
-  method: "cash" | "transfer" | "card" | "yape" | "plin";
+  gateway: "culqi";
+  culqiOrderId: string; 
+  checkoutUrl: string;
+  method: "card" | "billetera_movil" | "pagoefectivo";
   status: "pending" | "completed" | "failed" | "refunded";
   transactionId?: string;
   receiptUrl?: string;
+  gatewayResponse?: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,10 +22,13 @@ const PaymentSchema = new Schema({
   orderNumber: { type: String, required: true },
   customerId: { type: Schema.Types.ObjectId, ref: "Customer", required: true },
   amount: { type: Number, required: true, min: 0 },
+  gateway: { type: String, enum: ["culqi"], default: "culqi", required: true },
+  culqiOrderId: { type: String, unique: true, required: true },
+  checkoutUrl: { type: String, required: true },
   method: { 
     type: String, 
-    enum: ["cash", "transfer", "card", "yape", "plin"],
-    required: true 
+    enum: ["card", "billetera_movil", "pagoefectivo"],
+    required: true
   },
   status: { 
     type: String, 
@@ -30,6 +37,7 @@ const PaymentSchema = new Schema({
   },
   transactionId: { type: String },
   receiptUrl: { type: String },
+  gatewayResponse: { type: Object },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

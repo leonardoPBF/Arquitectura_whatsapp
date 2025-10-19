@@ -1,0 +1,1 @@
+seed bd . npx ts-node src/scripts/seed.ts
