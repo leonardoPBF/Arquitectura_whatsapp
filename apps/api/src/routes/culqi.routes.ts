@@ -7,6 +7,7 @@ import {
   handleCulqiWebhook,
   getCulqiOrderStatus,
   getPaymentById,
+  getOrderForCheckout
 } from "../controllers/culqi.controller";
 
 const router = Router();
@@ -146,5 +147,24 @@ router.get("/order/:culqiOrderId", getCulqiOrderStatus);
  *         description: Detalle del pago
  */
 router.get("/payment/:paymentId", getPaymentById);
+
+/**
+ * @swagger
+ * /api/culqi/payment/{culqiOrderId}:
+ *   get:
+ *     summary: Obtiene el detalle de un pago desde la base de datos
+ *     tags: [Culqi]
+ *     parameters:
+ *       - in: path
+ *         name: culqiOrderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de culqiOrderId
+ *     responses:
+ *       200:
+ *         description: checkout del pago
+ */
+router.get("/payment/order-checkout", getOrderForCheckout);
 
 export default router;

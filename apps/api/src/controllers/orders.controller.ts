@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Order } from "../models/Order";
 import { IProduct, Product } from "../models/Product";
+import { Customer } from "../models/Customer";
 
 // GET /api/orders
 export const getOrders = async (_: Request, res: Response) => {
@@ -46,7 +47,12 @@ export const createOrder = async (req: Request, res: Response) => {
     if (!customerId || !items || !Array.isArray(items))
       return res.status(400).json({ message: "Datos incompletos" });
 
-    // Calcular total basado en precios actuales
+    const customer = await Customer.findById(customerId);
+
+    if(!customer){
+      return res.status(400).json({ message: "No existe ese usuario/customer" });
+    }
+
     const products = await Product.find({ _id: { $in: items.map(i => i.productId) } }) as (IProduct & { _id: any })[];
     let totalAmount = 0;
 
@@ -55,11 +61,13 @@ export const createOrder = async (req: Request, res: Response) => {
       if (!product) throw new Error(`Producto ${item.productId} no encontrado`);
       const subtotal = product.price * item.quantity;
       totalAmount += subtotal;
-      return { productId: product._id, quantity: item.quantity, price: product.price, subtotal };
+      const productName = product.name;
+      return { productId: product._id, productName, quantity: item.quantity, price: product.price, subtotal };
     });
 
     const order = new Order({
       customerId,
+      customerPhone: customer.phone,
       items: detailedItems,
       totalAmount,
       status: "pending",
