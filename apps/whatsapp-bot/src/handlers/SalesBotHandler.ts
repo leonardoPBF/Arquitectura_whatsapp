@@ -13,7 +13,7 @@ const sessions: Record<string, Context> = {};
 // =====================
 // MAIN MESSAGE HANDLER
 // =====================
-export async function handleMessage(client: Client, msg: Message) {
+export async function handleMessageGeneral(client: Client, msg: Message) {
   const phone = msg.from;
   const text = msg.body.trim().toLowerCase();
 

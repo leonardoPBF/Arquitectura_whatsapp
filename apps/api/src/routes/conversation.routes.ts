@@ -6,6 +6,9 @@ import {
   updateConversationCart,
   updateConversationStep,
   clearConversationCart,
+  getConversationCart,
+  addItemToConversationCart,
+  removeItemFromConversationCart,
 } from "../controllers/conversation.controller";
 
 const router = Router();
@@ -77,6 +80,15 @@ router.get("/", getConversations);
  *         description: Conversación no encontrada
  */
 router.get("/:phone", getConversationByPhone);
+
+/**
+ * @swagger
+ * /api/conversations/{phone}/cart:
+ *   get:
+ *     summary: Obtener carrito de la conversación
+ *     tags: [Conversations]
+ */
+router.get("/:phone/cart", getConversationCart);
 
 /**
  * @swagger
@@ -175,6 +187,24 @@ router.post("/", createConversation);
  */
 
 router.patch("/:phone/cart", updateConversationCart);
+
+/**
+ * @swagger
+ * /api/conversations/{phone}/cart/add:
+ *   post:
+ *     summary: Agregar un item al carrito de la conversación
+ *     tags: [Conversations]
+ */
+router.post("/:phone/cart/add", addItemToConversationCart);
+
+/**
+ * @swagger
+ * /api/conversations/{phone}/cart/remove:
+ *   post:
+ *     summary: Remover/unidades de un item del carrito de la conversación
+ *     tags: [Conversations]
+ */
+router.post("/:phone/cart/remove", removeItemFromConversationCart);
 
 /**
  * @swagger

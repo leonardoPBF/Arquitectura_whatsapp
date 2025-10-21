@@ -23,7 +23,8 @@
     "preview:docs": "npm run preview --workspace=docs",
     "preview:backend": "npm run preview --workspace=backend",
     "preview:frontend": "cd apps/frontend && npm run preview",
-    "preview:all": "concurrently -n preview:docs,preview:backend,preview:frontend"
+    "preview:all": "concurrently -n preview:docs,preview:backend,preview:frontend",
+    "run:all" : "concurrently -n dev:api,dev:frontend,dev:whatsapp -c blue,green,yellow \"npm run dev:api\" \"npm run dev:frontend\" \"npm run prod:whatsapp\""
   },
   "lint-staged": {
     "*.{ts,tsx,js}": [

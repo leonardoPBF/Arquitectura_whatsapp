@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { culqiAPI } from '../services/api';
+import api from '../services/api';
 
 const CULQI_PUBLIC_KEY = import.meta.env.VITE_CULQI_PUBLIC_KEY;
 
@@ -24,7 +25,7 @@ declare global {
   }
 }
 
-function Checkout() {
+export default function Checkout() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const orderId = searchParams.get('order');
@@ -34,6 +35,7 @@ function Checkout() {
   const [error, setError] = useState('');
   const [processing, setProcessing] = useState(false);
   const [checkingPayment, setCheckingPayment] = useState(false);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
 
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const orderRef = useRef<OrderData | null>(null);
@@ -88,65 +90,113 @@ function Checkout() {
       setLoading(false);
       return;
     }
-
     try {
-      const response = await culqiAPI.getOrder(orderId);
-      const { payment, culqiOrder } = response.data;
+      
+      const isObjectId = /^[a-fA-F0-9]{24}$/.test(orderId);
 
-      if (payment.status === "completed") {
-        navigate(`/success?order=${orderId}`);
-        return;
-      }
+      if (isObjectId) {
+        // Treat as DB order _id
+        const res = await api.get(`/api/orders/${orderId}`);
+        const order = res.data;
 
-      if (culqiOrder.state === "expired") {
-        setError("Esta orden ha expirado");
+        if (order.paymentStatus === "paid" || order.status === "confirmed") {
+          navigate(`/success?order=${order._id}`);
+          return;
+        }
+
+        // NOTE: the chatbot currently creates the Payment + checkout link.
+        // The frontend should *not* create the Culqi order again. Instead we
+        // accept a `checkoutUrl` passed in the query string (from the bot),
+        // or show the local checkout button that opens the external link.
+        const providedCheckout = searchParams.get('checkoutUrl');
+
+        const orderInfo: OrderData = {
+          id: order._id,
+          order_number: order.orderNumber,
+          description: `Pedido ${order.orderNumber}`,
+          amount: Math.round((order.totalAmount || 0) * 100),
+          currency: 'PEN',
+          state: order.status || 'pending',
+          customer: {
+            email: order.customerId?.email || "",
+            name: order.customerId?.name || "",
+          },
+        };
+
+        setOrderData(orderInfo);
         setLoading(false);
-        return;
+        if (providedCheckout) setCheckoutUrl(providedCheckout);
+      } else {
+        // Treat as Culqi order id (the id that Culqi returns)
+        const resp = await culqiAPI.getOrder(orderId);
+        const { payment, culqiOrder } = resp.data;
+
+        if (payment?.status === "completed") {
+          // If backend reports completed, redirect to success using payment.orderId if available
+          const dbOrderId = payment?.orderId?._id || payment?.orderId || null;
+          if (dbOrderId) navigate(`/success?order=${dbOrderId}`);
+          else navigate(`/success`);
+          return;
+        }
+
+        const orderInfo: OrderData = {
+          id: culqiOrder.id,
+          order_number: culqiOrder.order_number,
+          description: culqiOrder.description,
+          amount: culqiOrder.amount,
+          currency: culqiOrder.currency_code,
+          state: culqiOrder.state,
+          customer: {
+            email: payment?.customerId?.email || "",
+            name: payment?.customerId?.name || "",
+          },
+        };
+
+        setOrderData(orderInfo);
+        setLoading(false);
+        if (payment?.checkoutUrl) setCheckoutUrl(payment.checkoutUrl);
       }
-
-      const orderInfo: OrderData = {
-        id: culqiOrder.id,
-        order_number: culqiOrder.order_number,
-        description: culqiOrder.description,
-        amount: culqiOrder.amount,
-        currency: culqiOrder.currency_code,
-        state: culqiOrder.state,
-        customer: {
-          email: payment.customerId?.email || "",
-          name: payment.customerId?.name || "",
-        },
-      };
-
-      setOrderData(orderInfo);
-      setLoading(false);
     } catch (err: any) {
       console.error("Error al cargar orden:", err);
       setError(err.response?.data?.message || "Error al cargar la orden");
       setLoading(false);
     }
-  };
-
+  }
   // ✅ Función corregida
   const openCulqiCheckout = () => {
     const currentOrder = orderRef.current;
-    if (!currentOrder || !window.Culqi) {
-      setError("Sistema de pago no disponible");
+    // If we have a hosted checkout URL (created by the bot/backend), prefer opening it
+    if (checkoutUrl) {
+      window.open(checkoutUrl, '_blank');
       return;
     }
 
-    try {
-      window.Culqi.settings({
-        title: "Pago Seguro",
-        currency: currentOrder.currency,
-        amount: currentOrder.amount,
-        order: currentOrder.id,
-      });
+    // Prefer opening Culqi SDK if available and we have a culqi order id
+    if (currentOrder && window.Culqi && typeof currentOrder.id === 'string' && !currentOrder.id.match(/^[a-fA-F0-9]{24}$/)) {
+      try {
+        window.Culqi.settings({
+          title: "Pago Seguro",
+          currency: currentOrder.currency,
+          amount: currentOrder.amount,
+          order: currentOrder.id,
+        });
 
-      window.Culqi.open();
-    } catch (err) {
-      console.error("Error al abrir Culqi:", err);
-      setError("Error al iniciar el proceso de pago");
+        window.Culqi.open();
+        return;
+      } catch (err) {
+        console.error("Error al abrir Culqi:", err);
+        setError("Error al iniciar el proceso de pago");
+        return;
+      }
     }
+
+    // Fallback: if we received a checkoutUrl from the bot/backend, open it
+    if (checkoutUrl) {
+      window.open(checkoutUrl, '_blank');
+      return;
+    }
+
+    setError("Sistema de pago no disponible");
   };
 
   // ✅ Callback Culqi corregido
@@ -165,17 +215,17 @@ function Checkout() {
         setError("");
 
         try {
+          // Nota: no enviamos `amount` desde el frontend. El backend debe
+          // derivar el monto desde el Payment guardado cuando se creó el checkoutUrl.
           const response = await culqiAPI.createCharge({
             tokenId,
             culqiOrderId: searchParams.get('order')+"",
-            amount: currentOrder.amount / 100,
             email: currentOrder.customer.email,
           });
-          
 
           if (response.data.success) {
             console.log("💰 Pago exitoso:", response.data);
-            startPaymentPolling(); // ✅ verifica el estado mientras
+            startPaymentPolling(); // verifica el estado mientras
           } else {
             console.error("❌ Error al procesar cargo:", response.data.message);
             setError("El pago no fue procesado correctamente.");
@@ -229,12 +279,12 @@ function Checkout() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center p-5">
-      {(processing || checkingPayment) && (
+      {(loading || processing || checkingPayment) && (
         <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center">
           <div className="bg-white rounded-xl p-8 text-center max-w-sm">
             <div className="inline-block w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
             <p className="text-gray-800 font-semibold text-lg">
-              {checkingPayment ? 'Verificando pago...' : 'Procesando pago...'}
+              {loading ? 'Cargando orden...' : (checkingPayment ? 'Verificando pago...' : 'Procesando pago...')}
             </p>
             <p className="text-gray-500 text-sm mt-2">
               No cierres esta ventana
@@ -278,6 +328,17 @@ function Checkout() {
           💳 Pagar Ahora
         </button>
 
+        {checkoutUrl && (
+          <a
+            href={checkoutUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="block text-center mt-3 text-sm text-indigo-700 underline"
+          >
+            Abrir checkout en nueva pestaña
+          </a>
+        )}
+
         <div className="flex items-center justify-center gap-2 text-gray-500 text-sm mt-6">
           🔒 Pago 100% seguro y encriptado
         </div>
@@ -290,6 +351,5 @@ function Checkout() {
       </div>
     </div>
   );
+  
 }
-
-export default Checkout;

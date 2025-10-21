@@ -62,6 +62,10 @@ export default function Success() {
                     src={item.productId?.imageUrl}
                     alt={item.productName}
                     className="w-14 h-14 rounded-lg object-cover"
+                    onError={(e) => {
+                      const el = e.currentTarget as HTMLImageElement;
+                      el.src = '/placeholder-100.png';
+                    }}
                   />
                   <div>
                     <p className="font-semibold">{item.productName}</p>

@@ -87,6 +87,21 @@ export const api = {
     return res.data;
   },
 
+  getConversationCart: async (phone: string) => {
+    const res = await axios.get(`${API_URL}/api/conversations/${phone}/cart`);
+    return res.data;
+  },
+
+  addItemToConversationCart: async (phone: string, data: any) => {
+    const res = await axios.post(`${API_URL}/api/conversations/${phone}/cart/add`, data);
+    return res.data;
+  },
+
+  removeItemFromConversationCart: async (phone: string, data: any) => {
+    const res = await axios.post(`${API_URL}/api/conversations/${phone}/cart/remove`, data);
+    return res.data;
+  },
+
   updateConversationCart: async (phone: string, cart: any[]) => {
     const res = await axios.patch(`${API_URL}/api/conversations/${phone}/cart`, { cart });
     return res.data;
@@ -122,6 +137,12 @@ export const api = {
 
   createOrder: async (data: any) => {
     const res = await axios.post(`${API_URL}/api/orders`, data);
+    return res.data;
+  },
+
+  // Culqi: create order / payment and receive checkoutUrl
+  createCulqiOrder: async (data: any) => {
+    const res = await axios.post(`${API_URL}/api/culqi/create-order`, data);
     return res.data;
   },
 

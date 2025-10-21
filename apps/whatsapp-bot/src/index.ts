@@ -1,15 +1,10 @@
 import { Client, LocalAuth } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
-import { handleMessage } from "./handlers/SalesBotHandler.js";
+import { handleMessage } from "./handlers/index";
+import { getSession, updateSession } from "./utils/context";
 
 dotenv.config();
-
-mongoose
-  .connect(process.env.MONGO_URI!)
-  .then(() => console.log("🟢 MongoDB conectado"))
-  .catch((err) => console.error("❌ Error de conexión MongoDB:", err));
 
 const client = new Client({
   authStrategy: new LocalAuth({ dataPath: ".wwebjs_auth" }),
@@ -34,6 +29,13 @@ client.on("message", async (msg) => {
     const name = contact.pushname || contact.name || "Desconocido";
 
     console.log(`📩 Mensaje recibido de ${name} (${number}): ${msg.body}`);
+
+      // ensure session contains contactName and phone for handlers
+      let session = getSession(number);
+      if (!session) session = { step: "greeting", cart: [] };
+      session.contactName = name;
+      session.phone = number;
+      updateSession(number, session);
 
     // Ahora puedes pasar esta info al manejador de mensajes
     await handleMessage(client, msg );

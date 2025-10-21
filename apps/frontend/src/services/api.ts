@@ -142,13 +142,21 @@ export const culqiAPI = {
   },
 
   /**
+   * GET /api/orders/:id
+   * Obtiene una orden por su _id en la base de datos
+   */
+  getOrderById: (id: string): Promise<AxiosResponse<any>> => {
+    return api.get(`/api/orders/${id}`);
+  },
+
+  /**
    * POST /api/culqi/create-charge
    * Crea un cargo directo con token de Culqi
    */
   createCharge: (data: {
     tokenId: string;
     culqiOrderId: string;
-    amount: number;
+    amount?: number;
     email?: string;
   }): Promise<AxiosResponse<ConfirmPaymentResponse>> => {
     return api.post('/api/culqi/create-charge', data);
@@ -161,6 +169,21 @@ export const culqiAPI = {
   getPaymentDetails: (paymentId: string): Promise<AxiosResponse<PaymentDetailsResponse>> => {
     return api.get(`/api/culqi/payment/${paymentId}`);
   },
+};
+
+// Orders API helpers
+export const ordersAPI = {
+  // GET /api/orders/:id
+  getOrderById: (id: string) => api.get(`/api/orders/${id}`),
+
+  // Helper to find an order by its public orderNumber (e.g. ORD-000008)
+  // Backend doesn't expose a dedicated endpoint for lookup by orderNumber,
+  // so fetch all orders and find the matching one locally (fine for dev/demo).
+  findOrderByNumber: async (orderNumber: string) => {
+    const res = await api.get('/api/orders');
+    const orders = res.data as any[];
+    return orders.find(o => o.orderNumber === orderNumber) || null;
+  }
 };
 
 export default api;

@@ -7,7 +7,8 @@ import {
   handleCulqiWebhook,
   getCulqiOrderStatus,
   getPaymentById,
-  getOrderForCheckout
+  getOrderForCheckout,
+  getPaymentByCulqiId,
 } from "../controllers/culqi.controller";
 
 const router = Router();
@@ -128,6 +129,9 @@ router.post("/webhook", handleCulqiWebhook);
  *         description: Detalle de la orden
  */
 router.get("/order/:culqiOrderId", getCulqiOrderStatus);
+
+// Debug: get payment by culqiOrderId
+router.get('/payment/culqi/:culqiOrderId', getPaymentByCulqiId);
 
 /**
  * @swagger
