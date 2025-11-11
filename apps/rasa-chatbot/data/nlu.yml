@@ -1,0 +1,52 @@
+version: "3.1"
+
+nlu:
+- intent: greet
+  examples: |
+    - hola
+    - buenos días
+    - qué tal
+    - hola bot
+    - buenas tardes
+
+- intent: goodbye
+  examples: |
+    - adiós
+    - nos vemos
+    - hasta luego
+    - chau
+
+- intent: ask_orders
+  examples: |
+    - quiero ver mis órdenes
+    - muéstrame mis pedidos
+    - cuáles son mis órdenes pendientes
+    - ver mis compras
+    - tengo alguna orden activa
+
+- intent: check_order_status
+  examples: |
+    - cuál es el estado de mi orden [12345](order_id)
+    - cómo va mi pedido [98765](order_id)
+    - estado de la orden [54321](order_id)
+    - en qué estado está mi pedido número [1111](order_id)
+
+- intent: cancel_order
+  examples: |
+    - quiero cancelar mi pedido [12345](order_id)
+    - anula la orden [5678](order_id)
+    - cancela mi compra [9999](order_id)
+    - deseo cancelar mi pedido
+
+- intent: affirm
+  examples: |
+    - sí
+    - correcto
+    - claro
+    - exacto
+
+- intent: deny
+  examples: |
+    - no
+    - para nada
+    - no gracias

@@ -1,0 +1,70 @@
+# ==========================================
+# Archivos y carpetas de Rasa
+# ==========================================
+
+# Modelos entrenados (pesan mucho)
+models/
+
+# Archivos de caché y temporales
+*.pyc
+__pycache__/
+.cache/
+.rasa/
+.results/
+.events/
+
+# Carpeta de logs
+logs/
+*.log
+
+# Archivos de backup automáticos de Rasa
+*.bk
+*.bak
+
+# Archivos de configuración locales o secretos
+.env
+.env.*
+credentials.yml
+endpoints.yml
+
+# ==========================================
+# Archivos de sistema y editores
+# ==========================================
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Visual Studio Code
+.vscode/
+
+# PyCharm / IntelliJ
+.idea/
+
+# ==========================================
+# Python virtual environments
+# ==========================================
+venv/
+.env/
+.env*/ 
+.venv/
+venv*/
+
+# ==========================================
+# Archivos generados por dependencias o pip
+# ==========================================
+*.egg-info/
+*.egg
+dist/
+build/
+
+# ==========================================
+# Otros
+# ==========================================
+*.tar.gz
+*.zip
+*.tmp

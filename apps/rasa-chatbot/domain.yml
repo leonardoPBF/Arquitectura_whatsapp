@@ -1,0 +1,32 @@
+version: "3.1"
+
+intents:
+  - greet
+  - goodbye
+  - ask_orders
+  - check_order_status
+  - cancel_order
+  - affirm
+  - deny
+
+entities:
+  - order_id
+
+slots:
+  order_id:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: order_id
+
+responses:
+  utter_greet:
+    - text: "¡Hola! ¿En qué puedo ayudarte hoy?"
+  utter_goodbye:
+    - text: "¡Hasta luego! Espero haberte ayudado."
+
+actions:
+  - action_get_orders
+  - action_get_order_status
+  - action_cancel_order

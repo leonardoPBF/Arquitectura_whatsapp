@@ -1,0 +1,13 @@
+version: "3.1"
+
+rules:
+
+- rule: saludar siempre al inicio
+  steps:
+    - intent: greet
+    - action: utter_greet
+
+- rule: despedirse siempre
+  steps:
+    - intent: goodbye
+    - action: utter_goodbye

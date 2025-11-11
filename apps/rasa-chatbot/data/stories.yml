@@ -1,0 +1,28 @@
+version: "3.1"
+
+stories:
+
+- story: saludo inicial
+  steps:
+    - intent: greet
+    - action: utter_greet
+
+- story: despedida
+  steps:
+    - intent: goodbye
+    - action: utter_goodbye
+
+- story: consultar órdenes del cliente
+  steps:
+    - intent: ask_orders
+    - action: action_get_orders
+
+- story: consultar estado de orden
+  steps:
+    - intent: check_order_status
+    - action: action_get_order_status
+
+- story: cancelar orden
+  steps:
+    - intent: cancel_order
+    - action: action_cancel_order
