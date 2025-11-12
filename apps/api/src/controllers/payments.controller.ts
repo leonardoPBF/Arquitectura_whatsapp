@@ -2,9 +2,21 @@ import { Request, Response } from "express";
 import { Payment } from "../models/Payment";
 
 // GET /api/payments
-export const getPayments = async (_: Request, res: Response) => {
+// Soporta query params: ?orderId=xxx&status=xxx&culqiOrderId=xxx
+export const getPayments = async (req: Request, res: Response) => {
   try {
-    const payments = await Payment.find();
+    const { orderId, status, culqiOrderId } = req.query;
+    
+    // Construir filtro dinámico
+    const filter: any = {};
+    if (orderId) filter.orderId = orderId;
+    if (status) filter.status = status;
+    if (culqiOrderId) filter.culqiOrderId = culqiOrderId;
+    
+    const payments = await Payment.find(filter)
+      .populate('orderId')
+      .populate('customerId');
+    
     res.json(payments);
   } catch (error) {
     res.status(500).json({ message: "Error al obtener pagos", error });

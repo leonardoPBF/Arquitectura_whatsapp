@@ -2,12 +2,180 @@ version: "3.1"
 
 rules:
 
-- rule: saludar siempre al inicio
+# ============================================
+# REGLAS BÁSICAS - SALUDOS Y DESPEDIDAS
+# ============================================
+- rule: Saludar al inicio
   steps:
     - intent: greet
     - action: utter_greet
 
-- rule: despedirse siempre
+- rule: Despedirse
   steps:
     - intent: goodbye
     - action: utter_goodbye
+
+- rule: Agradecer
+  steps:
+    - intent: thank
+    - action: utter_you_are_welcome
+
+- rule: Solicitar ayuda
+  steps:
+    - intent: ask_help
+    - action: utter_help
+
+- rule: Responder a bot challenge
+  steps:
+    - intent: bot_challenge
+    - action: utter_iamabot
+
+# ============================================
+# REGLAS DE AFIRMACIÓN Y NEGACIÓN
+# ============================================
+# NOTA: Reglas de affirm/deny removidas para evitar conflictos
+# con stories específicas que usan estos intents en contextos diferentes
+
+# ============================================
+# CONSULTAS RÁPIDAS DE ÓRDENES
+# ============================================
+- rule: Ver todas las órdenes
+  steps:
+    - intent: ask_orders
+    - action: action_get_orders
+
+- rule: Consultar estado de orden específica
+  steps:
+    - intent: check_order_status
+    - action: action_get_order_status
+
+- rule: Ver órdenes pendientes
+  steps:
+    - intent: ask_pending_orders
+    - action: action_get_pending_orders
+
+- rule: Ver órdenes recientes
+  steps:
+    - intent: ask_recent_orders
+    - action: action_get_recent_orders
+
+# ============================================
+# CONSULTAS DE CLIENTES
+# ============================================
+- rule: Ver información de cliente
+  steps:
+    - intent: ask_customer_info
+    - action: action_get_customer_info
+
+- rule: Ver mejores clientes
+  steps:
+    - intent: ask_top_customers
+    - action: action_get_top_customers
+
+- rule: Contar clientes totales
+  steps:
+    - intent: ask_customer_count
+    - action: action_get_customer_count
+
+# ============================================
+# CONSULTAS DE PRODUCTOS
+# ============================================
+- rule: Ver lista de productos
+  steps:
+    - intent: ask_products
+    - action: action_get_products
+
+- rule: Ver productos más vendidos
+  steps:
+    - intent: ask_top_products
+    - action: action_get_top_products
+
+- rule: Consultar stock de producto
+  steps:
+    - intent: ask_product_stock
+    - action: action_get_product_stock
+
+# ============================================
+# ANÁLISIS DE VENTAS
+# ============================================
+- rule: Ver ventas totales
+  steps:
+    - intent: ask_total_sales
+    - action: action_get_total_sales
+
+- rule: Ver ingresos totales
+  steps:
+    - intent: ask_revenue
+    - action: action_get_revenue
+
+- rule: Ver ventas por período
+  steps:
+    - intent: ask_sales_by_period
+    - action: action_get_sales_by_period
+
+- rule: Ver carritos abandonados
+  steps:
+    - intent: ask_abandoned_carts
+    - action: action_get_abandoned_carts
+
+# ============================================
+# CONSULTAS DE PAGOS
+# ============================================
+- rule: Verificar estado de pago
+  steps:
+    - intent: ask_payment_status
+    - action: action_get_payment_status
+
+- rule: Ver pagos pendientes
+  steps:
+    - intent: ask_pending_payments
+    - action: action_get_pending_payments
+
+- rule: Ver métodos de pago
+  steps:
+    - intent: ask_payment_methods
+    - action: utter_payment_methods
+
+# ============================================
+# MÉTRICAS Y ESTADÍSTICAS
+# ============================================
+- rule: Ver tasa de conversión
+  steps:
+    - intent: ask_conversion_rate
+    - action: action_get_conversion_rate
+
+- rule: Ver ticket promedio
+  steps:
+    - intent: ask_average_order
+    - action: action_get_average_order
+
+- rule: Ver resumen del dashboard
+  steps:
+    - intent: ask_dashboard_summary
+    - action: action_get_dashboard_summary
+
+# ============================================
+# PROBLEMAS Y SOPORTE
+# ============================================
+- rule: Reportar problema de pago
+  steps:
+    - intent: report_payment_issue
+    - action: utter_payment_issue_help
+
+- rule: Reportar problema con orden
+  steps:
+    - intent: report_order_issue
+    - action: utter_order_issue_help
+
+# ============================================
+# PREGUNTAS FRECUENTES
+# ============================================
+- rule: Consultar horarios
+  steps:
+    - intent: ask_business_hours
+    - action: utter_business_hours
+
+- rule: Consultar información de envíos
+  steps:
+    - intent: ask_shipping_info
+    - action: utter_shipping_info

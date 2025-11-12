@@ -1,17 +1,80 @@
 version: "3.1"
 
+# ============================================
+# INTENTS - Intenciones del usuario
+# ============================================
 intents:
+  # Básicos
   - greet
   - goodbye
-  - ask_orders
-  - check_order_status
-  - cancel_order
   - affirm
   - deny
+  - thank
+  - ask_help
+  - bot_challenge
+  
+  # Órdenes y pedidos
+  - ask_orders
+  - check_order_status
+  - ask_pending_orders
+  - ask_recent_orders
+  - cancel_order
+  - update_order_status
+  - filter_orders
+  
+  # Clientes
+  - ask_customer_info
+  - ask_top_customers
+  - ask_customer_count
+  - search_customer
+  
+  # Productos
+  - ask_products
+  - ask_top_products
+  - ask_product_stock
+  
+  # Ventas y reportes
+  - ask_total_sales
+  - ask_revenue
+  - ask_sales_by_period
+  - ask_abandoned_carts
+  
+  # Pagos
+  - ask_payment_status
+  - ask_pending_payments
+  - ask_payment_methods
+  
+  # Métricas
+  - ask_conversion_rate
+  - ask_average_order
+  - ask_dashboard_summary
+  
+  # Problemas
+  - report_payment_issue
+  - report_order_issue
+  
+  # Información general
+  - ask_business_hours
+  - ask_shipping_info
 
+# ============================================
+# ENTITIES - Entidades extraídas
+# ============================================
 entities:
   - order_id
+  - order_number
+  - order_status
+  - payment_status
+  - customer_id
+  - customer_email
+  - customer_name
+  - customer_phone
+  - product_name
+  - time_period
 
+# ============================================
+# SLOTS - Variables de conversación
+# ============================================
 slots:
   order_id:
     type: text
@@ -19,14 +82,222 @@ slots:
     mappings:
       - type: from_entity
         entity: order_id
+  
+  order_number:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: order_number
+  
+  order_status:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: order_status
+  
+  payment_status:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: payment_status
+  
+  customer_id:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: customer_id
+  
+  customer_email:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: customer_email
+  
+  customer_name:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: customer_name
+  
+  customer_phone:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: customer_phone
+  
+  product_name:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: product_name
+  
+  time_period:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: from_entity
+        entity: time_period
 
+# ============================================
+# RESPONSES - Respuestas predefinidas
+# ============================================
 responses:
+  # Básicas
   utter_greet:
-    - text: "¡Hola! ¿En qué puedo ayudarte hoy?"
+    - text: "¡Hola! Soy tu asistente administrativo. ¿En qué puedo ayudarte hoy?"
+    - text: "¡Hola! Estoy aquí para ayudarte con el dashboard. ¿Qué necesitas?"
+    - text: "¡Bienvenido! ¿Qué información necesitas sobre tu negocio?"
+  
   utter_goodbye:
     - text: "¡Hasta luego! Espero haberte ayudado."
+    - text: "¡Nos vemos! Si necesitas algo más, no dudes en preguntar."
+    - text: "¡Adiós! Que tengas un excelente día."
+  
+  utter_you_are_welcome:
+    - text: "¡De nada! ¿Necesitas algo más?"
+    - text: "¡Con gusto! ¿Algo más en lo que pueda ayudarte?"
+    - text: "¡Para eso estoy! ¿Algo más?"
+  
+  utter_confirmed:
+    - text: "✅ Confirmado. Procediendo con la acción."
+    - text: "✅ Entendido. Realizando la operación."
+  
+  utter_cancelled:
+    - text: "❌ Acción cancelada. No se realizarán cambios."
+    - text: "❌ Operación cancelada."
+  
+  utter_help:
+    - text: |
+        📋 **Puedo ayudarte con:**
+        
+        📦 **Órdenes:** Ver, buscar, cancelar, actualizar estado
+        👥 **Clientes:** Información, mejores clientes, búsqueda
+        🛍️ **Productos:** Catálogo, más vendidos, stock
+        💰 **Ventas:** Reportes, ingresos, análisis por período
+        💳 **Pagos:** Estado, pendientes, métodos disponibles
+        📊 **Métricas:** Conversión, ticket promedio, resumen del negocio
+        
+        ¿Qué te gustaría consultar?
+  
+  utter_iamabot:
+    - text: "Soy un asistente virtual creado para ayudarte a gestionar tu negocio. 🤖"
+  
+  # Confirmaciones
+  utter_ask_confirm_cancel:
+    - text: "¿Estás seguro de que deseas cancelar esta orden? (Responde: sí o no)"
+    - text: "⚠️ ¿Confirmas la cancelación de la orden? Esta acción no se puede deshacer."
+  
+  # Métodos de pago
+  utter_payment_methods:
+    - text: |
+        💳 **Métodos de pago disponibles:**
+        
+        ✅ Tarjetas de crédito y débito (Visa, Mastercard)
+        ✅ Culqi (procesador de pagos seguro)
+        ✅ Pago online con checkout seguro
+        
+        Los pagos se procesan de forma segura con encriptación SSL.
+  
+  # Problemas
+  utter_payment_issue_help:
+    - text: |
+        🔧 **Para problemas de pago:**
+        
+        1. Verifica que el estado de la orden en Culqi esté actualizado
+        2. Revisa que el webhook de Culqi esté funcionando
+        3. Consulta el estado del pago con: "estado de pago de orden ORD-XXXXX"
+        4. Si el cliente reporta error, verifica su método de pago
+        
+        ¿Necesitas que revise alguna orden específica?
+  
+  utter_order_issue_help:
+    - text: |
+        🔧 **Para problemas con órdenes:**
+        
+        1. Verifica el estado actual de la orden
+        2. Revisa si el cliente completó el pago
+        3. Confirma que los productos estén disponibles
+        4. Puedes cancelar la orden si es necesario
+        
+        ¿Qué orden necesitas revisar?
+  
+  # Información general
+  utter_business_hours:
+    - text: |
+        🕐 **Horarios de atención:**
+        
+        Lunes a Viernes: 9:00 AM - 6:00 PM
+        Sábados: 10:00 AM - 2:00 PM
+        Domingos: Cerrado
+        
+        Soporte online disponible 24/7 a través del dashboard.
+  
+  utter_shipping_info:
+    - text: |
+        📦 **Información de envíos:**
+        
+        🚚 Entregas a domicilio en Lima: 1-2 días hábiles
+        📍 Provincias: 3-5 días hábiles
+        💰 Envío gratis en compras mayores a S/. 100
+        
+        Los clientes pueden rastrear sus pedidos desde el dashboard.
+  
+  # Fallback
+  utter_default:
+    - text: "Disculpa, no entendí eso. ¿Puedes reformular tu pregunta?"
+    - text: "No estoy seguro de entender. ¿Podrías ser más específico?"
+    - text: "Hmm, no reconocí eso. Prueba con: 'ayuda' para ver qué puedo hacer."
 
+# ============================================
+# ACTIONS - Acciones personalizadas
+# ============================================
 actions:
+  # Órdenes
   - action_get_orders
   - action_get_order_status
+  - action_get_pending_orders
+  - action_get_recent_orders
   - action_cancel_order
+  - action_update_order_status
+  - action_filter_orders
+  
+  # Clientes
+  - action_get_customer_info
+  - action_get_top_customers
+  - action_get_customer_count
+  - action_search_customer
+  
+  # Productos
+  - action_get_products
+  - action_get_top_products
+  - action_get_product_stock
+  
+  # Ventas
+  - action_get_total_sales
+  - action_get_revenue
+  - action_get_sales_by_period
+  - action_get_abandoned_carts
+  
+  # Pagos
+  - action_get_payment_status
+  - action_get_pending_payments
+  
+  # Métricas
+  - action_get_conversion_rate
+  - action_get_average_order
+  - action_get_dashboard_summary
+
+# ============================================
+# SESSION CONFIG
+# ============================================
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true

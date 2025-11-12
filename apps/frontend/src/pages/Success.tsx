@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import { Navbar } from "@/components/Navbar";
 
 export default function Success() {
   const [searchParams] = useSearchParams();
@@ -26,11 +27,24 @@ export default function Success() {
     fetchOrder();
   }, [orderId]);
 
-  if (loading) return <div className="p-10 text-center text-gray-600">Cargando orden...</div>;
-  if (!order) return <div className="p-10 text-center text-red-600">No se encontró la orden.</div>;
+  if (loading) return (
+    <>
+      <Navbar />
+      <div className="p-10 text-center text-gray-600">Cargando orden...</div>
+    </>
+  );
+  
+  if (!order) return (
+    <>
+      <Navbar />
+      <div className="p-10 text-center text-red-600">No se encontró la orden.</div>
+    </>
+  );
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-green-50 p-6">
+    <>
+      <Navbar />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-green-50 dark:bg-gray-950 p-6">
       <div className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl w-full">
         <div className="text-center mb-6">
           <div className="text-green-600 text-5xl mb-3">✅</div>
@@ -100,6 +114,7 @@ export default function Success() {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

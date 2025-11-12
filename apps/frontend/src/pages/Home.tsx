@@ -1,79 +1,91 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ordersAPI } from '../services/api';
+import { useQuery } from '@tanstack/react-query';
+import { analyticsAPI } from '@/services/api';
+import { Navbar } from '@/components/Navbar';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ShoppingCart } from 'lucide-react';
 
 export default function Home() {
-  const [orderNumber, setOrderNumber] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const { data: products, isLoading } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const response = await analyticsAPI.getAllProducts();
+      return response.data;
+    },
+  });
 
-  const onSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    if (!orderNumber) return setError('Introduce un número de orden (ej: ORD-000008)');
-
-    setLoading(true);
-    try {
-      const order = await ordersAPI.findOrderByNumber(orderNumber.trim().toUpperCase());
-      if (!order) {
-        setError('No se encontró la orden con ese número');
-        setLoading(false);
-        return;
-      }
-
-      // Si la orden ya tiene pago completado, ir a success con el _id de la orden
-      if (order.paymentStatus === 'paid') {
-        navigate(`/success?order=${order._id}`);
-        return;
-      }
-
-      // Si no hay pago, redirigir al checkout. El backend de Culqi usa un payment.culqiOrderId
-      // en su propio flujo; la página /checkout espera ?order=<culqiOrderId>
-      // Si el Payment fue creado y asóciado, preferimos abrir checkout por payment.culqiOrderId
-      const payment = order.paymentId || null;
-      if (payment && payment.culqiOrderId) {
-        navigate(`/checkout?order=${payment.culqiOrderId}`);
-        return;
-      }
-
-      // Fallback: si no hay payment, navegar a la vista de checkout con el id interno de la orden
-      navigate(`/checkout?order=${order._id}`);
-    } catch (err: any) {
-      console.error('Error buscando orden:', err);
-      setError(err.response?.data?.message || 'Error al buscar la orden');
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (isLoading) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6">
+          <div className="max-w-7xl mx-auto">
+            <p className="text-center">Cargando productos...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-      <div className="bg-white shadow-lg rounded-xl p-8 w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-4">Buscar orden</h1>
-        <p className="text-sm text-gray-600 mb-6">Introduce tu número de orden (ej: ORD-000008) para ver el estado o completar el pago.</p>
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold">Bienvenido a Nuestra Tienda</h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Explora nuestro catálogo de productos
+            </p>
+          </div>
 
-        <form onSubmit={onSearch} className="space-y-4">
-          <input
-            className="w-full border rounded-lg px-4 py-2"
-            placeholder="ORD-000008"
-            value={orderNumber}
-            onChange={(e) => setOrderNumber(e.target.value)}
-            aria-label="Número de orden"
-          />
-
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold disabled:opacity-50"
-            disabled={loading}
-          >
-            {loading ? 'Buscando...' : 'Buscar orden'}
-          </button>
-
-          {error && <div className="text-red-600 text-sm">{error}</div>}
-        </form>
+          {products && products.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {products.map((product: any) => (
+                <Card key={product._id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    {product.imageUrl && (
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className="w-full h-48 object-cover rounded-lg mb-4"
+                        onError={(e) => {
+                          const el = e.currentTarget as HTMLImageElement;
+                          el.src = '/placeholder-image.png';
+                        }}
+                      />
+                    )}
+                    <CardTitle>{product.name}</CardTitle>
+                    <CardDescription>{product.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-2xl font-bold">S/ {product.price.toFixed(2)}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Stock: {product.stock} unidades
+                        </p>
+                      </div>
+                      <button className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2">
+                        <ShoppingCart className="w-4 h-4" />
+                        Agregar
+                      </button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <p className="text-gray-600 dark:text-gray-400">
+                  No hay productos disponibles en este momento
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

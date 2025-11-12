@@ -11,6 +11,7 @@ import conversationRoutes from "./routes/conversation.routes";
 import sheetsRoutes from "./routes/sheets.routes";
 import culqiRoutes from "./routes/culqi.routes";
 import chatbotRoutes from "./routes/chatbot.routes";
+import authRoutes from "./routes/auth.routes";
 import { setupSwagger } from "./config/swagger";
 
 dotenv.config();
@@ -32,6 +33,7 @@ setupSwagger(app);
 
 app.get("/", (_, res) => res.send("🚀 API WhatsApp Sales funcionando"));
 
+app.use("/api/auth", authRoutes);
 app.use("/api/products", productsRoutes);
 app.use("/api/orders", ordersRoutes);
 app.use("/api/customers", customersRoutes);

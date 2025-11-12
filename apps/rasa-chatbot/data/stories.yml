@@ -2,27 +2,357 @@ version: "3.1"
 
 stories:
 
-- story: saludo inicial
+# ============================================
+# HISTORIAS BÁSICAS - CONVERSACIONES SIMPLES
+# ============================================
+- story: Saludo inicial y ayuda
   steps:
     - intent: greet
     - action: utter_greet
+    - intent: ask_help
+    - action: utter_help
+    - intent: thank
+    - action: utter_you_are_welcome
 
-- story: despedida
+- story: Saludo y despedida rápida
   steps:
+    - intent: greet
+    - action: utter_greet
     - intent: goodbye
     - action: utter_goodbye
 
-- story: consultar órdenes del cliente
+# ============================================
+# FLUJO: CONSULTAR ÓRDENES Y ESTADO
+# ============================================
+- story: Consultar todas las órdenes
   steps:
+    - intent: greet
+    - action: utter_greet
     - intent: ask_orders
     - action: action_get_orders
+    - intent: thank
+    - action: utter_you_are_welcome
 
-- story: consultar estado de orden
+- story: Consultar estado de orden específica
   steps:
     - intent: check_order_status
     - action: action_get_order_status
+    - intent: ask_payment_status
+    - action: action_get_payment_status
+    - intent: thank
+    - action: utter_you_are_welcome
 
-- story: cancelar orden
+- story: Ver órdenes pendientes y decidir acción
+  steps:
+    - intent: ask_pending_orders
+    - action: action_get_pending_orders
+    - intent: check_order_status
+    - action: action_get_order_status
+    - intent: thank
+    - action: utter_you_are_welcome
+
+- story: Consultar órdenes recientes del día
+  steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: ask_recent_orders
+    - action: action_get_recent_orders
+    - intent: ask_total_sales
+    - action: action_get_total_sales
+    - intent: thank
+    - action: utter_you_are_welcome
+
+# ============================================
+# FLUJO: ANÁLISIS DE CLIENTES
+# ============================================
+- story: Ver mejores clientes y su información
+  steps:
+    - intent: ask_top_customers
+    - action: action_get_top_customers
+    - intent: ask_customer_info
+    - action: action_get_customer_info
+    - intent: thank
+    - action: utter_you_are_welcome
+
+- story: Contar clientes y ver estadísticas
+  steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: ask_customer_count
+    - action: action_get_customer_count
+    - intent: ask_top_customers
+    - action: action_get_top_customers
+    - intent: goodbye
+    - action: utter_goodbye
+
+- story: Buscar cliente específico y ver sus órdenes
+  steps:
+    - intent: search_customer
+    - action: action_search_customer
+    - intent: ask_customer_info
+    - action: action_get_customer_info
+    - intent: thank
+    - action: utter_you_are_welcome
+
+# ============================================
+# FLUJO: ANÁLISIS DE PRODUCTOS Y VENTAS
+# ============================================
+- story: Ver productos más vendidos
+  steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: ask_top_products
+    - action: action_get_top_products
+    - intent: ask_product_stock
+    - action: action_get_product_stock
+    - intent: thank
+    - action: utter_you_are_welcome
+
+- story: Consultar inventario y productos
+  steps:
+    - intent: ask_products
+    - action: action_get_products
+    - intent: ask_product_stock
+    - action: action_get_product_stock
+    - intent: thank
+    - action: utter_you_are_welcome
+
+# ============================================
+# FLUJO: REPORTE DE VENTAS E INGRESOS
+# ============================================
+- story: Reporte completo de ventas
+  steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: ask_dashboard_summary
+    - action: action_get_dashboard_summary
+    - intent: ask_total_sales
+    - action: action_get_total_sales
+    - intent: ask_revenue
+    - action: action_get_revenue
+    - intent: thank
+    - action: utter_you_are_welcome
+    - intent: goodbye
+    - action: utter_goodbye
+
+- story: Análisis de ventas por período
+  steps:
+    - intent: ask_sales_by_period
+    - action: action_get_sales_by_period
+    - intent: ask_average_order
+    - action: action_get_average_order
+    - intent: ask_conversion_rate
+    - action: action_get_conversion_rate
+    - intent: thank
+    - action: utter_you_are_welcome
+
+- story: Ver carritos abandonados y oportunidades
+  steps:
+    - intent: ask_abandoned_carts
+    - action: action_get_abandoned_carts
+    - intent: ask_pending_payments
+    - action: action_get_pending_payments
+    - intent: thank
+    - action: utter_you_are_welcome
+
+# ============================================
+# FLUJO: GESTIÓN DE PAGOS
+# ============================================
+- story: Verificar estado de pagos
+  steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: ask_pending_payments
+    - action: action_get_pending_payments
+    - intent: ask_payment_status
+    - action: action_get_payment_status
+    - intent: thank
+    - action: utter_you_are_welcome
+
+- story: Problema con pago y solución
+  steps:
+    - intent: report_payment_issue
+    - action: utter_payment_issue_help
+    - intent: ask_payment_status
+    - action: action_get_payment_status
+    - intent: affirm
+    - action: utter_confirmed
+    - intent: thank
+    - action: utter_you_are_welcome
+
+- story: Consultar métodos de pago disponibles
+  steps:
+    - intent: ask_payment_methods
+    - action: utter_payment_methods
+    - intent: ask_pending_payments
+    - action: action_get_pending_payments
+    - intent: goodbye
+    - action: utter_goodbye
+
+# ============================================
+# FLUJO: ACCIONES ADMINISTRATIVAS
+# ============================================
+- story: Cancelar orden con confirmación
   steps:
     - intent: cancel_order
+    - action: utter_ask_confirm_cancel
+    - intent: affirm
     - action: action_cancel_order
+    - intent: thank
+    - action: utter_you_are_welcome
+
+- story: Cancelar orden pero rechazar
+  steps:
+    - intent: cancel_order
+    - action: utter_ask_confirm_cancel
+    - intent: deny
+    - action: utter_cancelled
+    - intent: goodbye
+    - action: utter_goodbye
+
+- story: Actualizar estado de orden
+  steps:
+    - intent: update_order_status
+    - action: action_update_order_status
+    - intent: check_order_status
+    - action: action_get_order_status
+    - intent: thank
+    - action: utter_you_are_welcome
+
+# ============================================
+# FLUJO: FILTROS Y BÚSQUEDAS AVANZADAS
+# ============================================
+- story: Filtrar órdenes por estado
+  steps:
+    - intent: filter_orders
+    - action: action_filter_orders
+    - intent: check_order_status
+    - action: action_get_order_status
+    - intent: thank
+    - action: utter_you_are_welcome
+
+- story: Buscar cliente y ver sus pedidos
+  steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: search_customer
+    - action: action_search_customer
+    - intent: ask_customer_info
+    - action: action_get_customer_info
+    - intent: goodbye
+    - action: utter_goodbye
+
+# ============================================
+# FLUJO: MÉTRICAS Y DASHBOARD
+# ============================================
+- story: Dashboard completo con métricas
+  steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: ask_dashboard_summary
+    - action: action_get_dashboard_summary
+    - intent: ask_conversion_rate
+    - action: action_get_conversion_rate
+    - intent: ask_average_order
+    - action: action_get_average_order
+    - intent: ask_top_customers
+    - action: action_get_top_customers
+    - intent: ask_top_products
+    - action: action_get_top_products
+    - intent: thank
+    - action: utter_you_are_welcome
+    - intent: goodbye
+    - action: utter_goodbye
+
+- story: Análisis rápido del negocio
+  steps:
+    - intent: ask_dashboard_summary
+    - action: action_get_dashboard_summary
+    - intent: affirm
+    - action: utter_confirmed
+    - intent: goodbye
+    - action: utter_goodbye
+
+# ============================================
+# FLUJO: SOPORTE Y PROBLEMAS
+# ============================================
+- story: Reportar problema con orden
+  steps:
+    - intent: report_order_issue
+    - action: utter_order_issue_help
+    - intent: check_order_status
+    - action: action_get_order_status
+    - intent: cancel_order
+    - action: utter_ask_confirm_cancel
+    - intent: affirm
+    - action: action_cancel_order
+    - intent: thank
+    - action: utter_you_are_welcome
+
+- story: Problema de pago y verificación
+  steps:
+    - intent: report_payment_issue
+    - action: utter_payment_issue_help
+    - intent: ask_payment_status
+    - action: action_get_payment_status
+    - intent: ask_payment_methods
+    - action: utter_payment_methods
+    - intent: thank
+    - action: utter_you_are_welcome
+
+# ============================================
+# FLUJO: PREGUNTAS FRECUENTES
+# ============================================
+- story: Consultar información general
+  steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: ask_business_hours
+    - action: utter_business_hours
+    - intent: ask_shipping_info
+    - action: utter_shipping_info
+    - intent: ask_payment_methods
+    - action: utter_payment_methods
+    - intent: thank
+    - action: utter_you_are_welcome
+    - intent: goodbye
+    - action: utter_goodbye
+
+# ============================================
+# FLUJO: CONVERSACIONES COMPLEJAS
+# ============================================
+- story: Análisis completo de ventas y clientes
+  steps:
+    - intent: greet
+    - action: utter_greet
+    - intent: ask_help
+    - action: utter_help
+    - intent: ask_dashboard_summary
+    - action: action_get_dashboard_summary
+    - intent: ask_total_sales
+    - action: action_get_total_sales
+    - intent: ask_top_customers
+    - action: action_get_top_customers
+    - intent: ask_top_products
+    - action: action_get_top_products
+    - intent: ask_abandoned_carts
+    - action: action_get_abandoned_carts
+    - intent: ask_pending_payments
+    - action: action_get_pending_payments
+    - intent: thank
+    - action: utter_you_are_welcome
+    - intent: goodbye
+    - action: utter_goodbye
+
+- story: Revisión de órdenes y gestión
+  steps:
+    - intent: ask_recent_orders
+    - action: action_get_recent_orders
+    - intent: check_order_status
+    - action: action_get_order_status
+    - intent: ask_payment_status
+    - action: action_get_payment_status
+    - intent: update_order_status
+    - action: action_update_order_status
+    - intent: thank
+    - action: utter_you_are_welcome

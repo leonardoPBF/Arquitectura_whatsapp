@@ -1,4 +1,5 @@
 import { api } from "../services/whatsapp.service";
+import { authService } from "../services/auth.service";
 
 export async function handleOrder(ctx: any, text: string) {
   // Usamos ctx.orderPhase para controlar subpasos: undefined|'name'|'email'|'address'|'confirm'
@@ -117,6 +118,25 @@ export async function handleOrder(ctx: any, text: string) {
 
         const order = await api.createOrder(payload);
 
+        // 🔐 Registrar usuario automáticamente desde WhatsApp
+        let passwordMessage = "";
+        if (ctx.customerData?.email && ctx.customerData?.name && ctx.phone) {
+          try {
+            const authResult = await authService.registerFromWhatsApp({
+              email: ctx.customerData.email,
+              name: ctx.customerData.name,
+              phone: ctx.phone,
+            });
+
+            if (!authResult.userExists && authResult.generatedPassword) {
+              passwordMessage = `\n\n🔐 *Acceso a tu cuenta web:*\nEmail: ${ctx.customerData.email}\nContraseña: ${authResult.generatedPassword}\n\n⚠️ Guarda esta contraseña para acceder a tu cuenta en nuestra página web y revisar tus pedidos.`;
+            }
+          } catch (authError) {
+            console.warn("No se pudo crear usuario automáticamente:", authError);
+            // No bloqueamos el flujo si falla la creación del usuario
+          }
+        }
+
         // Intenta crear un payment/checkout en Culqi y enviar link al cliente
         try {
           const culqiRes = await api.createCulqiOrder({ orderId: order._id, method: "card" });
@@ -140,10 +160,13 @@ export async function handleOrder(ctx: any, text: string) {
           let baseMsg = `✅ Pedido confirmado\nNúmero de orden: ${order.orderNumber || "(sin número)"}\n💰 Total: S/.${(order.totalAmount ?? 0).toFixed(2)}\n\nGracias por tu compra.`;
 
           if (checkoutUrl) {
-            baseMsg += `\n\nPara pagar con tarjeta, abre este enlace: ${checkoutUrl}`;
+            baseMsg += `\n\n💳 Para pagar con tarjeta, abre este enlace: ${checkoutUrl}`;
           } else if (culqiRes && culqiRes.success === false) {
-            baseMsg += `\n\nNo se pudo generar el link de pago automáticamente. Intenta desde la app o contacta al vendedor.`;
+            baseMsg += `\n\n⚠️ No se pudo generar el link de pago automáticamente. Intenta desde la app o contacta al vendedor.`;
           }
+
+          // Agregar información de contraseña si se generó
+          baseMsg += passwordMessage;
 
           return baseMsg;
         } catch (err) {
@@ -162,7 +185,7 @@ export async function handleOrder(ctx: any, text: string) {
           ctx.cart = [];
           ctx.step = "menu";
           ctx.orderPhase = undefined;
-          return `✅ Pedido confirmado\nNúmero de orden: ${order.orderNumber || "(sin número)"}\n💰 Total: S/.${(order.totalAmount ?? 0).toFixed(2)}\n\nGracias por tu compra.\n\nNota: No se pudo generar el link de pago automáticamente. Puedes pagar desde la web o contactarnos.`;
+          return `✅ Pedido confirmado\nNúmero de orden: ${order.orderNumber || "(sin número)"}\n💰 Total: S/.${(order.totalAmount ?? 0).toFixed(2)}\n\nGracias por tu compra.${passwordMessage}\n\n⚠️ Nota: No se pudo generar el link de pago automáticamente. Puedes pagar desde la web o contactarnos.`;
         }
       } catch (err: any) {
         console.error("Error creando orden:", err?.message || err);

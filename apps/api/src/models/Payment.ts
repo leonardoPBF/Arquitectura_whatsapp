@@ -9,7 +9,7 @@ export interface IPayment extends Document {
   culqiOrderId: string; 
   checkoutUrl: string;
   method: "card" | "billetera_movil" | "pagoefectivo";
-  status: "pending" | "completed" | "failed" | "refunded";
+  status: "pending" | "completed" | "failed" | "refunded" | "expired";
   transactionId?: string;
   receiptUrl?: string;
   gatewayResponse?: Record<string, any>;
@@ -32,7 +32,7 @@ const PaymentSchema = new Schema({
   },
   status: { 
     type: String, 
-    enum: ["pending", "completed", "failed", "refunded"],
+    enum: ["pending", "completed", "failed", "refunded", "expired"],
     default: "pending" 
   },
   transactionId: { type: String },

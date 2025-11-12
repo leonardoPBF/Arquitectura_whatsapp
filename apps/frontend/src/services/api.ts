@@ -22,6 +22,9 @@ interface ConfirmPaymentResponse {
   charge?: any;
   order?: any;
   payment?: any;
+  paymentId?: string;
+  orderId?: string;
+  orderExpired?: boolean;
 }
 
 interface CreateOrderResponse {
@@ -159,7 +162,7 @@ export const culqiAPI = {
     amount?: number;
     email?: string;
   }): Promise<AxiosResponse<ConfirmPaymentResponse>> => {
-    return api.post('/api/culqi/create-charge', data);
+    return api.post('/api/culqi/verify-payment', data);
   },
 
   /**
@@ -176,6 +179,9 @@ export const ordersAPI = {
   // GET /api/orders/:id
   getOrderById: (id: string) => api.get(`/api/orders/${id}`),
 
+  // GET /api/orders
+  getAllOrders: () => api.get('/api/orders'),
+
   // Helper to find an order by its public orderNumber (e.g. ORD-000008)
   // Backend doesn't expose a dedicated endpoint for lookup by orderNumber,
   // so fetch all orders and find the matching one locally (fine for dev/demo).
@@ -184,6 +190,39 @@ export const ordersAPI = {
     const orders = res.data as any[];
     return orders.find(o => o.orderNumber === orderNumber) || null;
   }
+};
+
+// Analytics API helpers
+export const analyticsAPI = {
+  // GET /api/customers
+  getAllCustomers: () => api.get('/api/customers'),
+  
+  // GET /api/orders
+  getAllOrders: () => api.get('/api/orders'),
+  
+  // GET /api/payments
+  getAllPayments: () => api.get('/api/payments'),
+  
+  // GET /api/products
+  getAllProducts: () => api.get('/api/products'),
+};
+
+// Auth API helpers
+export const authAPI = {
+  // POST /api/auth/login
+  login: (email: string, password: string) => 
+    api.post('/api/auth/login', { email, password }),
+  
+  // POST /api/auth/register
+  register: (data: { email: string; password: string; name: string; phone?: string; role?: string }) =>
+    api.post('/api/auth/register', data),
+  
+  // GET /api/auth/me
+  getCurrentUser: () => api.get('/api/auth/me'),
+  
+  // POST /api/auth/create-admin
+  createAdmin: (data: { email: string; password: string; name: string }) =>
+    api.post('/api/auth/create-admin', data),
 };
 
 export default api;

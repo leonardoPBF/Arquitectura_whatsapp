@@ -2,13 +2,15 @@
 import { Router } from "express";
 import {
   createCulqiOrder,
-  createCulqiCharge,
+  verifyCulqiPayment,
   confirmCulqiOrder,
   handleCulqiWebhook,
   getCulqiOrderStatus,
   getPaymentById,
   getOrderForCheckout,
   getPaymentByCulqiId,
+  syncPendingPayments,
+  syncSpecificOrder,
 } from "../controllers/culqi.controller";
 
 const router = Router();
@@ -53,7 +55,7 @@ router.post("/create-order", createCulqiOrder);
 
 /**
  * @swagger
- * /api/culqi/create-charge:
+ * /api/culqi/verify-payment:
  *   post:
  *     summary: Crea un cargo directo (pago inmediato con token)
  *     tags: [Culqi]
@@ -76,7 +78,7 @@ router.post("/create-order", createCulqiOrder);
  *       200:
  *         description: Cargo creado exitosamente
  */
-router.post("/create-charge", createCulqiCharge);
+router.post("/verify-payment", verifyCulqiPayment);
 
 /**
  * @swagger
@@ -170,5 +172,38 @@ router.get("/payment/:paymentId", getPaymentById);
  *         description: checkout del pago
  */
 router.get("/payment/order-checkout", getOrderForCheckout);
+
+/**
+ * @swagger
+ * /api/culqi/sync-payments:
+ *   post:
+ *     summary: Sincroniza todos los pagos pendientes con Culqi
+ *     description: Consulta el estado de todos los pagos pendientes en Culqi y actualiza la base de datos local
+ *     tags: [Culqi]
+ *     responses:
+ *       200:
+ *         description: Sincronización completada
+ */
+router.post("/sync-payments", syncPendingPayments);
+
+/**
+ * @swagger
+ * /api/culqi/sync-order/{culqiOrderId}:
+ *   post:
+ *     summary: Sincroniza una orden específica con Culqi
+ *     description: Consulta el estado de una orden específica en Culqi y actualiza la base de datos local
+ *     tags: [Culqi]
+ *     parameters:
+ *       - in: path
+ *         name: culqiOrderId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID de la orden en Culqi
+ *     responses:
+ *       200:
+ *         description: Orden sincronizada exitosamente
+ */
+router.post("/sync-order/:culqiOrderId", syncSpecificOrder);
 
 export default router;

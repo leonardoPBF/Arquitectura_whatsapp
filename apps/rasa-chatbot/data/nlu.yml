@@ -1,13 +1,21 @@
 version: "3.1"
 
 nlu:
+# ============================================
+# SALUDOS Y DESPEDIDAS
+# ============================================
 - intent: greet
   examples: |
     - hola
     - buenos días
+    - buenas tardes
+    - buenas noches
     - qué tal
     - hola bot
-    - buenas tardes
+    - hey
+    - saludos
+    - hola asistente
+    - buen día
 
 - intent: goodbye
   examples: |
@@ -15,38 +23,380 @@ nlu:
     - nos vemos
     - hasta luego
     - chau
+    - bye
+    - hasta pronto
+    - me voy
+    - gracias, adiós
+    - eso es todo
 
-- intent: ask_orders
-  examples: |
-    - quiero ver mis órdenes
-    - muéstrame mis pedidos
-    - cuáles son mis órdenes pendientes
-    - ver mis compras
-    - tengo alguna orden activa
-
-- intent: check_order_status
-  examples: |
-    - cuál es el estado de mi orden [12345](order_id)
-    - cómo va mi pedido [98765](order_id)
-    - estado de la orden [54321](order_id)
-    - en qué estado está mi pedido número [1111](order_id)
-
-- intent: cancel_order
-  examples: |
-    - quiero cancelar mi pedido [12345](order_id)
-    - anula la orden [5678](order_id)
-    - cancela mi compra [9999](order_id)
-    - deseo cancelar mi pedido
-
+# ============================================
+# AFIRMACIONES Y NEGACIONES
+# ============================================
 - intent: affirm
   examples: |
     - sí
     - correcto
     - claro
     - exacto
+    - afirmativo
+    - ok
+    - está bien
+    - de acuerdo
+    - perfecto
+    - confirmo
 
 - intent: deny
   examples: |
     - no
     - para nada
     - no gracias
+    - negativo
+    - no es correcto
+    - incorrecto
+    - no quiero
+    - no necesito
+
+# ============================================
+# AGRADECIMIENTOS Y AYUDA
+# ============================================
+- intent: thank
+  examples: |
+    - gracias
+    - muchas gracias
+    - te lo agradezco
+    - perfecto gracias
+    - excelente gracias
+    - ok gracias
+    - genial gracias
+
+- intent: ask_help
+  examples: |
+    - ayuda
+    - qué puedes hacer
+    - cómo me ayudas
+    - qué funciones tienes
+    - en qué me puedes ayudar
+    - qué sabes hacer
+    - muéstrame qué puedes hacer
+    - necesito ayuda
+    - qué comandos tienes
+
+# ============================================
+# CONSULTAS SOBRE ÓRDENES Y PEDIDOS
+# ============================================
+- intent: ask_orders
+  examples: |
+    - cuántas órdenes tengo
+    - muéstrame las órdenes
+    - ver órdenes pendientes
+    - lista de pedidos
+    - órdenes del día
+    - pedidos de hoy
+    - cuáles son las órdenes activas
+    - todas las órdenes
+    - últimos pedidos
+    - todas mis órdenes
+
+- intent: check_order_status
+  examples: |
+    - cuál es el estado de la orden [ORD-000012](order_number)
+    - cómo va el pedido [ORD-000011](order_number)
+    - estado de la orden [12345](order_id)
+    - en qué estado está el pedido [ORD-000010](order_number)
+    - quiero saber el estado del pedido número [98765](order_id)
+    - dame el estado de [ORD-000015](order_number)
+    - consultar orden [ORD-000020](order_number)
+    - información del pedido [54321](order_id)
+
+- intent: ask_pending_orders
+  examples: |
+    - cuántas órdenes pendientes tengo
+    - órdenes sin pagar
+    - pedidos pendientes de pago
+    - órdenes que faltan confirmar
+    - cuáles pedidos están pendientes
+    - lista de órdenes pendientes
+    - ver pendientes
+    - órdenes sin completar
+
+- intent: ask_recent_orders
+  examples: |
+    - órdenes de hoy
+    - pedidos de esta semana
+    - órdenes recientes
+    - últimas órdenes
+    - pedidos del mes
+    - órdenes de los últimos 7 días
+    - pedidos recientes
+    - órdenes de ayer
+
+# ============================================
+# CONSULTAS SOBRE CLIENTES
+# ============================================
+- intent: ask_customer_info
+  examples: |
+    - información del cliente [leo@gmail.com](customer_email)
+    - datos del cliente [12345](customer_id)
+    - quién es el cliente [Juan Pérez](customer_name)
+    - ver información de [maria@example.com](customer_email)
+    - buscar cliente [Carlos](customer_name)
+    - detalles del cliente [54321](customer_id)
+    - perfil del cliente [ana@test.com](customer_email)
+
+- intent: ask_top_customers
+  examples: |
+    - cuáles son mis mejores clientes
+    - clientes que más compran
+    - top clientes
+    - clientes VIP
+    - mejores compradores
+    - clientes con más pedidos
+    - quiénes compran más
+    - ranking de clientes
+    - clientes principales
+
+- intent: ask_customer_count
+  examples: |
+    - cuántos clientes tengo
+    - total de clientes
+    - número de clientes
+    - cantidad de clientes registrados
+    - cuántos compradores tengo
+    - clientes activos
+    - total de usuarios
+
+# ============================================
+# CONSULTAS SOBRE PRODUCTOS
+# ============================================
+- intent: ask_products
+  examples: |
+    - qué productos tengo
+    - lista de productos
+    - ver catálogo
+    - cuáles son mis productos
+    - productos disponibles
+    - inventario
+    - todos los productos
+    - muéstrame el catálogo
+
+- intent: ask_top_products
+  examples: |
+    - cuáles son los productos más vendidos
+    - top productos
+    - productos estrella
+    - qué se vende más
+    - productos populares
+    - mejores ventas
+    - productos con más demanda
+    - qué productos tienen más salida
+
+- intent: ask_product_stock
+  examples: |
+    - cuánto stock tengo de [Smartwatch](product_name)
+    - inventario de [iPhone](product_name)
+    - disponibilidad de [Laptop](product_name)
+    - hay stock de [Auriculares](product_name)
+    - cuántos [tablets](product_name) tengo
+    - cantidad disponible de [mouse](product_name)
+
+# ============================================
+# ANÁLISIS DE VENTAS Y REPORTES
+# ============================================
+- intent: ask_total_sales
+  examples: |
+    - cuánto he vendido
+    - total de ventas
+    - ventas totales
+    - cuánto dinero he recaudado
+    - ventas acumuladas
+    - reporte de ventas
+    - cuánto vendí hoy
+    - ganancias del día
+    - monto total vendido
+
+- intent: ask_revenue
+  examples: |
+    - cuál es mi revenue
+    - ingresos de este mes
+    - cuánto gané
+    - facturación total
+    - ganancias totales
+    - ingresos totales
+    - cuánto he facturado
+    - reporte de ingresos
+    - revenue del negocio
+
+- intent: ask_sales_by_period
+  examples: |
+    - ventas de [hoy](time_period)
+    - cuánto vendí [esta semana](time_period)
+    - ventas del [mes](time_period)
+    - ingresos de [ayer](time_period)
+    - reporte de [este año](time_period)
+    - ventas de los [últimos 7 días](time_period)
+    - facturación de [enero](time_period)
+
+- intent: ask_abandoned_carts
+  examples: |
+    - carritos abandonados
+    - cuántos abandonaron el carrito
+    - pedidos sin completar
+    - órdenes pendientes sin pago
+    - clientes que no pagaron
+    - ventas perdidas
+    - carritos sin finalizar
+    - conversiones perdidas
+
+# ============================================
+# CONSULTAS SOBRE PAGOS
+# ============================================
+- intent: ask_payment_status
+  examples: |
+    - estado de pago de la orden [ORD-000012](order_number)
+    - se pagó el pedido [12345](order_id)
+    - pago de la orden [ORD-000010](order_number)
+    - verificar pago de [ORD-000015](order_number)
+    - está pagado el pedido [54321](order_id)
+    - cuál es el estado del pago de [ORD-000020](order_number)
+
+- intent: ask_pending_payments
+  examples: |
+    - cuántos pagos pendientes tengo
+    - pedidos sin pagar
+    - órdenes con pago pendiente
+    - pagos que faltan
+    - lista de pagos pendientes
+    - cuántos deben pagar
+    - pagos por confirmar
+
+- intent: ask_payment_methods
+  examples: |
+    - qué métodos de pago aceptan
+    - cómo pueden pagar
+    - formas de pago disponibles
+    - aceptan tarjetas
+    - métodos de pago
+    - con qué puedo pagar
+    - aceptan Culqi
+
+# ============================================
+# MÉTRICAS Y ESTADÍSTICAS
+# ============================================
+- intent: ask_conversion_rate
+  examples: |
+    - cuál es mi tasa de conversión
+    - conversion rate
+    - porcentaje de conversión
+    - cuántos convierten
+    - tasa de éxito de ventas
+    - porcentaje de compras completadas
+
+- intent: ask_average_order
+  examples: |
+    - cuál es el ticket promedio
+    - promedio de compra
+    - valor promedio de pedido
+    - cuánto gasta en promedio un cliente
+    - ticket medio
+    - average order value
+    - AOV
+
+- intent: ask_dashboard_summary
+  examples: |
+    - dame un resumen
+    - resumen del negocio
+    - cómo va todo
+    - overview del negocio
+    - estado general
+    - resumen de métricas
+    - panorama general
+    - qué tal van las ventas
+    - dame las métricas principales
+
+# ============================================
+# PROBLEMAS Y SOPORTE
+# ============================================
+- intent: report_payment_issue
+  examples: |
+    - hay un problema con el pago
+    - el pago no se procesó
+    - error en el pago de la orden [ORD-000012](order_number)
+    - el cliente no puede pagar
+    - falla el checkout
+    - problema con Culqi
+    - error al pagar
+
+- intent: report_order_issue
+  examples: |
+    - hay un problema con la orden [ORD-000012](order_number)
+    - error en el pedido [12345](order_id)
+    - la orden no se creó bien
+    - problema con un pedido
+    - error en la orden
+
+# ============================================
+# ACCIONES ADMINISTRATIVAS
+# ============================================
+- intent: cancel_order
+  examples: |
+    - cancelar la orden [ORD-000012](order_number)
+    - anular el pedido [12345](order_id)
+    - eliminar la orden [ORD-000010](order_number)
+    - quiero cancelar el pedido [54321](order_id)
+    - dar de baja la orden [ORD-000015](order_number)
+
+- intent: update_order_status
+  examples: |
+    - actualizar estado de la orden [ORD-000012](order_number) a [confirmada](order_status)
+    - cambiar el pedido [12345](order_id) a [enviada](order_status)
+    - marcar como [entregada](order_status) la orden [ORD-000010](order_number)
+    - actualizar orden [ORD-000015](order_number)
+
+# ============================================
+# BÚSQUEDAS Y FILTROS
+# ============================================
+- intent: filter_orders
+  examples: |
+    - órdenes con estado [pendiente](order_status)
+    - pedidos [confirmados](order_status)
+    - ver órdenes [enviadas](order_status)
+    - filtrar por [canceladas](order_status)
+    - órdenes [entregadas](order_status)
+    - pedidos con pago [pendiente](payment_status)
+    - órdenes [pagadas](payment_status)
+
+- intent: search_customer
+  examples: |
+    - buscar cliente [Leo](customer_name)
+    - encontrar [leo@gmail.com](customer_email)
+    - buscar por teléfono [966428078](customer_phone)
+    - quién es [Juan Pérez](customer_name)
+    - información de [maria@example.com](customer_email)
+    - cliente con teléfono [987654321](customer_phone)
+    - buscar número [912345678](customer_phone)
+
+# ============================================
+# PREGUNTAS FRECUENTES
+# ============================================
+- intent: ask_business_hours
+  examples: |
+    - horario de atención
+    - a qué hora atienden
+    - cuándo están abiertos
+    - horarios de la tienda
+
+- intent: ask_shipping_info
+  examples: |
+    - información de envío
+    - cómo hacen los envíos
+    - tiempos de entrega
+    - zonas de reparto
+    - cuánto demora el envío
+
+- intent: bot_challenge
+  examples: |
+    - eres un bot?
+    - eres humano?
+    - eres un robot?
+    - con quién estoy hablando?
+    - eres real?
