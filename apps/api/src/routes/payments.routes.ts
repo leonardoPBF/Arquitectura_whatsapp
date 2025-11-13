@@ -3,7 +3,9 @@ import {
   getPayments,
   getPaymentById,
   createPayment,
-  updatePaymentStatus
+  updatePayment,
+  updatePaymentStatus,
+  deletePayment
 } from "../controllers/payments.controller";
 
 const router = Router();
@@ -128,6 +130,8 @@ router.post("/", createPayment);
  *       200:
  *         description: Estado de pago actualizado
  */
+router.put("/:id", updatePayment);
 router.patch("/:id/status", updatePaymentStatus);
+router.delete("/:id", deletePayment);
 
 export default router;

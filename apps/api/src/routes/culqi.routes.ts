@@ -2,6 +2,7 @@
 import { Router } from "express";
 import {
   createCulqiOrder,
+  createCulqiCharge,
   verifyCulqiPayment,
   confirmCulqiOrder,
   handleCulqiWebhook,
@@ -52,6 +53,33 @@ const router = Router();
  *         description: Orden creada correctamente
  */
 router.post("/create-order", createCulqiOrder);
+
+/**
+ * @swagger
+ * /api/culqi/create-charge:
+ *   post:
+ *     summary: Crea un cargo directo (pago inmediato con token)
+ *     tags: [Culqi]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               tokenId:
+ *                 type: string
+ *               culqiOrderId:
+ *                 type: string
+ *               amount:
+ *                 type: number
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Cargo creado exitosamente
+ */
+router.post("/create-charge", createCulqiCharge);
 
 /**
  * @swagger

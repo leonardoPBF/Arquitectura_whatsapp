@@ -159,10 +159,10 @@ export const culqiAPI = {
   createCharge: (data: {
     tokenId: string;
     culqiOrderId: string;
-    amount?: number;
+    amount: number;
     email?: string;
   }): Promise<AxiosResponse<ConfirmPaymentResponse>> => {
-    return api.post('/api/culqi/verify-payment', data);
+    return api.post('/api/culqi/create-charge', data);
   },
 
   /**
@@ -182,9 +182,22 @@ export const ordersAPI = {
   // GET /api/orders
   getAllOrders: () => api.get('/api/orders'),
 
+  // POST /api/orders
+  createOrder: (data: any) => api.post('/api/orders', data),
+
+  // PUT /api/orders/:id
+  updateOrder: (id: string, data: any) => api.put(`/api/orders/${id}`, data),
+
+  // PATCH /api/orders/:id/status
+  updateOrderStatus: (id: string, status: string) => api.patch(`/api/orders/${id}/status`, { status }),
+
+  // DELETE /api/orders/:id
+  deleteOrder: (id: string) => api.delete(`/api/orders/${id}`),
+
+  // POST /api/orders/:id/cancel
+  cancelOrder: (id: string) => api.post(`/api/orders/${id}/cancel`),
+
   // Helper to find an order by its public orderNumber (e.g. ORD-000008)
-  // Backend doesn't expose a dedicated endpoint for lookup by orderNumber,
-  // so fetch all orders and find the matching one locally (fine for dev/demo).
   findOrderByNumber: async (orderNumber: string) => {
     const res = await api.get('/api/orders');
     const orders = res.data as any[];
@@ -205,6 +218,68 @@ export const analyticsAPI = {
   
   // GET /api/products
   getAllProducts: () => api.get('/api/products'),
+};
+
+// Customers API helpers
+export const customersAPI = {
+  // GET /api/customers
+  getAllCustomers: () => api.get('/api/customers'),
+  
+  // GET /api/customers/:id
+  getCustomerById: (id: string) => api.get(`/api/customers/${id}`),
+  
+  // POST /api/customers
+  createCustomer: (data: any) => api.post('/api/customers', data),
+  
+  // PUT /api/customers/:id
+  updateCustomer: (id: string, data: any) => api.put(`/api/customers/${id}`, data),
+  
+  // DELETE /api/customers/:id
+  deleteCustomer: (id: string) => api.delete(`/api/customers/${id}`),
+};
+
+// Payments API helpers
+export const paymentsAPI = {
+  // GET /api/payments
+  getAllPayments: (params?: { orderId?: string; status?: string; culqiOrderId?: string }) => 
+    api.get('/api/payments', { params }),
+  
+  // GET /api/payments/:id
+  getPaymentById: (id: string) => api.get(`/api/payments/${id}`),
+  
+  // POST /api/payments
+  createPayment: (data: any) => api.post('/api/payments', data),
+  
+  // PUT /api/payments/:id
+  updatePayment: (id: string, data: any) => api.put(`/api/payments/${id}`, data),
+  
+  // PATCH /api/payments/:id/status
+  updatePaymentStatus: (id: string, status: string) => api.patch(`/api/payments/${id}/status`, { status }),
+  
+  // DELETE /api/payments/:id
+  deletePayment: (id: string) => api.delete(`/api/payments/${id}`),
+};
+
+// Products API helpers
+export const productsAPI = {
+  // GET /api/products
+  getAllProducts: () => api.get('/api/products'),
+  
+  // GET /api/products/:id
+  getProductById: (id: string) => api.get(`/api/products/${id}`),
+  
+  // POST /api/products
+  createProduct: (data: any) => api.post('/api/products', data),
+  
+  // PUT /api/products/:id
+  updateProduct: (id: string, data: any) => api.put(`/api/products/${id}`, data),
+  
+  // DELETE /api/products/:id
+  deleteProduct: (id: string) => api.delete(`/api/products/${id}`),
+  
+  // GET /api/products/search
+  searchProducts: (params?: { q?: string; category?: string }) => 
+    api.get('/api/products/search', { params }),
 };
 
 // Auth API helpers

@@ -41,7 +41,7 @@ export const RevenueChart = () => {
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.3} />
             <XAxis dataKey="mes" />
             <YAxis />
             <Tooltip
@@ -51,9 +51,11 @@ export const RevenueChart = () => {
             <Line
               type="monotone"
               dataKey="ingresos"
-              stroke="#8884d8"
-              strokeWidth={2}
+              stroke="#10B981"
+              strokeWidth={3}
               name="Ingresos (S/)"
+              dot={{ fill: '#14B8A6', r: 5 }}
+              activeDot={{ r: 7, fill: '#10B981' }}
             />
           </LineChart>
         </ResponsiveContainer>

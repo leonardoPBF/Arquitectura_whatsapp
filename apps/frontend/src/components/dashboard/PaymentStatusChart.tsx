@@ -42,10 +42,10 @@ export const PaymentStatusChart = () => {
   }, {});
 
   const statusConfig = [
-    { key: 'completed', label: 'Completados', icon: CheckCircle, color: 'text-green-600' },
-    { key: 'pending', label: 'Pendientes', icon: Clock, color: 'text-yellow-600' },
-    { key: 'failed', label: 'Fallidos', icon: XCircle, color: 'text-red-600' },
-    { key: 'refunded', label: 'Reembolsados', icon: RefreshCcw, color: 'text-blue-600' },
+    { key: 'completed', label: 'Completados', icon: CheckCircle, color: 'text-emerald-600 dark:text-emerald-400', bgColor: 'bg-emerald-100 dark:bg-emerald-900/30' },
+    { key: 'pending', label: 'Pendientes', icon: Clock, color: 'text-amber-600 dark:text-amber-400', bgColor: 'bg-amber-100 dark:bg-amber-900/30' },
+    { key: 'failed', label: 'Fallidos', icon: XCircle, color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-100 dark:bg-red-900/30' },
+    { key: 'refunded', label: 'Reembolsados', icon: RefreshCcw, color: 'text-cyan-600 dark:text-cyan-400', bgColor: 'bg-cyan-100 dark:bg-cyan-900/30' },
   ];
 
   return (
@@ -62,14 +62,16 @@ export const PaymentStatusChart = () => {
             const percentage = payments.length > 0 ? (count / payments.length) * 100 : 0;
 
             return (
-              <div key={status.key} className="flex items-center justify-between">
+              <div key={status.key} className={`flex items-center justify-between p-3 rounded-lg ${status.bgColor} border border-current/20 hover:shadow-md transition-all`}>
                 <div className="flex items-center gap-3">
-                  <Icon className={`w-5 h-5 ${status.color}`} />
-                  <span className="font-medium">{status.label}</span>
+                  <div className={`p-2 rounded-lg ${status.bgColor}`}>
+                    <Icon className={`w-5 h-5 ${status.color}`} />
+                  </div>
+                  <span className={`font-semibold ${status.color}`}>{status.label}</span>
                 </div>
                 <div className="flex items-center gap-4">
-                  <span className="text-2xl font-bold">{count}</span>
-                  <span className="text-sm text-gray-600 dark:text-gray-400 w-12 text-right">
+                  <span className={`text-2xl font-bold ${status.color}`}>{count}</span>
+                  <span className={`text-sm font-semibold ${status.color} w-12 text-right`}>
                     {percentage.toFixed(0)}%
                   </span>
                 </div>

@@ -96,6 +96,19 @@ nlu:
     - todas las órdenes
     - últimos pedidos
     - todas mis órdenes
+    - órdenes de compra
+
+- intent: ask_most_expensive_order
+  examples: |
+    - orden de compra más cara
+    - pedido más caro
+    - orden con mayor monto
+    - orden más costosa
+    - pedido más costoso
+    - cuál es la orden más cara
+    - orden con mayor valor
+    - pedido de mayor precio
+    - orden más grande
 
 - intent: check_order_status
   examples: |
@@ -155,6 +168,17 @@ nlu:
     - ranking de clientes
     - clientes principales
 
+- intent: ask_best_active_customer
+  examples: |
+    - mejor cliente activo
+    - cliente activo que más compra
+    - mejor cliente que compra
+    - cliente más activo
+    - quién es mi mejor cliente activo
+    - mejor comprador activo
+    - cliente activo principal
+    - top cliente activo
+
 - intent: ask_customer_count
   examples: |
     - cuántos clientes tengo
@@ -190,6 +214,17 @@ nlu:
     - productos con más demanda
     - qué productos tienen más salida
 
+- intent: ask_most_sold_product
+  examples: |
+    - producto más vendido
+    - qué producto se vende más
+    - producto estrella
+    - producto número uno
+    - mejor producto vendido
+    - producto top
+    - cuál es el producto más vendido
+    - producto con más ventas
+
 - intent: ask_product_stock
   examples: |
     - cuánto stock tengo de [Smartwatch](product_name)
@@ -198,6 +233,17 @@ nlu:
     - hay stock de [Auriculares](product_name)
     - cuántos [tablets](product_name) tengo
     - cantidad disponible de [mouse](product_name)
+
+- intent: ask_lowest_stock_product
+  examples: |
+    - producto con menos stock
+    - qué producto tiene menos stock
+    - producto con menor inventario
+    - producto que necesita reposición
+    - cuál producto tiene menos unidades
+    - producto con stock bajo
+    - qué producto se está agotando
+    - producto con menos cantidad disponible
 
 # ============================================
 # ANÁLISIS DE VENTAS Y REPORTES

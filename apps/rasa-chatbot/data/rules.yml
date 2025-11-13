@@ -44,6 +44,11 @@ rules:
     - intent: ask_orders
     - action: action_get_orders
 
+- rule: Ver orden más cara
+  steps:
+    - intent: ask_most_expensive_order
+    - action: action_get_most_expensive_order
+
 - rule: Consultar estado de orden específica
   steps:
     - intent: check_order_status
@@ -72,6 +77,11 @@ rules:
     - intent: ask_top_customers
     - action: action_get_top_customers
 
+- rule: Ver mejor cliente activo
+  steps:
+    - intent: ask_best_active_customer
+    - action: action_get_best_active_customer
+
 - rule: Contar clientes totales
   steps:
     - intent: ask_customer_count
@@ -90,10 +100,20 @@ rules:
     - intent: ask_top_products
     - action: action_get_top_products
 
+- rule: Ver producto más vendido
+  steps:
+    - intent: ask_most_sold_product
+    - action: action_get_most_sold_product
+
 - rule: Consultar stock de producto
   steps:
     - intent: ask_product_stock
     - action: action_get_product_stock
+
+- rule: Ver producto con menos stock
+  steps:
+    - intent: ask_lowest_stock_product
+    - action: action_get_lowest_stock_product
 
 # ============================================
 # ANÁLISIS DE VENTAS

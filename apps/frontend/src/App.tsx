@@ -6,6 +6,7 @@ import Success from "./pages/Success";
 import Home from "./pages/Home";
 import Checkout from "./pages/checkout";
 import Dashboard from "./pages/Dashboard";
+import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import MyOrders from "./pages/MyOrders";
 
@@ -56,6 +57,11 @@ function AppRoutes() {
       <Route path="/dashboard" element={
         <ProtectedRoute requireAdmin>
           <Dashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/admin" element={
+        <ProtectedRoute requireAdmin>
+          <Admin />
         </ProtectedRoute>
       } />
     </Routes>

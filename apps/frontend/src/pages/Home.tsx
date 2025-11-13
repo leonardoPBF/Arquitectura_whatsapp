@@ -32,8 +32,8 @@ export default function Home() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           <div>
-            <h1 className="text-3xl font-bold">Bienvenido a Nuestra Tienda</h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#10B981] to-[#14B8A6] bg-clip-text text-transparent">Bienvenido a LUMINA</h1>
+            <p className="text-emerald-700 dark:text-emerald-300 font-medium">
               Explora nuestro catálogo de productos
             </p>
           </div>

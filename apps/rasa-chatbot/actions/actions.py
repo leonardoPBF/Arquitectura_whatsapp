@@ -25,7 +25,17 @@ class ActionGetOrders(Action):
             if response.status_code == 200:
                 orders = response.json()
                 total = len(orders)
-                dispatcher.utter_message(text=f"📦 Tienes {total} órdenes en total.")
+                
+                # Ordenar por fecha (más recientes primero)
+                sorted_orders = sorted(orders, key=lambda x: x.get('createdAt', ''), reverse=True)
+                recent = sorted_orders[:5]
+                
+                msg = f"📦 Tienes {total} órdenes en total.\n\n"
+                msg += f"📋 Últimas {len(recent)} órdenes:\n\n"
+                for order in recent:
+                    msg += f"• {order.get('orderNumber', 'N/A')}: S/ {order.get('totalAmount', 0):.2f} - {order.get('status', 'N/A')}\n"
+                
+                dispatcher.utter_message(text=msg)
             else:
                 dispatcher.utter_message(text="❌ No pude obtener las órdenes.")
         except Exception as e:
@@ -132,6 +142,58 @@ class ActionGetRecentOrders(Action):
                     msg += f"• {order['orderNumber']}: S/ {order['totalAmount']:.2f} - {order['status']}\n"
                 
                 dispatcher.utter_message(text=msg)
+            else:
+                dispatcher.utter_message(text="❌ No pude obtener las órdenes.")
+        except Exception as e:
+            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+        
+        return []
+
+
+class ActionGetMostExpensiveOrder(Action):
+    def name(self) -> Text:
+        return "action_get_most_expensive_order"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        
+        try:
+            orders_resp = requests.get(f"{API_BASE_URL}/orders")
+            customers_resp = requests.get(f"{API_BASE_URL}/customers")
+            
+            if orders_resp.status_code == 200 and customers_resp.status_code == 200:
+                orders = orders_resp.json()
+                customers = customers_resp.json()
+                
+                if orders:
+                    # Encontrar la orden más cara
+                    most_expensive = max(orders, key=lambda x: x.get('totalAmount', 0))
+                    
+                    # Obtener información del cliente
+                    customer_id = most_expensive.get('customerId')
+                    customer = next((c for c in customers if (c.get('_id') or c.get('id')) == customer_id), None)
+                    customer_name = customer.get('name', 'Cliente desconocido') if customer else 'Cliente desconocido'
+                    
+                    msg = f"💰 **Orden de Compra Más Cara:**\n\n"
+                    msg += f"Número: {most_expensive.get('orderNumber', 'N/A')}\n"
+                    msg += f"Cliente: {customer_name}\n"
+                    msg += f"Total: S/ {most_expensive.get('totalAmount', 0):.2f}\n"
+                    msg += f"Estado: {most_expensive.get('status', 'N/A')}\n"
+                    msg += f"Pago: {most_expensive.get('paymentStatus', 'N/A')}\n"
+                    
+                    # Mostrar productos de la orden
+                    items = most_expensive.get('items', [])
+                    if items:
+                        msg += f"\n📦 Productos ({len(items)}):\n"
+                        for item in items[:5]:  # Mostrar máximo 5 productos
+                            msg += f"  • {item.get('productName', 'N/A')}: {item.get('quantity', 0)} x S/ {item.get('price', 0):.2f}\n"
+                        if len(items) > 5:
+                            msg += f"  ... y {len(items) - 5} más\n"
+                    
+                    dispatcher.utter_message(text=msg)
+                else:
+                    dispatcher.utter_message(text="❌ No hay órdenes registradas.")
             else:
                 dispatcher.utter_message(text="❌ No pude obtener las órdenes.")
         except Exception as e:
@@ -261,18 +323,99 @@ class ActionGetTopCustomers(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         
         try:
-            response = requests.get(f"{API_BASE_URL}/customers")
-            if response.status_code == 200:
-                customers = response.json()
-                # Aquí deberías calcular el total gastado por cada cliente
-                # Por ahora, mostramos los primeros 5
-                msg = "🏆 Top 5 Clientes:\n\n"
-                for i, customer in enumerate(customers[:5], 1):
-                    msg += f"{i}. {customer['name']} - {customer.get('email', 'N/A')}\n"
+            customers_resp = requests.get(f"{API_BASE_URL}/customers")
+            orders_resp = requests.get(f"{API_BASE_URL}/orders")
+            
+            if customers_resp.status_code == 200 and orders_resp.status_code == 200:
+                customers = customers_resp.json()
+                orders = orders_resp.json()
+                
+                # Calcular total gastado por cliente
+                customer_totals = {}
+                for order in orders:
+                    customer_id = order.get('customerId')
+                    if customer_id:
+                        if customer_id not in customer_totals:
+                            customer_totals[customer_id] = {'total': 0, 'orders': 0}
+                        customer_totals[customer_id]['total'] += order.get('totalAmount', 0)
+                        customer_totals[customer_id]['orders'] += 1
+                
+                # Crear lista de clientes con sus totales
+                customer_list = []
+                for customer in customers:
+                    cid = customer.get('_id') or customer.get('id')
+                    if cid in customer_totals:
+                        customer_list.append({
+                            'name': customer.get('name', 'N/A'),
+                            'email': customer.get('email', 'N/A'),
+                            'total': customer_totals[cid]['total'],
+                            'orders': customer_totals[cid]['orders']
+                        })
+                
+                # Ordenar por total gastado
+                customer_list.sort(key=lambda x: x['total'], reverse=True)
+                
+                msg = "🏆 Top 10 Clientes:\n\n"
+                for i, customer in enumerate(customer_list[:10], 1):
+                    msg += f"{i}. {customer['name']}: S/ {customer['total']:.2f} ({customer['orders']} órdenes)\n"
                 
                 dispatcher.utter_message(text=msg)
             else:
                 dispatcher.utter_message(text="❌ No pude obtener los clientes.")
+        except Exception as e:
+            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+        
+        return []
+
+
+class ActionGetBestActiveCustomer(Action):
+    def name(self) -> Text:
+        return "action_get_best_active_customer"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        
+        try:
+            customers_resp = requests.get(f"{API_BASE_URL}/customers")
+            orders_resp = requests.get(f"{API_BASE_URL}/orders")
+            
+            if customers_resp.status_code == 200 and orders_resp.status_code == 200:
+                customers = customers_resp.json()
+                orders = orders_resp.json()
+                
+                # Calcular total gastado por cliente
+                customer_totals = {}
+                for order in orders:
+                    customer_id = order.get('customerId')
+                    if customer_id:
+                        if customer_id not in customer_totals:
+                            customer_totals[customer_id] = {'total': 0, 'orders': 0, 'name': ''}
+                        customer_totals[customer_id]['total'] += order.get('totalAmount', 0)
+                        customer_totals[customer_id]['orders'] += 1
+                
+                # Obtener nombres de clientes
+                customer_dict = {c.get('_id') or c.get('id'): c for c in customers}
+                for cid, data in customer_totals.items():
+                    customer = customer_dict.get(cid)
+                    if customer:
+                        data['name'] = customer.get('name', 'Cliente desconocido')
+                        data['email'] = customer.get('email', 'N/A')
+                
+                # Encontrar el mejor cliente activo
+                if customer_totals:
+                    best = max(customer_totals.values(), key=lambda x: x['total'])
+                    msg = f"👑 **Mejor Cliente Activo:**\n\n"
+                    msg += f"Nombre: {best['name']}\n"
+                    msg += f"Email: {best.get('email', 'N/A')}\n"
+                    msg += f"Total gastado: S/ {best['total']:.2f}\n"
+                    msg += f"Órdenes: {best['orders']}"
+                    
+                    dispatcher.utter_message(text=msg)
+                else:
+                    dispatcher.utter_message(text="❌ No hay clientes con órdenes registradas.")
+            else:
+                dispatcher.utter_message(text="❌ No pude obtener los datos.")
         except Exception as e:
             dispatcher.utter_message(text=f"❌ Error: {str(e)}")
         
@@ -378,16 +521,138 @@ class ActionGetTopProducts(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         
         try:
+            products_resp = requests.get(f"{API_BASE_URL}/products")
+            orders_resp = requests.get(f"{API_BASE_URL}/orders")
+            
+            if products_resp.status_code == 200 and orders_resp.status_code == 200:
+                products = products_resp.json()
+                orders = orders_resp.json()
+                
+                # Calcular ventas por producto
+                product_sales = {}
+                for order in orders:
+                    items = order.get('items', [])
+                    for item in items:
+                        product_name = item.get('productName', '')
+                        quantity = item.get('quantity', 0)
+                        if product_name:
+                            if product_name not in product_sales:
+                                product_sales[product_name] = {'quantity': 0, 'revenue': 0}
+                            product_sales[product_name]['quantity'] += quantity
+                            product_sales[product_name]['revenue'] += item.get('price', 0) * quantity
+                
+                # Ordenar por cantidad vendida
+                sorted_products = sorted(product_sales.items(), key=lambda x: x[1]['quantity'], reverse=True)
+                
+                msg = "🏆 Top 10 Productos Más Vendidos:\n\n"
+                for i, (name, data) in enumerate(sorted_products[:10], 1):
+                    msg += f"{i}. {name}: {data['quantity']} unidades - S/ {data['revenue']:.2f}\n"
+                
+                dispatcher.utter_message(text=msg)
+            else:
+                dispatcher.utter_message(text="❌ No pude obtener los productos.")
+        except Exception as e:
+            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+        
+        return []
+
+
+class ActionGetMostSoldProduct(Action):
+    def name(self) -> Text:
+        return "action_get_most_sold_product"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        
+        try:
+            products_resp = requests.get(f"{API_BASE_URL}/products")
+            orders_resp = requests.get(f"{API_BASE_URL}/orders")
+            
+            if products_resp.status_code == 200 and orders_resp.status_code == 200:
+                products = products_resp.json()
+                orders = orders_resp.json()
+                
+                # Calcular ventas por producto
+                product_sales = {}
+                for order in orders:
+                    items = order.get('items', [])
+                    for item in items:
+                        product_name = item.get('productName', '')
+                        quantity = item.get('quantity', 0)
+                        if product_name:
+                            if product_name not in product_sales:
+                                product_sales[product_name] = {'quantity': 0, 'revenue': 0}
+                            product_sales[product_name]['quantity'] += quantity
+                            product_sales[product_name]['revenue'] += item.get('price', 0) * quantity
+                
+                # Encontrar el producto más vendido
+                if product_sales:
+                    most_sold = max(product_sales.items(), key=lambda x: x[1]['quantity'])
+                    product_name = most_sold[0]
+                    data = most_sold[1]
+                    
+                    # Buscar precio del producto
+                    product_info = next((p for p in products if p.get('name') == product_name), None)
+                    price = product_info.get('price', 0) if product_info else 0
+                    
+                    msg = f"🏆 **Producto Más Vendido:**\n\n"
+                    msg += f"Nombre: {product_name}\n"
+                    msg += f"Cantidad vendida: {data['quantity']} unidades\n"
+                    msg += f"Ingresos: S/ {data['revenue']:.2f}\n"
+                    if price > 0:
+                        msg += f"Precio unitario: S/ {price:.2f}"
+                    
+                    dispatcher.utter_message(text=msg)
+                else:
+                    dispatcher.utter_message(text="❌ No hay productos vendidos aún.")
+            else:
+                dispatcher.utter_message(text="❌ No pude obtener los datos.")
+        except Exception as e:
+            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+        
+        return []
+
+
+class ActionGetLowestStockProduct(Action):
+    def name(self) -> Text:
+        return "action_get_lowest_stock_product"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        
+        try:
             response = requests.get(f"{API_BASE_URL}/products")
             if response.status_code == 200:
                 products = response.json()
-                # Por ahora mostramos los primeros 5
-                # Idealmente deberías calcular por ventas
-                msg = "🏆 Top 5 Productos:\n\n"
-                for i, product in enumerate(products[:5], 1):
-                    msg += f"{i}. {product['name']}: S/ {product['price']:.2f}\n"
                 
-                dispatcher.utter_message(text=msg)
+                # Filtrar solo productos activos
+                active_products = [p for p in products if p.get('isActive', True) != False]
+                
+                if active_products:
+                    # Ordenar por stock (menor a mayor)
+                    sorted_products = sorted(active_products, key=lambda x: x.get('stock', 0))
+                    
+                    # Obtener el producto con menos stock
+                    lowest = sorted_products[0]
+                    stock = lowest.get('stock', 0)
+                    name = lowest.get('name', 'N/A')
+                    price = lowest.get('price', 0)
+                    
+                    msg = f"⚠️ **Producto con Menos Stock:**\n\n"
+                    msg += f"Nombre: {name}\n"
+                    msg += f"Stock disponible: {stock} unidades\n"
+                    msg += f"Precio: S/ {price:.2f}\n"
+                    
+                    if stock < 10:
+                        msg += f"\n🔴 **Alerta:** Stock bajo, requiere reposición urgente."
+                    elif stock < 20:
+                        msg += f"\n🟡 **Atención:** Stock medio, considerar reposición."
+                    
+                    dispatcher.utter_message(text=msg)
+                else:
+                    dispatcher.utter_message(text="❌ No hay productos activos.")
             else:
                 dispatcher.utter_message(text="❌ No pude obtener los productos.")
         except Exception as e:

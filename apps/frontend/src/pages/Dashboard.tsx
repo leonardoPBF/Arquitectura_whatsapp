@@ -7,19 +7,20 @@ import { RevenueChart } from '@/components/dashboard/RevenueChart';
 import { OrdersStatusChart } from '@/components/dashboard/OrdersStatusChart';
 import { PaymentMethodsChart } from '@/components/dashboard/PaymentMethodsChart';
 import { TopProductsChart } from '@/components/dashboard/TopProductsChart';
+import { ProductStockChart } from '@/components/dashboard/ProductStockChart';
 import { PaymentStatusChart } from '@/components/dashboard/PaymentStatusChart';
 
 export default function Dashboard() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-white dark:bg-gray-950 p-4 md:p-6 lg:p-8">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-[hsl(200_20%_12%)] dark:via-[hsl(200_18%_14%)] dark:to-[hsl(200_15%_16%)] p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Resumen de tu negocio y análisis de datos
+            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-[#10B981] to-[#14B8A6] bg-clip-text text-transparent">Dashboard</h1>
+            <p className="text-emerald-700 dark:text-emerald-300 font-medium">
+              Resumen de LUMINA y análisis de datos
             </p>
           </div>
         </div>
@@ -52,6 +53,11 @@ export default function Dashboard() {
           {/* Top Products Chart - Full width */}
           <div className="md:col-span-2">
             <TopProductsChart />
+          </div>
+
+          {/* Product Stock Chart */}
+          <div>
+            <ProductStockChart />
           </div>
 
           {/* Payment Status */}

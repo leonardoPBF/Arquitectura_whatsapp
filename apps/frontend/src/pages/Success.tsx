@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
+import api from "@/services/api";
 
 export default function Success() {
   const [searchParams] = useSearchParams();
@@ -13,10 +14,8 @@ export default function Success() {
 
     const fetchOrder = async () => {
       try {
-        // Puedes cambiar esta URL por tu backend real
-        const res = await fetch(`http://localhost:3000/api/orders/${orderId}`);
-        const data = await res.json();
-        setOrder(data);
+        const res = await api.get(`/api/orders/${orderId}`);
+        setOrder(res.data);
       } catch (err) {
         console.error("Error al obtener la orden:", err);
       } finally {
@@ -50,7 +49,7 @@ export default function Success() {
           <div className="text-green-600 text-5xl mb-3">✅</div>
           <h1 className="text-2xl font-bold text-gray-800">¡Pago completado con éxito!</h1>
           <p className="text-gray-600 mt-2">
-            Gracias por tu compra, {order.customerId?.name}. Tu pedido ha sido confirmado.
+            Gracias por tu compra en <span className="font-semibold bg-gradient-to-r from-[#10B981] to-[#14B8A6] bg-clip-text text-transparent">LUMINA</span>, {order.customerId?.name}. Tu pedido ha sido confirmado.
           </p>
         </div>
 

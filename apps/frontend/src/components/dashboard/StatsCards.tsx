@@ -34,28 +34,36 @@ export const StatsCards = () => {
       value: `S/ ${analytics.totalRevenue.toFixed(2)}`,
       description: 'Total de ingresos de órdenes pagadas',
       icon: DollarSign,
-      color: 'text-green-600',
+      color: 'text-emerald-600 dark:text-emerald-400',
+      bgGradient: 'from-emerald-500/10 to-teal-500/10',
+      borderColor: 'border-emerald-300 dark:border-emerald-700',
     },
     {
       title: 'Total de Órdenes',
       value: analytics.totalOrders.toString(),
       description: 'Todas las órdenes registradas',
       icon: ShoppingBag,
-      color: 'text-blue-600',
+      color: 'text-cyan-600 dark:text-cyan-400',
+      bgGradient: 'from-cyan-500/10 to-blue-500/10',
+      borderColor: 'border-cyan-300 dark:border-cyan-700',
     },
     {
       title: 'Clientes Activos',
       value: analytics.topCustomers.length.toString(),
       description: 'Clientes con órdenes registradas',
       icon: Users,
-      color: 'text-purple-600',
+      color: 'text-violet-600 dark:text-violet-400',
+      bgGradient: 'from-violet-500/10 to-purple-500/10',
+      borderColor: 'border-violet-300 dark:border-violet-700',
     },
     {
       title: 'Tasa de Conversión',
       value: `${conversionRate}%`,
       description: 'Órdenes pagadas vs total',
       icon: TrendingUp,
-      color: 'text-orange-600',
+      color: 'text-amber-600 dark:text-amber-400',
+      bgGradient: 'from-amber-500/10 to-orange-500/10',
+      borderColor: 'border-amber-300 dark:border-amber-700',
     },
   ];
 
@@ -64,14 +72,16 @@ export const StatsCards = () => {
       {stats.map((stat) => {
         const Icon = stat.icon;
         return (
-          <Card key={stat.title}>
+          <Card key={stat.title} className={`bg-gradient-to-br ${stat.bgGradient} border-2 ${stat.borderColor} hover:shadow-xl transition-all duration-300`}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <Icon className={`h-4 w-4 ${stat.color}`} />
+              <CardTitle className="text-sm font-semibold">{stat.title}</CardTitle>
+              <div className={`p-2 rounded-lg bg-gradient-to-br ${stat.bgGradient}`}>
+                <Icon className={`h-5 w-5 ${stat.color}`} />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{stat.description}</p>
+              <div className={`text-3xl font-bold ${stat.color} mb-1`}>{stat.value}</div>
+              <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-1 font-medium">{stat.description}</p>
             </CardContent>
           </Card>
         );

@@ -38,8 +38,8 @@ export const Chatbot = () => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Chatbot Rasa</CardTitle>
-            <CardDescription>Haz preguntas sobre tus datos</CardDescription>
+            <CardTitle>Chatbot LUMINA</CardTitle>
+            <CardDescription>Haz preguntas sobre tus datos y productos</CardDescription>
           </div>
           {messages.length > 0 && (
             <Button variant="outline" size="sm" onClick={clearMessages}>

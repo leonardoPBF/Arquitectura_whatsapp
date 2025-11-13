@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { culqiAPI } from '../services/api';
 import api from '../services/api';
@@ -42,14 +42,21 @@ export default function Checkout() {
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const orderRef = useRef<OrderData | null>(null);
   const processingPaymentRef = useRef(false);
+  const callbackExecutedRef = useRef(false);
+  const isPollingActiveRef = useRef(false);
 
   useEffect(() => {
     loadOrderData();
     
     return () => {
+      // Limpiar polling al desmontar o cambiar orderId
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
       }
+      isPollingActiveRef.current = false;
+      processingPaymentRef.current = false;
+      callbackExecutedRef.current = false;
     };
   }, [orderId]);
 
@@ -220,135 +227,20 @@ export default function Checkout() {
     setError("Sistema de pago no disponible");
   };
 
-  // ✅ Callback Culqi - Solo para logging y verificación
-  useEffect(() => {
-    window.culqi = async function () {
-      if (processingPaymentRef.current) {
-        console.warn("⚠️ Ya hay un pago en proceso");
-        return;
-      }
-
-      const currentOrder = orderRef.current;
-      if (!currentOrder || !culqiOrderId) {
-        console.error("⚠️ No hay orden activa");
-        return;
-      }
-
-      if (window.Culqi.token) {
-        const tokenId = window.Culqi.token.id;
-        console.log("✅ Token recibido:", tokenId);
-        console.log("⏳ Culqi está procesando el pago automáticamente...");
-        
-        processingPaymentRef.current = true;
-        setProcessing(true);
-        
-        // ✅ ESPERAR 4 segundos para que Culqi procese el pago
-        await new Promise(resolve => setTimeout(resolve, 4000));
-        
-        // ✅ Ahora verificar el estado
-        await verifyPaymentWithRetry();
-        
-      } else if (window.Culqi.error) {
-        console.error("❌ Error de Culqi:", window.Culqi.error);
-        setError(window.Culqi.error.user_message || "Error en el proceso de pago");
-        setProcessing(false);
-        processingPaymentRef.current = false;
-      }
-    };
-  }, [culqiOrderId, navigate]);
-
-  // ✅ Nueva función: Verificar pago con reintentos
-  const verifyPaymentWithRetry = async (maxRetries = 5) => {
-    if (!culqiOrderId) {
-      setError("No se pudo identificar la orden de pago");
-      setProcessing(false);
-      processingPaymentRef.current = false;
+  const startPaymentPolling = useCallback(() => {
+    // Prevenir múltiples instancias de polling
+    if (isPollingActiveRef.current) {
+      console.warn("⚠️ Polling ya está activo, ignorando...");
       return;
     }
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      console.log(`🔍 Verificando pago... intento ${attempt}/${maxRetries}`);
-      
-      try {
-        const response = await api.post('/api/culqi/verify-payment', {
-          culqiOrderId: culqiOrderId,
-        });
-
-        console.log("📊 Estado del pago:", response.data);
-
-        if (response.data.success) {
-          // ✅ PAGO EXITOSO
-          console.log("✅ Pago completado exitosamente");
-          const dbOrderId = response.data.orderId || response.data.order?._id;
-          
-          if (dbOrderId) {
-            navigate(`/success?order=${dbOrderId}`);
-          } else {
-            navigate('/success');
-          }
-          return;
-        } else if (response.data.pending) {
-          // ⏳ AÚN PENDIENTE
-          if (attempt < maxRetries) {
-            console.log(`⏳ Pago pendiente, esperando 2 segundos antes de reintentar...`);
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            continue; // Reintentar
-          } else {
-            // Último intento, iniciar polling largo
-            console.log("⏳ Pago sigue pendiente después de reintentos, iniciando polling...");
-            setProcessing(false);
-            startPaymentPolling();
-            return;
-          }
-        } else if (response.data.orderExpired) {
-          // ⌛ ORDEN EXPIRADA
-          setError(
-            "Esta orden de pago ha expirado. " +
-            "Por favor, regresa a 'Mis Pedidos' y genera un nuevo enlace de pago."
-          );
-          setTimeout(() => navigate('/my-orders'), 5000);
-          setProcessing(false);
-          processingPaymentRef.current = false;
-          return;
-        } else {
-          // ❌ OTRO ERROR
-          setError(response.data.message || "Error al procesar el pago");
-          setProcessing(false);
-          processingPaymentRef.current = false;
-          return;
-        }
-      } catch (err: any) {
-        console.error(`❌ Error en intento ${attempt}:`, err);
-        
-        if (err.response?.status === 400 && err.response?.data?.orderExpired) {
-          setError(
-            "Esta orden de pago ha expirado. " +
-            "Por favor, regresa a 'Mis Pedidos' y genera un nuevo enlace de pago."
-          );
-          setTimeout(() => navigate('/my-orders'), 5000);
-          setProcessing(false);
-          processingPaymentRef.current = false;
-          return;
-        }
-        
-        if (attempt === maxRetries) {
-          setError(err.response?.data?.message || "Error al verificar el pago");
-          setProcessing(false);
-          processingPaymentRef.current = false;
-          return;
-        }
-        
-        // Esperar antes de reintentar
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-    }
-  };
-
-  const startPaymentPolling = () => {
+    // Limpiar cualquier polling anterior
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
     }
 
+    isPollingActiveRef.current = true;
     setCheckingPayment(true);
     console.log("🔄 Iniciando verificación de pago...");
 
@@ -363,6 +255,8 @@ export default function Checkout() {
         if (!culqiOrderId) {
           console.error("No hay culqiOrderId para verificar");
           clearInterval(pollingIntervalRef.current!);
+          pollingIntervalRef.current = null;
+          isPollingActiveRef.current = false;
           setCheckingPayment(false);
           setError("No se pudo obtener el ID de pago de Culqi");
           return;
@@ -372,9 +266,27 @@ export default function Checkout() {
           culqiOrderId: culqiOrderId,
         });
 
+        // Si ya está pagado, evitar procesamiento duplicado
+        if (response.data.alreadyPaid) {
+          console.log("✅ Pago ya procesado anteriormente");
+          clearInterval(pollingIntervalRef.current!);
+          pollingIntervalRef.current = null;
+          isPollingActiveRef.current = false;
+          setCheckingPayment(false);
+          const dbOrderId = response.data.orderId || response.data.order?._id;
+          if (dbOrderId) {
+            navigate(`/success?order=${dbOrderId}`);
+          } else {
+            navigate('/success');
+          }
+          return;
+        }
+
         if (response.data.orderExpired) {
           console.warn("⚠️ La orden de pago ha expirado");
           clearInterval(pollingIntervalRef.current!);
+          pollingIntervalRef.current = null;
+          isPollingActiveRef.current = false;
           setCheckingPayment(false);
           setError(
             "Esta orden de pago ha expirado. " +
@@ -387,9 +299,15 @@ export default function Checkout() {
         if (response.data.success && response.data.payment?.status === "completed") {
           console.log("✅ Pago confirmado!");
           clearInterval(pollingIntervalRef.current!);
+          pollingIntervalRef.current = null;
+          isPollingActiveRef.current = false;
           setCheckingPayment(false);
           
-          const dbOrderId = response.data.order?._id || response.data.payment?.orderId;
+          // Resetear flags
+          processingPaymentRef.current = false;
+          callbackExecutedRef.current = false;
+          
+          const dbOrderId = response.data.order?._id || response.data.payment?.orderId || response.data.orderId;
           if (dbOrderId) {
             navigate(`/success?order=${dbOrderId}`);
           } else {
@@ -398,6 +316,8 @@ export default function Checkout() {
         } else if (attempts >= maxAttempts) {
           console.log("⏱️ Timeout alcanzado");
           clearInterval(pollingIntervalRef.current!);
+          pollingIntervalRef.current = null;
+          isPollingActiveRef.current = false;
           setCheckingPayment(false);
           setError("El pago está tomando más tiempo del esperado. Puedes verificar el estado en 'Mis Pedidos'.");
         }
@@ -405,12 +325,254 @@ export default function Checkout() {
         console.error("Error al verificar pago:", err);
         if (attempts >= maxAttempts) {
           clearInterval(pollingIntervalRef.current!);
+          pollingIntervalRef.current = null;
+          isPollingActiveRef.current = false;
           setCheckingPayment(false);
           setError("No se pudo verificar el estado del pago. Por favor, revisa 'Mis Pedidos'.");
         }
       }
     }, 1000);
-  };
+  }, [culqiOrderId, navigate]);
+
+  // ✅ Nueva función: Verificar pago con reintentos
+  const verifyPaymentWithRetry = useCallback(async (maxRetries = 5) => {
+    if (!culqiOrderId) {
+      setError("No se pudo identificar la orden de pago");
+      setProcessing(false);
+      processingPaymentRef.current = false;
+      callbackExecutedRef.current = false;
+      return;
+    }
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      console.log(`🔍 Verificando pago... intento ${attempt}/${maxRetries}`);
+      
+      try {
+        const response = await api.post('/api/culqi/verify-payment', {
+          culqiOrderId: culqiOrderId,
+        });
+
+        console.log("📊 Estado del pago:", response.data);
+
+        // Si ya está pagado, evitar procesamiento duplicado
+        if (response.data.alreadyPaid) {
+          console.log("✅ Pago ya procesado anteriormente");
+          const dbOrderId = response.data.orderId || response.data.order?._id;
+          if (dbOrderId) {
+            navigate(`/success?order=${dbOrderId}`);
+          } else {
+            navigate('/success');
+          }
+          return;
+        }
+
+        if (response.data.success) {
+          // ✅ PAGO EXITOSO
+          console.log("✅ Pago completado exitosamente");
+          const dbOrderId = response.data.orderId || response.data.order?._id;
+          
+          // Resetear flags antes de navegar
+          processingPaymentRef.current = false;
+          callbackExecutedRef.current = false;
+          
+          if (dbOrderId) {
+            navigate(`/success?order=${dbOrderId}`);
+          } else {
+            navigate('/success');
+          }
+          return;
+        } else if (response.data.pending) {
+          // ⏳ AÚN PENDIENTE
+          if (attempt < maxRetries) {
+            console.log(`⏳ Pago pendiente, esperando 2 segundos antes de reintentar...`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            continue; // Reintentar
+          } else {
+            // Último intento, iniciar polling largo solo si no está activo
+            if (!isPollingActiveRef.current) {
+              console.log("⏳ Pago sigue pendiente después de reintentos, iniciando polling...");
+              setProcessing(false);
+              startPaymentPolling();
+            }
+            return;
+          }
+        } else if (response.data.orderExpired) {
+          // ⌛ ORDEN EXPIRADA
+          setError(
+            "Esta orden de pago ha expirado. " +
+            "Por favor, regresa a 'Mis Pedidos' y genera un nuevo enlace de pago."
+          );
+          setTimeout(() => navigate('/my-orders'), 5000);
+          setProcessing(false);
+          processingPaymentRef.current = false;
+          callbackExecutedRef.current = false;
+          return;
+        } else {
+          // ❌ OTRO ERROR
+          setError(response.data.message || "Error al procesar el pago");
+          setProcessing(false);
+          processingPaymentRef.current = false;
+          callbackExecutedRef.current = false;
+          return;
+        }
+      } catch (err: any) {
+        console.error(`❌ Error en intento ${attempt}:`, err);
+        
+        if (err.response?.status === 400 && err.response?.data?.orderExpired) {
+          setError(
+            "Esta orden de pago ha expirado. " +
+            "Por favor, regresa a 'Mis Pedidos' y genera un nuevo enlace de pago."
+          );
+          setTimeout(() => navigate('/my-orders'), 5000);
+          setProcessing(false);
+          processingPaymentRef.current = false;
+          callbackExecutedRef.current = false;
+          return;
+        }
+        
+        if (attempt === maxRetries) {
+          setError(err.response?.data?.message || "Error al verificar el pago");
+          setProcessing(false);
+          processingPaymentRef.current = false;
+          callbackExecutedRef.current = false;
+          return;
+        }
+        
+        // Esperar antes de reintentar
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+  }, [culqiOrderId, navigate, startPaymentPolling]);
+
+  // ✅ Callback Culqi - Procesa el pago directamente con create-charge
+  const handleCulqiCallback = useCallback(async () => {
+    // Prevenir múltiples ejecuciones
+    if (callbackExecutedRef.current) {
+      console.warn("⚠️ Callback ya ejecutado, ignorando...");
+      return;
+    }
+
+    if (processingPaymentRef.current) {
+      console.warn("⚠️ Ya hay un pago en proceso");
+      return;
+    }
+
+    const currentOrder = orderRef.current;
+    if (!currentOrder || !culqiOrderId) {
+      console.error("⚠️ No hay orden activa");
+      return;
+    }
+
+    if (window.Culqi?.token) {
+      const tokenId = window.Culqi.token.id;
+      console.log("✅ Token recibido:", tokenId);
+      console.log("💳 Procesando pago directamente con create-charge...");
+      
+      callbackExecutedRef.current = true;
+      processingPaymentRef.current = true;
+      setProcessing(true);
+      
+      try {
+        // ✅ Crear cargo directo con el token
+        const response = await culqiAPI.createCharge({
+          tokenId: tokenId,
+          culqiOrderId: culqiOrderId,
+          amount: currentOrder.amount / 100, // Convertir de centavos a soles
+          email: currentOrder.customer?.email,
+        });
+
+        console.log("📊 Respuesta del cargo:", response.data);
+
+        // Si ya está pagado, evitar procesamiento duplicado
+        if (response.data.alreadyPaid) {
+          console.log("✅ Pago ya procesado anteriormente");
+          const dbOrderId = response.data.orderId || response.data.order?._id;
+          processingPaymentRef.current = false;
+          callbackExecutedRef.current = false;
+          
+          // ✅ Cerrar modal de Culqi
+          if (window.Culqi?.close) {
+            window.Culqi.close();
+            console.log("🔒 Modal de Culqi cerrado");
+          }
+          
+          // Pequeño delay para asegurar que el modal se cierre antes de navegar
+          setTimeout(() => {
+            if (dbOrderId) {
+              navigate(`/success?order=${dbOrderId}`);
+            } else {
+              navigate('/success');
+            }
+          }, 300);
+          return;
+        }
+
+        if (response.data.success) {
+          // ✅ PAGO EXITOSO
+          console.log("✅ Pago completado exitosamente");
+          const dbOrderId = response.data.orderId || response.data.order?._id;
+          
+          // Resetear flags antes de navegar
+          processingPaymentRef.current = false;
+          callbackExecutedRef.current = false;
+          
+          // ✅ Cerrar modal de Culqi
+          if (window.Culqi?.close) {
+            window.Culqi.close();
+            console.log("🔒 Modal de Culqi cerrado");
+          }
+          
+          // Pequeño delay para asegurar que el modal se cierre antes de navegar
+          setTimeout(() => {
+            if (dbOrderId) {
+              navigate(`/success?order=${dbOrderId}`);
+            } else {
+              navigate('/success');
+            }
+          }, 300);
+        } else {
+          // ❌ PAGO RECHAZADO
+          console.error("❌ Pago rechazado:", response.data.message);
+          setError(response.data.message || "El pago fue rechazado. Por favor, intenta con otro método de pago.");
+          setProcessing(false);
+          processingPaymentRef.current = false;
+          callbackExecutedRef.current = false;
+        }
+      } catch (err: any) {
+        console.error("❌ Error al procesar pago:", err);
+        setError(err.response?.data?.message || "Error al procesar el pago. Por favor, intenta nuevamente.");
+        setProcessing(false);
+        processingPaymentRef.current = false;
+        callbackExecutedRef.current = false;
+      }
+      
+    } else if (window.Culqi?.error) {
+      console.error("❌ Error de Culqi:", window.Culqi.error);
+      setError(window.Culqi.error.user_message || "Error en el proceso de pago");
+      setProcessing(false);
+      processingPaymentRef.current = false;
+      callbackExecutedRef.current = false;
+    }
+  }, [culqiOrderId, navigate]);
+
+  // Configurar callback de Culqi solo una vez cuando culqiOrderId está disponible
+  useEffect(() => {
+    if (!culqiOrderId) return;
+
+    // Resetear flag cuando cambia el culqiOrderId
+    callbackExecutedRef.current = false;
+    processingPaymentRef.current = false;
+
+    // Configurar callback
+    window.culqi = handleCulqiCallback;
+
+    return () => {
+      // Limpiar callback al desmontar o cambiar culqiOrderId
+      if (window.culqi === handleCulqiCallback) {
+        window.culqi = () => {};
+      }
+    };
+  }, [culqiOrderId, handleCulqiCallback]);
 
   return (
     <>

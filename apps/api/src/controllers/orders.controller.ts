@@ -98,6 +98,36 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
   }
 };
 
+// PUT /api/orders/:id
+export const updateOrder = async (req: Request, res: Response) => {
+  try {
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    )
+      .populate("customerId")
+      .populate("items.productId");
+    if (!order)
+      return res.status(404).json({ message: "Orden no encontrada" });
+    res.json(order);
+  } catch (error) {
+    res.status(400).json({ message: "Error al actualizar orden", error });
+  }
+};
+
+// DELETE /api/orders/:id
+export const deleteOrder = async (req: Request, res: Response) => {
+  try {
+    const order = await Order.findByIdAndDelete(req.params.id);
+    if (!order)
+      return res.status(404).json({ message: "Orden no encontrada" });
+    res.json({ message: "Orden eliminada" });
+  } catch (error) {
+    res.status(500).json({ message: "Error al eliminar orden", error });
+  }
+};
+
 // POST /api/orders/:id/cancel
 export const cancelOrder = async (req: Request, res: Response) => {
   try {

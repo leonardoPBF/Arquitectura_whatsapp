@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { useAnalytics } from '@/hooks/useAnalytics';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+const COLORS = ['#10B981', '#14B8A6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
 const statusLabels: Record<string, string> = {
   pending: 'Pendiente',

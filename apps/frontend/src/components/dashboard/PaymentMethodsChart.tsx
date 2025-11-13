@@ -3,7 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
 import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '@/services/api';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+const COLORS = ['#10B981', '#14B8A6', '#3B82F6', '#8B5CF6', '#EC4899', '#F59E0B'];
 
 const methodLabels: Record<string, string> = {
   cash: 'Efectivo',

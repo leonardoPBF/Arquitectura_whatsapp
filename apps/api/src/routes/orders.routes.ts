@@ -4,7 +4,9 @@ import {
   getOrderById,
   getOrdersByCustomer,
   createOrder,
+  updateOrder,
   updateOrderStatus,
+  deleteOrder,
   cancelOrder
 } from "../controllers/orders.controller";
 
@@ -180,6 +182,8 @@ router.patch("/:id/status", updateOrderStatus);
  *       400:
  *         description: No se puede cancelar la orden
  */
+router.put("/:id", updateOrder);
+router.delete("/:id", deleteOrder);
 router.post("/:id/cancel", cancelOrder);
 
 export default router;

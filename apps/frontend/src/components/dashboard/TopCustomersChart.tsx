@@ -35,7 +35,7 @@ export const TopCustomersChart = () => {
   }));
 
   return (
-    <Card>
+    <Card className="bg-white dark:bg-[hsl(220_13%_22%)] border-[hsl(var(--border))]">
       <CardHeader>
         <CardTitle>Mejores Clientes</CardTitle>
         <CardDescription>Top 10 clientes por gasto total</CardDescription>
@@ -43,24 +43,40 @@ export const TopCustomersChart = () => {
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.3} />
             <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
             <YAxis />
             <Tooltip
               formatter={(value: number, name: string) => {
-                if (name === 'gasto') return [`S/ ${value.toFixed(2)}`, 'Gasto Total'];
-                return [value, 'Órdenes'];
+                if (name === 'gasto' || name === 'Gasto Total (S/)') {
+                  return [`S/ ${value.toFixed(2)}`, 'Gasto Total (Soles)'];
+                }
+                if (name === 'ordenes' || name === 'Total Órdenes') {
+                  return [`${value} órdenes`, 'Total de Órdenes'];
+                }
+                return [value, name];
               }}
               labelFormatter={(label, payload) => {
                 if (payload && payload[0]) {
-                  return payload[0].payload.fullName;
+                  return (
+                    <div className="font-semibold mb-1 text-base">
+                      {payload[0].payload.fullName}
+                    </div>
+                  );
                 }
                 return label;
               }}
+              contentStyle={{
+                backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '12px',
+                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              }}
             />
             <Legend />
-            <Bar dataKey="gasto" fill="#8884d8" name="Gasto Total (S/)" />
-            <Bar dataKey="ordenes" fill="#82ca9d" name="Total Órdenes" />
+            <Bar dataKey="gasto" fill="#10B981" name="Gasto Total (S/)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="ordenes" fill="#14B8A6" name="Total Órdenes" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

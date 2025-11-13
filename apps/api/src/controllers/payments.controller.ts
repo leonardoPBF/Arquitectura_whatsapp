@@ -46,6 +46,24 @@ export const createPayment = async (req: Request, res: Response) => {
   }
 };
 
+// PUT /api/payments/:id
+export const updatePayment = async (req: Request, res: Response) => {
+  try {
+    const payment = await Payment.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    )
+      .populate('orderId')
+      .populate('customerId');
+    if (!payment)
+      return res.status(404).json({ message: "Pago no encontrado" });
+    res.json(payment);
+  } catch (error) {
+    res.status(400).json({ message: "Error al actualizar pago", error });
+  }
+};
+
 // PATCH /api/payments/:id/status
 export const updatePaymentStatus = async (req: Request, res: Response) => {
   try {
@@ -60,5 +78,17 @@ export const updatePaymentStatus = async (req: Request, res: Response) => {
     res.json(payment);
   } catch (error) {
     res.status(400).json({ message: "Error al actualizar estado de pago", error });
+  }
+};
+
+// DELETE /api/payments/:id
+export const deletePayment = async (req: Request, res: Response) => {
+  try {
+    const payment = await Payment.findByIdAndDelete(req.params.id);
+    if (!payment)
+      return res.status(404).json({ message: "Pago no encontrado" });
+    res.json({ message: "Pago eliminado" });
+  } catch (error) {
+    res.status(500).json({ message: "Error al eliminar pago", error });
   }
 };
