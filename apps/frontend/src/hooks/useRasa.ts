@@ -35,18 +35,42 @@ export const useRasa = () => {
         sender,
       });
 
-      const rasaResponses: RasaResponse[] = response.data;
+      console.log('📥 Respuesta completa de Rasa:', response.data);
+      
+      // Manejar diferentes formatos de respuesta
+      let rasaResponses: RasaResponse[] = [];
+      
+      if (Array.isArray(response.data)) {
+        rasaResponses = response.data;
+      } else if (response.data && typeof response.data === 'object') {
+        // Si es un objeto único, convertirlo a array
+        rasaResponses = [response.data];
+      } else if (typeof response.data === 'string') {
+        // Si es un string directo, crear un objeto de respuesta
+        rasaResponses = [{ text: response.data }];
+      }
+      
+      console.log('📝 Respuestas procesadas:', rasaResponses);
       
       // Process Rasa responses
-      rasaResponses.forEach((response) => {
-        if (response.text) {
-          setMessages(prev => [...prev, { 
-            sender: 'bot', 
-            text: response.text || '', 
-            timestamp: new Date() 
-          }]);
-        }
-      });
+      if (rasaResponses.length === 0) {
+        // Si no hay respuestas, mostrar un mensaje por defecto
+        setMessages(prev => [...prev, { 
+          sender: 'bot', 
+          text: 'No recibí una respuesta válida. Por favor, intenta nuevamente.', 
+          timestamp: new Date() 
+        }]);
+      } else {
+        rasaResponses.forEach((response) => {
+          if (response.text) {
+            setMessages(prev => [...prev, { 
+              sender: 'bot', 
+              text: response.text || '', 
+              timestamp: new Date() 
+            }]);
+          }
+        });
+      }
 
       return rasaResponses;
     } catch (err: any) {

@@ -112,12 +112,8 @@ export const TopProductsChart = () => {
                 return [`${value} unidades`, 'Cantidad Vendida'];
               }}
               labelFormatter={(label, payload) => {
-                if (payload && payload[0]) {
-                  return (
-                    <div className="font-semibold mb-1 text-base">
-                      {payload[0].payload.fullName}
-                    </div>
-                  );
+                if (payload && payload[0] && payload[0].payload?.fullName) {
+                  return payload[0].payload.fullName;
                 }
                 return label;
               }}
@@ -127,6 +123,11 @@ export const TopProductsChart = () => {
                 borderRadius: '8px',
                 padding: '12px',
                 boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+              }}
+              labelStyle={{
+                fontWeight: 600,
+                marginBottom: '4px',
+                fontSize: '16px',
               }}
             />
             <Legend 
