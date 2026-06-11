@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Package, LogOut, User, LayoutDashboard, Settings } from 'lucide-react';
 import { Logo } from './Logo';
+import { CartDrawer } from './CartDrawer';
 
 export const Navbar = () => {
   const { user, logout, isAdmin } = useAuth();
@@ -44,6 +45,11 @@ export const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Carrito - Solo para clientes normales */}
+            {!isAdmin && (
+              <CartDrawer />
+            )}
+
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">{user?.name}</span>

@@ -182,7 +182,7 @@ export const createCulqiCharge = async (req: Request, res: Response) => {
 
     // ✅ Crear el cargo directo en Culqi con datos completos del cliente
     const charge = await culqi.charges.createCharge({
-      amount: Math.round(amount * 100).toString(),
+      amount: Math.round(amount * 100),
       currency_code: "PEN",
       email: customerEmail,
       source_id: tokenId,

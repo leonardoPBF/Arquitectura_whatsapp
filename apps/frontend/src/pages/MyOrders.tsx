@@ -108,17 +108,19 @@ export default function MyOrders() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-white dark:bg-gray-950 p-4 md:p-6 lg:p-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-teal-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900 p-4 md:p-6 lg:p-8">
       <div className="max-w-5xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Mis Pedidos</h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[#10B981] to-[#14B8A6] bg-clip-text text-transparent mb-1">
+            Mis Pedidos
+          </h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Historial de tus compras y pedidos
           </p>
         </div>
 
         {myOrders.length === 0 ? (
-          <Card>
+          <Card className="border border-gray-150 dark:border-gray-800">
             <CardContent className="py-12 text-center">
               <Package className="w-12 h-12 mx-auto text-gray-400 mb-4" />
               <p className="text-lg text-gray-600 dark:text-gray-400">
@@ -129,7 +131,7 @@ export default function MyOrders() {
         ) : (
           <div className="space-y-4">
             {myOrders.map((order: any) => (
-              <Card key={order._id}>
+              <Card key={order._id} className="border border-emerald-100/50 dark:border-emerald-950/50 shadow-md hover:shadow-lg transition-shadow duration-200">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div>
@@ -148,7 +150,7 @@ export default function MyOrders() {
                       </CardDescription>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold">
+                      <p className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
                         S/ {order.totalAmount.toFixed(2)}
                       </p>
                     </div>
@@ -157,7 +159,7 @@ export default function MyOrders() {
                 <CardContent>
                   <div className="space-y-4">
                     {/* Status */}
-                    <div className="flex items-center justify-between pb-2 border-b">
+                    <div className="flex items-center justify-between pb-2 border-b dark:border-gray-800">
                       <div>
                         <p className="text-sm text-gray-600 dark:text-gray-400">Estado</p>
                         <p className="font-medium">{getStatusLabel(order.status)}</p>
@@ -183,7 +185,7 @@ export default function MyOrders() {
                                 Cantidad: {item.quantity}
                               </p>
                             </div>
-                            <p className="font-semibold">
+                            <p className="font-semibold text-emerald-600 dark:text-emerald-400">
                               S/ {(item.price * item.quantity).toFixed(2)}
                             </p>
                           </div>
@@ -211,11 +213,11 @@ export default function MyOrders() {
 
                     {/* Payment Button */}
                     {order.paymentStatus === 'pending' && (
-                      <div className="pt-4 border-t">
+                      <div className="pt-4 border-t dark:border-gray-800">
                         <Button
                           onClick={() => handlePayOrder(order)}
                           disabled={loadingPayment === order._id}
-                          className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                          className="w-full bg-gradient-to-r from-[#10B981] to-[#14B8A6] hover:opacity-90 text-white font-bold h-12 shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98] transition-all duration-150"
                         >
                           {loadingPayment === order._id ? (
                             <>
@@ -234,8 +236,8 @@ export default function MyOrders() {
 
                     {/* Payment Status Info */}
                     {order.paymentStatus === 'paid' && (
-                      <div className="pt-4 border-t">
-                        <div className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+                      <div className="pt-4 border-t dark:border-gray-800">
+                        <div className="bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border border-emerald-250 dark:border-emerald-900/50 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
                           <CheckCircle className="w-4 h-4" />
                           Pago completado exitosamente
                         </div>
@@ -243,7 +245,7 @@ export default function MyOrders() {
                     )}
 
                     {order.paymentStatus === 'failed' && (
-                      <div className="pt-4 border-t">
+                      <div className="pt-4 border-t dark:border-gray-800">
                         <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
                           <XCircle className="w-4 h-4" />
                           Pago fallido. Por favor, intenta nuevamente.
@@ -251,7 +253,7 @@ export default function MyOrders() {
                         <Button
                           onClick={() => handlePayOrder(order)}
                           disabled={loadingPayment === order._id}
-                          className="w-full mt-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                          className="w-full mt-2 bg-gradient-to-r from-[#10B981] to-[#14B8A6] hover:opacity-90 text-white font-bold h-12 shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98] transition-all duration-150"
                         >
                           <CreditCard className="w-4 h-4 mr-2" />
                           Reintentar Pago
@@ -269,4 +271,3 @@ export default function MyOrders() {
     </>
   );
 }
-

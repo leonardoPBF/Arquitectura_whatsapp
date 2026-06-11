@@ -15,6 +15,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (data: { email: string; password: string; name: string; phone?: string }) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isCustomer: boolean;
@@ -44,6 +45,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     checkAuth();
   }, []);
+
+  const refreshUser = async () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const response = await authAPI.getCurrentUser();
+        setUser(response.data.user);
+      } catch (error) {
+        console.error('Error refreshing user:', error);
+      }
+    }
+  };
 
   const login = async (email: string, password: string) => {
     try {
@@ -82,6 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     register,
     logout,
+    refreshUser,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
     isCustomer: user?.role === 'customer',

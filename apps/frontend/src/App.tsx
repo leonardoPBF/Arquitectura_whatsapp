@@ -1,10 +1,12 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Success from "./pages/Success";
 import Home from "./pages/Home";
 import Checkout from "./pages/checkout";
+import CheckoutCart from "./pages/CheckoutCart";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
@@ -42,6 +44,11 @@ function AppRoutes() {
           <Checkout />
         </ProtectedRoute>
       } />
+      <Route path="/checkout-cart" element={
+        <ProtectedRoute requireCustomer>
+          <CheckoutCart />
+        </ProtectedRoute>
+      } />
       <Route path="/success" element={
         <ProtectedRoute requireCustomer>
           <Success />
@@ -70,11 +77,13 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Toaster position="top-right" />
-        <AppRoutes />
-      </Router>
-    </AuthProvider>
+    <CartProvider>
+      <AuthProvider>
+        <Router>
+          <Toaster position="top-right" />
+          <AppRoutes />
+        </Router>
+      </AuthProvider>
+    </CartProvider>
   );
 }

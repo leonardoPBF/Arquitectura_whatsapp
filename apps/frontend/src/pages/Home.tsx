@@ -1,10 +1,14 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '@/services/api';
 import { Navbar } from '@/components/Navbar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShoppingCart } from 'lucide-react';
+import { WelcomeCard, FeaturedProducts, AllProducts } from '@/components/HomeComponents';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Home() {
+  const { user } = useAuth();
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
+
   const { data: products, isLoading } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
@@ -19,70 +23,77 @@ export default function Home() {
         <Navbar />
         <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6">
           <div className="max-w-7xl mx-auto">
-            <p className="text-center">Cargando productos...</p>
+            <div className="flex items-center justify-center h-96">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+                <p className="text-gray-600 dark:text-gray-400">Cargando productos...</p>
+              </div>
+            </div>
           </div>
         </div>
       </>
     );
   }
 
+  const categories = products
+    ? ['Todos', ...Array.from(new Set(products.map((p: any) => p.category)))]
+    : ['Todos'];
+
+  const filteredProducts = products
+    ? selectedCategory === 'Todos'
+      ? products
+      : products.filter((p: any) => p.category === selectedCategory)
+    : [];
+
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#10B981] to-[#14B8A6] bg-clip-text text-transparent">Bienvenido a LUMINA</h1>
-            <p className="text-emerald-700 dark:text-emerald-300 font-medium">
-              Explora nuestro catálogo de productos
-            </p>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-teal-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900 p-6">
+        <div className="max-w-7xl mx-auto space-y-12">
+          {/* Welcome Card */}
+          <WelcomeCard userName={user?.name} />
 
-          {products && products.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product: any) => (
-                <Card key={product._id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    {product.imageUrl && (
-                      <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        className="w-full h-48 object-cover rounded-lg mb-4"
-                        onError={(e) => {
-                          const el = e.currentTarget as HTMLImageElement;
-                          el.src = '/placeholder-image.png';
-                        }}
-                      />
-                    )}
-                    <CardTitle>{product.name}</CardTitle>
-                    <CardDescription>{product.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-2xl font-bold">S/ {product.price.toFixed(2)}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Stock: {product.stock} unidades
-                        </p>
-                      </div>
-                      <button className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2">
-                        <ShoppingCart className="w-4 h-4" />
-                        Agregar
-                      </button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-gray-600 dark:text-gray-400">
-                  No hay productos disponibles en este momento
-                </p>
-              </CardContent>
-            </Card>
+          {/* Featured Products */}
+          {products && products.length > 0 && selectedCategory === 'Todos' && (
+            <FeaturedProducts products={products} />
           )}
+
+          {/* Catalog Section */}
+          <div className="space-y-6">
+            <div className="border-t dark:border-gray-800 pt-8">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+                <div className="space-y-1">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Nuestro Catálogo</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Explora nuestra variedad de productos de alta calidad seleccionados para ti
+                  </p>
+                </div>
+
+                {/* Category Filter */}
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((category) => {
+                    const isActive = selectedCategory === category;
+                    return (
+                      <button
+                        key={category}
+                        onClick={() => setSelectedCategory(category)}
+                        className={`px-4 py-2 rounded-full text-xs md:text-sm font-semibold transition-all duration-200 active:scale-[0.97] cursor-pointer ${
+                          isActive
+                            ? 'bg-gradient-to-r from-[#10B981] to-[#14B8A6] text-white shadow-md shadow-emerald-500/10'
+                            : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        {category}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* All Products */}
+              {products && <AllProducts products={filteredProducts} />}
+            </div>
+          </div>
         </div>
       </div>
     </>

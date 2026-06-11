@@ -2,6 +2,10 @@ import { Request, Response } from "express";
 import { Order } from "../models/Order";
 import { IProduct, Product } from "../models/Product";
 import { Customer } from "../models/Customer";
+import { User } from "../models/User";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
 // GET /api/orders
 export const getOrders = async (_: Request, res: Response) => {
@@ -42,15 +46,58 @@ export const getOrdersByCustomer = async (req: Request, res: Response) => {
 // POST /api/orders
 export const createOrder = async (req: Request, res: Response) => {
   try {
-    const { customerId, items } = req.body;
+    let { customerId, items } = req.body;
+    const { customer: customerData, deliveryAddress, shippingAddress, notes } = req.body;
 
-    if (!customerId || !items || !Array.isArray(items))
+    let customer = null;
+    if (customerId) {
+      customer = await Customer.findById(customerId);
+    }
+
+    // Fallback: Si no se proporciona customerId o no existe, intentar resolver o crear un Customer
+    if (!customer && customerData) {
+      if (customerData.phone) {
+        customer = await Customer.findOne({ phone: customerData.phone });
+      }
+      if (!customer && customerData.email) {
+        customer = await Customer.findOne({ email: customerData.email });
+      }
+
+      // Si aún así no existe, crear un nuevo Customer
+      if (!customer) {
+        customer = new Customer({
+          name: customerData.name || "Cliente Sin Nombre",
+          email: customerData.email || "",
+          phone: customerData.phone || `TEMP-${Date.now()}`,
+        });
+        await customer.save();
+      }
+
+      customerId = customer._id;
+    }
+
+    if (!customerId || !customer || !items || !Array.isArray(items)) {
       return res.status(400).json({ message: "Datos incompletos" });
+    }
 
-    const customer = await Customer.findById(customerId);
-
-    if(!customer){
-      return res.status(400).json({ message: "No existe ese usuario/customer" });
+    // Vincular customerId al User si el usuario está autenticado y no tiene customerId asignado
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      const token = authHeader.split(" ")[1];
+      if (token) {
+        try {
+          const decoded: any = jwt.verify(token, JWT_SECRET);
+          if (decoded && decoded.userId) {
+            const user = await User.findById(decoded.userId);
+            if (user && !user.customerId) {
+              user.customerId = customer._id;
+              await user.save();
+            }
+          }
+        } catch (err) {
+          console.error("⚠️ Error linking customer to user:", err);
+        }
+      }
     }
 
     const products = await Product.find({ _id: { $in: items.map(i => i.productId) } }) as (IProduct & { _id: any })[];
@@ -65,12 +112,22 @@ export const createOrder = async (req: Request, res: Response) => {
       return { productId: product._id, productName, quantity: item.quantity, price: product.price, subtotal };
     });
 
+    let finalDeliveryAddress = "";
+    if (typeof deliveryAddress === "string") {
+      finalDeliveryAddress = deliveryAddress;
+    } else if (shippingAddress) {
+      const { address, city, zipCode } = shippingAddress;
+      finalDeliveryAddress = [address, city, zipCode].filter(Boolean).join(", ");
+    }
+
     const order = new Order({
       customerId,
       customerPhone: customer.phone,
       items: detailedItems,
       totalAmount,
       status: "pending",
+      deliveryAddress: finalDeliveryAddress || undefined,
+      notes: notes || undefined,
       createdAt: new Date(),
     });
 
