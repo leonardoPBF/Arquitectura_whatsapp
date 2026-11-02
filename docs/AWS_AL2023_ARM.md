@@ -87,7 +87,11 @@ localhost iniciales. Esos enlaces no sirven para checkout desde un teléfono ext
 ## Construir sin emular x86
 
 Docker selecciona imágenes ARM64 nativas. No agregar `platform: linux/amd64`.
-Las imágenes base de Node, Mongo, Nginx y Rasa 3.6.21 publican ARM64.
+Las imágenes base de Node, Mongo, Nginx y Python publican ARM64.
+Rasa 3.6.21 se instala sobre Python 3.10 nativo: el manifiesto ARM de la imagen
+upstream falló con `exec format error` al ejecutar `/bin/bash` en CI ARM.
+El pipeline actual usa los componentes predeterminados y no necesita los extras
+de la imagen `full`. Si incorporas spaCy u otros componentes, añade sus dependencias.
 Las acciones instalan el mismo SDK 3.6.2 sobre Python 3.10 multiarch, porque la
 imagen upstream del SDK era solo amd64. El bot usa Chromium de Debian en ARM64;
 en amd64 conserva Chrome de Puppeteer. No instala un escritorio en Amazon Linux.
