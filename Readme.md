@@ -1,7 +1,8 @@
 # Docker, CI y diagnóstico de WhatsApp
 
 - [Ejecutar todas las aplicaciones con Docker y Nginx](docs/DOCKER.md)
-- [Desplegar en AWS: Ubuntu, 4 GB, HTTPS y arranque por etapas](docs/AWS_DEPLOY.md)
+- [Desplegar en tu AWS: Amazon Linux 2023 ARM, 4 GB](docs/AWS_AL2023_ARM.md)
+- [Alternativa AWS: Ubuntu x86_64 y HTTPS](docs/AWS_DEPLOY.md)
 - [Controles de seguridad y cambios de acceso](docs/SEGURIDAD_BOT.md)
 - [Compatibilidad y migración a la API oficial de WhatsApp](docs/WHATSAPP_CLOUD_API.md)
 

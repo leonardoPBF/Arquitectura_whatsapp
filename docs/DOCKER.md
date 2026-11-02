@@ -1,5 +1,9 @@
 # Ejecutar LUMINA con Docker y Nginx
 
+Para tu servidor AWS usa la [guía de Amazon Linux 2023 ARM](AWS_AL2023_ARM.md).
+Las acciones instalan SDK 3.6.2 sobre Python multiarch y el bot selecciona
+Chromium en ARM64 o Chrome de Puppeteer en amd64. La CI comprueba ambas arquitecturas.
+
 Los controles de acceso vigentes, credenciales entre servicios y la restricción
 del webhook de pagos se describen en [SEGURIDAD_BOT.md](SEGURIDAD_BOT.md).
 La prueba `--rasa` exige ahora `SMOKE_ADMIN_TOKEN`; las consultas privadas anónimas

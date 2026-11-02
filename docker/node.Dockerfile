@@ -39,18 +39,27 @@ FROM manifests AS bot-deps
 RUN npm ci --workspace=whatsapp-bot --include-workspace-root=false --omit=dev --ignore-scripts --no-audit --no-fund
 
 FROM node:22-bookworm-slim AS whatsapp-bot
+ARG TARGETARCH
 ENV NODE_ENV=production PUPPETEER_CACHE_DIR=/opt/chrome
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 \
     libatspi2.0-0 libcups2 libdbus-1-3 libdrm2 libgbm1 libgtk-3-0 libnss3 \
     libx11-xcb1 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libxkbcommon0 \
-    xdg-utils && rm -rf /var/lib/apt/lists/*
+    xdg-utils \
+    && if [ "$TARGETARCH" = arm64 ]; then apt-get install -y --no-install-recommends chromium; fi \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=bot-deps /app/node_modules ./node_modules
 COPY --from=bot-deps /app/apps ./apps
-RUN PUPPETEER_SKIP_CHROME_HEADLESS_SHELL_DOWNLOAD=true node node_modules/puppeteer/install.mjs \
-    && chmod -R a+rX /opt/chrome \
+RUN if [ "$TARGETARCH" = arm64 ]; then \
+      ln -s /usr/bin/chromium /usr/local/bin/whatsapp-chrome; \
+    elif [ "$TARGETARCH" = amd64 ]; then \
+      PUPPETEER_SKIP_CHROME_HEADLESS_SHELL_DOWNLOAD=true node node_modules/puppeteer/install.mjs \
+      && chmod -R a+rX /opt/chrome \
+      && node -e "require('fs').symlinkSync(require('puppeteer').executablePath(), '/usr/local/bin/whatsapp-chrome')"; \
+    else echo "Unsupported browser architecture: $TARGETARCH" >&2; exit 1; fi \
     && mkdir -p /data/whatsapp && chown node:node /data/whatsapp
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/local/bin/whatsapp-chrome
 WORKDIR /app/apps/whatsapp-bot
 COPY --from=bot-build /app/apps/whatsapp-bot/dist ./dist
 COPY apps/whatsapp-bot/scripts ./scripts

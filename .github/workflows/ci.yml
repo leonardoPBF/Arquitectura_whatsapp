@@ -76,8 +76,12 @@ jobs:
       - run: npm test --workspace=api
 
   docker:
-    name: Docker build and smoke
-    runs-on: ubuntu-latest
+    name: Docker build and smoke (${{ matrix.runner }})
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
@@ -87,6 +91,8 @@ jobs:
       - run: node scripts/docker-setup.cjs
       - run: node scripts/docker-env-check.cjs
       - run: docker compose --env-file .env.production build
+      - name: Browser launch without a WhatsApp session
+        run: docker compose --env-file .env.production run --rm --no-deps whatsapp-bot node scripts/doctor.cjs --launch
       - name: Action security tests
         run: docker compose --env-file .env.production run --rm --no-deps -v "$PWD/apps/rasa-chatbot/tests:/tests:ro" --entrypoint python rasa-actions -m unittest discover -s /tests -p '*_test.py'
       - name: Validate Rasa data

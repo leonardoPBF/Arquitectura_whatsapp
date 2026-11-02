@@ -1,9 +1,13 @@
 # Desplegar en AWS con 4 GB de RAM
 
+**Tu instancia confirmada usa Amazon Linux 2023 ARM: sigue
+[AWS_AL2023_ARM.md](AWS_AL2023_ARM.md).** Esta guía se conserva para Ubuntu x86_64.
+
 Guía preparada el 01/11/2026 para una instancia nueva **Ubuntu 24.04 LTS,
 x86_64 (amd64)**. Confirma la AMI y `uname -m` antes de ejecutar: estos comandos
 no son para Amazon Linux ni para Graviton/ARM. El bot descarga Chrome para Linux
-desde Puppeteer; no se ha validado este conjunto de imágenes en ARM.
+desde Puppeteer en amd64; la variante ARM usa Chromium de Debian y está descrita
+en la guía específica enlazada arriba.
 
 Cuatro GB es un entorno ajustado para MongoDB, API, Rasa y Chrome simultáneos.
 La configuración general recomienda 6–8 GB. No se ha medido todavía el consumo
