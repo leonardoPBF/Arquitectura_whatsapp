@@ -10,8 +10,8 @@ import { handleCart } from "./cart.handler";
 import { handleQuantity } from "./quantity.handler";
 import { handleOrder } from "./order.handler";
 
-export async function handleMessage(client: Client, msg: Message) {
-  const phone = msg.from.replace("@c.us", "");
+export async function handleMessage(client: Client, msg: Message, contact?: { phone: string; name: string }) {
+  const phone = contact?.phone || msg.from.replace("@c.us", "");
   const text = msg.body.trim().toLowerCase();
 
   let session = getSession(phone);
@@ -38,6 +38,10 @@ export async function handleMessage(client: Client, msg: Message) {
       // no existe en backend o error, quedamos en greeting por defecto
     }
   }
+
+  session.phone = phone;
+  if (contact) session.contactName = contact.name;
+  updateSession(phone, session);
 
   // comandos globales para reiniciar flujo (tienen prioridad)
   if (["menu", "inicio", "volver", "exit", "salir"].includes(text)) {

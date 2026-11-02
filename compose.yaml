@@ -1,0 +1,132 @@
+name: lumina
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+
+services:
+  mongo:
+    image: mongo:7.0
+    env_file: ./docker/mongo/.env.production
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: [CMD, mongosh, --quiet, --eval, "quit(db.adminCommand('ping').ok ? 0 : 1)"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+    logging: *logging
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/node.Dockerfile
+      target: api
+    env_file: ./apps/api/.env.production
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    init: true
+    restart: unless-stopped
+    logging: *logging
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/node.Dockerfile
+      target: nginx
+    env_file: ./docker/nginx/.env.production
+    ports:
+      - '${HTTP_BIND:-127.0.0.1}:${FRONTEND_PORT:-8080}:80'
+      - '${HTTP_BIND:-127.0.0.1}:${DOCS_PORT:-8081}:81'
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD-SHELL, 'wget -q -O /dev/null http://127.0.0.1/nginx-health && wget -q -O /dev/null http://127.0.0.1:81/nginx-health']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    logging: *logging
+
+  whatsapp-bot:
+    build:
+      context: .
+      dockerfile: docker/node.Dockerfile
+      target: whatsapp-bot
+    env_file: ./apps/whatsapp-bot/.env.production
+    volumes:
+      - whatsapp-auth:/data/whatsapp
+    depends_on:
+      api:
+        condition: service_healthy
+    init: true
+    shm_size: 1gb
+    stop_grace_period: 20s
+    restart: 'on-failure:5'
+    logging: *logging
+
+  rasa-actions:
+    build:
+      context: .
+      dockerfile: docker/actions.Dockerfile
+    env_file: ./apps/rasa-chatbot/actions/.env.production
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5055/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+    logging: *logging
+
+  rasa-train:
+    env_file: ./apps/rasa-chatbot/.env.production
+    build:
+      context: .
+      dockerfile: docker/rasa.Dockerfile
+    image: lumina-rasa:local
+    entrypoint: [python, /app/train-if-needed.py]
+    volumes:
+      - rasa-models:/app/models
+    restart: 'no'
+    logging: *logging
+
+  rasa:
+    env_file: ./apps/rasa-chatbot/.env.production
+    image: lumina-rasa:local
+    build:
+      context: .
+      dockerfile: docker/rasa.Dockerfile
+    command: [run, --model, /app/models/lumina.tar.gz, --credentials, credentials.yml, --endpoints, endpoints.yml, --port, '5005']
+    volumes:
+      - rasa-models:/app/models:ro
+    depends_on:
+      rasa-train:
+        condition: service_completed_successfully
+      rasa-actions:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5005/', timeout=3)"]
+      start_period: 90s
+      interval: 15s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+    logging: *logging
+
+volumes:
+  mongo-data:
+  whatsapp-auth:
+  rasa-models:

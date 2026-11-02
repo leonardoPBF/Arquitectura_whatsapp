@@ -4,10 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run build && node --test test/*.test.cjs",
     "build": "tsc",
     "start": "node dist/index.js",
-    "prod": "npm run build && node dist/index.js"
+    "prod": "npm run build && node dist/index.js",
+    "diagnose": "npm run build && node dist/index.js --diagnostic",
+    "doctor": "npm run build && node scripts/doctor.cjs"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +21,6 @@
     "dotenv": "^17.2.3",
     "mongoose": "^8.19.1",
     "qrcode-terminal": "^0.12.0",
-    "whatsapp-web.js": "^1.34.1"
+    "whatsapp-web.js": "1.34.7"
   }
 }

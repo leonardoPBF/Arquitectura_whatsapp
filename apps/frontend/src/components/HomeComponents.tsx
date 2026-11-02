@@ -57,7 +57,7 @@ export const FeaturedProducts = ({ products }: { products: any[] }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {featured.map((product, idx) => {
+        {featured.map((product) => {
           const discount = Math.floor(Math.random() * 30) + 10; // 10-40% random
           const originalPrice = product.price * (1 + discount / 100);
 

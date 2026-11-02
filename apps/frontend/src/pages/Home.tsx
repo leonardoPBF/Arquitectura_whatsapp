@@ -36,7 +36,7 @@ export default function Home() {
   }
 
   const categories = products
-    ? ['Todos', ...Array.from(new Set(products.map((p: any) => p.category)))]
+    ? ['Todos', ...Array.from(new Set<string>(products.map((p: { category?: string }) => p.category).filter((category: unknown): category is string => typeof category === 'string')))]
     : ['Todos'];
 
   const filteredProducts = products

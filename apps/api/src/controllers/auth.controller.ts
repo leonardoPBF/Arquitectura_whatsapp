@@ -4,13 +4,18 @@ import crypto from "crypto";
 import { User } from "../models/User";
 import { Customer } from "../models/Customer";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
+import { jwtSecret, identity } from '../middlewares/security';
 const JWT_EXPIRES_IN = "7d";
 
 // POST /api/auth/register
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, password, name, phone, role } = req.body;
+    const { email, password, name, phone } = req.body;
+    if (req.body.role && req.body.role !== 'customer') return res.status(403).json({ message: 'El registro público solo admite clientes' });
+    if (typeof email !== 'string' || !email.includes('@') || typeof password !== 'string' || password.length < 12 || password.length > 72 || typeof name !== 'string' || !name.trim() || typeof phone !== 'string' || !/^\+?\d{7,15}$/.test(phone)) {
+      return res.status(400).json({ message: 'Email, nombre, teléfono y contraseña de 12 a 72 caracteres requeridos' });
+    }
+    const role = 'customer';
 
     // Check if user exists
     const existingUser = await User.findOne({ email });
@@ -24,6 +29,7 @@ export const register = async (req: Request, res: Response) => {
     if (role === "customer" || !role) {
       if (phone) {
         let customer = await Customer.findOne({ phone });
+        if (customer) return res.status(409).json({ message: 'El teléfono ya está vinculado; inicia sesión o solicita asistencia' });
         if (!customer) {
           customer = new Customer({
             phone,
@@ -51,8 +57,8 @@ export const register = async (req: Request, res: Response) => {
     // Generate token
     const token = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
+      jwtSecret(),
+      { expiresIn: JWT_EXPIRES_IN, jwtid: crypto.randomUUID(), algorithm: 'HS256' }
     );
 
     res.status(201).json({
@@ -67,8 +73,8 @@ export const register = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Error en register:", error);
-    res.status(500).json({ message: "Error al registrar usuario", error });
+    console.error('auth.operation_failed');
+    res.status(500).json({ message: "Error al registrar usuario" });
   }
 };
 
@@ -78,7 +84,7 @@ export const registerFromWhatsApp = async (req: Request, res: Response) => {
   try {
     const { email, name, phone } = req.body;
 
-    if (!email || !name || !phone) {
+    if (typeof email !== 'string' || typeof name !== 'string' || typeof phone !== 'string' || !/^\+?\d{7,15}$/.test(phone)) {
       return res.status(400).json({ 
         message: "Email, nombre y teléfono son requeridos" 
       });
@@ -90,6 +96,7 @@ export const registerFromWhatsApp = async (req: Request, res: Response) => {
     });
 
     if (user) {
+      if (user.phone !== phone || user.email !== email || user.role !== 'customer') return res.status(409).json({ message: 'Identidad ya vinculada' });
       // Si ya existe, retornar info sin crear duplicado
       return res.status(200).json({
         message: "Usuario ya existe",
@@ -105,8 +112,8 @@ export const registerFromWhatsApp = async (req: Request, res: Response) => {
       });
     }
 
-    // Generate random password (8 caracteres: letras y números)
-    const generatedPassword = crypto.randomBytes(4).toString('hex'); // 8 caracteres hex
+    // Cryptographically random initial password; only the trusted WhatsApp service receives it.
+    const generatedPassword = crypto.randomBytes(16).toString('hex');
 
     // Create or find customer
     let customer = await Customer.findOne({ phone });
@@ -139,8 +146,8 @@ export const registerFromWhatsApp = async (req: Request, res: Response) => {
     // Generate token
     const token = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
+      jwtSecret(),
+      { expiresIn: JWT_EXPIRES_IN, jwtid: crypto.randomUUID(), algorithm: 'HS256' }
     );
 
     res.status(201).json({
@@ -158,8 +165,8 @@ export const registerFromWhatsApp = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Error en registerFromWhatsApp:", error);
-    res.status(500).json({ message: "Error al registrar usuario desde WhatsApp", error });
+    console.error('auth.operation_failed');
+    res.status(500).json({ message: "Error al registrar usuario desde WhatsApp" });
   }
 };
 
@@ -167,6 +174,7 @@ export const registerFromWhatsApp = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
+    if (typeof email !== 'string' || typeof password !== 'string' || password.length > 72) return res.status(400).json({ message: 'Credenciales inválidas' });
 
     // Find user
     const user = await User.findOne({ email, isActive: true });
@@ -183,8 +191,8 @@ export const login = async (req: Request, res: Response) => {
     // Generate token
     const token = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
-      JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
+      jwtSecret(),
+      { expiresIn: JWT_EXPIRES_IN, jwtid: crypto.randomUUID(), algorithm: 'HS256' }
     );
 
     res.json({
@@ -199,8 +207,8 @@ export const login = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Error en login:", error);
-    res.status(500).json({ message: "Error al iniciar sesión", error });
+    console.error('auth.operation_failed');
+    res.status(500).json({ message: "Error al iniciar sesión" });
   }
 };
 
@@ -213,7 +221,7 @@ export const getCurrentUser = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "No token provided" });
     }
 
-    const decoded: any = jwt.verify(token, JWT_SECRET);
+    const decoded = { userId: identity(res).id };
     const user = await User.findById(decoded.userId).select("-password");
 
     if (!user) {
@@ -230,7 +238,7 @@ export const getCurrentUser = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Error en getCurrentUser:", error);
+    console.error('auth.operation_failed');
     res.status(401).json({ message: "Token inválido" });
   }
 };
@@ -266,7 +274,7 @@ export const createAdmin = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    console.error("Error en createAdmin:", error);
-    res.status(500).json({ message: "Error al crear administrador", error });
+    console.error('auth.operation_failed');
+    res.status(500).json({ message: "Error al crear administrador" });
   }
 };

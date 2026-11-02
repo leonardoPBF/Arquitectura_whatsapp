@@ -1,3 +1,14 @@
+# Docker, CI y diagnóstico de WhatsApp
+
+- [Ejecutar todas las aplicaciones con Docker y Nginx](docs/DOCKER.md)
+- [Desplegar en AWS: Ubuntu, 4 GB, HTTPS y arranque por etapas](docs/AWS_DEPLOY.md)
+- [Controles de seguridad y cambios de acceso](docs/SEGURIDAD_BOT.md)
+- [Compatibilidad y migración a la API oficial de WhatsApp](docs/WHATSAPP_CLOUD_API.md)
+
+Ver [el plan de implementación y los hallazgos](docs/PLAN_DOCKER_CI_WHATSAPP.md).
+Para comprobar el entorno: `npm run doctor:whatsapp`. Para vincular sin respuestas
+automáticas: `npm run diagnose:whatsapp` (detener antes otras instancias del bot).
+
 # ============================================
 # CONFIGURACIÓN INICIAL
 # ============================================

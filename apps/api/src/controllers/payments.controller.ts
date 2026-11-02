@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { identity } from "../middlewares/security";
 import { Payment } from "../models/Payment";
 
 // GET /api/payments
@@ -8,7 +9,8 @@ export const getPayments = async (req: Request, res: Response) => {
     const { orderId, status, culqiOrderId } = req.query;
     
     // Construir filtro dinámico
-    const filter: any = {};
+    const filter: any = identity(res).role === 'customer' ? { customerId: identity(res).customerId } : {};
+    if ([orderId, status, culqiOrderId].some(value => value !== undefined && typeof value !== 'string')) return res.sendStatus(400);
     if (orderId) filter.orderId = orderId;
     if (status) filter.status = status;
     if (culqiOrderId) filter.culqiOrderId = culqiOrderId;

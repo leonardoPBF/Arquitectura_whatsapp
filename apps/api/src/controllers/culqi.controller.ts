@@ -8,7 +8,7 @@ import { Customer } from "../models/Customer";
 
 dotenv.config();
 
-const culqi = new Culqi({
+const getCulqi = () => new Culqi({
   privateKey: process.env.CULQI_PRIVATE_KEY!,
   publicKey: process.env.CULQI_PUBLIC_KEY!,
   pciCompliant: true,
@@ -58,7 +58,7 @@ export const createCulqiOrder = async (req: Request, res: Response) => {
     const paymentMethods = paymentMethodsMap[method] || ["card"]; // Default a card si no se reconoce
 
     // 1️⃣ Crear la orden en Culqi
-    const culqiOrder = await culqi.orders.createOrder({
+    const orderPayload = {
       amount: Math.round(order.totalAmount * 100), // Monto en centavos
       currency_code: currency,
       description: `Orden #${order.orderNumber}`,
@@ -71,9 +71,9 @@ export const createCulqiOrder = async (req: Request, res: Response) => {
       },
       expiration_date: Math.floor(Date.now() / 1000) + 86400, // 24 horas
       // ✅ Agregar métodos de pago permitidos
-      // @ts-ignore - La librería culqi-node podría no tener los tipos actualizados
       payment_methods: paymentMethods,
-    });
+    };
+    const culqiOrder = await getCulqi().orders.createOrder(orderPayload);
 
     console.log("✅ Orden Culqi creada:", culqiOrder.id);
 
@@ -118,12 +118,12 @@ export const createCulqiOrder = async (req: Request, res: Response) => {
  */
 export const createCulqiCharge = async (req: Request, res: Response) => {
   try {
-    const { tokenId, culqiOrderId, amount, email } = req.body;
+    const { tokenId, culqiOrderId, email } = req.body;
 
-    if (!tokenId || !culqiOrderId || !amount) {
+    if (typeof tokenId !== 'string' || typeof culqiOrderId !== 'string') {
       return res.status(400).json({ 
         success: false,
-        message: "tokenId, culqiOrderId y amount son requeridos" 
+        message: "tokenId y culqiOrderId son requeridos"
       });
     }
 
@@ -136,6 +136,11 @@ export const createCulqiCharge = async (req: Request, res: Response) => {
         success: false,
         message: "No se encontró la orden asociada al culqiOrderId" 
       });
+    }
+
+    const amount = payment.amount;
+    if (req.body.amount !== undefined && req.body.amount !== amount) {
+      return res.status(400).json({ message: 'El importe debe coincidir con el pago registrado' });
     }
 
     // ✅ PREVENIR DUPLICADOS: Si ya está completado, no procesar de nuevo
@@ -181,14 +186,13 @@ export const createCulqiCharge = async (req: Request, res: Response) => {
     console.log(`👤 Cliente: ${firstName} ${lastName} - ${customerEmail} - ${customerPhone}`);
 
     // ✅ Crear el cargo directo en Culqi con datos completos del cliente
-    const charge = await culqi.charges.createCharge({
+    const chargePayload = {
       amount: Math.round(amount * 100),
       currency_code: "PEN",
       email: customerEmail,
       source_id: tokenId,
       description: `Pago Orden #${order.orderNumber}`,
       // ✅ Agregar datos completos del cliente en antifraud_details (formato recomendado por Culqi)
-      // @ts-ignore - La librería culqi-node podría no tener los tipos actualizados
       antifraud_details: {
         first_name: firstName,
         last_name: lastName,
@@ -199,8 +203,13 @@ export const createCulqiCharge = async (req: Request, res: Response) => {
         order_number: order.orderNumber,
         culqi_order_id: culqiOrderId
       },
-    });
+    };
 
+    // culqi-node 2.x declares amount/antifraud_details differently from the HTTP payload.
+    // Keep the existing numeric amount and phone_number unchanged at this boundary.
+    const charge = await getCulqi().charges.createCharge(
+      chargePayload as unknown as Parameters<ReturnType<typeof getCulqi>['charges']['createCharge']>[0]
+    );
     console.log(`📊 Resultado del cargo:`, charge.outcome?.type);
 
     const isSuccessful = charge.outcome?.type === "venta_exitosa";
@@ -301,7 +310,7 @@ export const verifyCulqiPayment = async (req: Request, res: Response) => {
     // ✅ CONSULTAR el estado actual de la orden en Culqi (NO CONFIRMAR)
     let culqiOrder: any;
     try {
-      culqiOrder = await culqi.orders.getOrder({ id: culqiOrderId });
+      culqiOrder = await getCulqi().orders.getOrder({ id: culqiOrderId });
       console.log(`📊 Estado actual de orden Culqi: ${culqiOrder.state}`);
     } catch (getOrderError: any) {
       // Si no se puede obtener la orden, puede que haya expirado
@@ -473,7 +482,7 @@ export const confirmCulqiOrder = async (req: Request, res: Response) => {
     let orderExpired = false;
 
     try {
-      culqiOrder = await culqi.orders.getOrder({ id: culqiOrderId });
+      culqiOrder = await getCulqi().orders.getOrder({ id: culqiOrderId });
       console.log(`Estado de orden Culqi: ${culqiOrder.state}`);
     } catch (culqiError: any) {
       console.error(`❌ Error consultando Culqi: ${culqiError.merchant_message || culqiError.message}`);
@@ -624,7 +633,7 @@ export const getCulqiOrderStatus = async (req: Request, res: Response) => {
     let orderExpired = false;
 
     try {
-      culqiOrder = await culqi.orders.getOrder({ id: culqiIdToQuery });
+      culqiOrder = await getCulqi().orders.getOrder({ id: culqiIdToQuery });
 
       // ✅ Actualizar si ya fue pagado
       if (culqiOrder.state === "paid" && payment.status !== "completed") {
@@ -856,7 +865,7 @@ export const getOrderForCheckout = async (req: Request, res: Response) => {
     // Obtener info actualizada de Culqi
     let culqiOrder: any;
     try {
-      culqiOrder = await culqi.orders.getOrder({ id: culqiOrderId });
+      culqiOrder = await getCulqi().orders.getOrder({ id: culqiOrderId });
       console.log(`✅ Orden Culqi obtenida, estado: ${culqiOrder.state}`);
       
       // ✅ IMPORTANTE: Actualizar estado si ya fue pagado en Culqi
@@ -961,7 +970,7 @@ export const syncPendingPayments = async (req: Request, res: Response) => {
         }
 
         // Consultar estado en Culqi
-        const culqiOrder = await culqi.orders.getOrder({ id: payment.culqiOrderId });
+        const culqiOrder = await getCulqi().orders.getOrder({ id: payment.culqiOrderId });
         console.log(`🔍 Payment ${payment._id} - Estado en Culqi: ${culqiOrder.state}`);
 
         // Si el estado cambió a "paid", actualizar localmente
@@ -1082,7 +1091,7 @@ export const syncSpecificOrder = async (req: Request, res: Response) => {
     let updated = false;
 
     try {
-      culqiOrder = await culqi.orders.getOrder({ id: culqiOrderId });
+      culqiOrder = await getCulqi().orders.getOrder({ id: culqiOrderId });
       console.log(`Estado en Culqi: ${culqiOrder.state}`);
 
       // Actualizar si el estado cambió

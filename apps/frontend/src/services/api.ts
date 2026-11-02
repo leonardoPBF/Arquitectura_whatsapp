@@ -1,10 +1,10 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosResponse } from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 // Interfaces para tipos de respuesta
-interface OrderResponse {
+export interface OrderResponse {
   id: string;
   order_number: string;
   description: string;
@@ -25,6 +25,7 @@ interface ConfirmPaymentResponse {
   paymentId?: string;
   orderId?: string;
   orderExpired?: boolean;
+  alreadyPaid?: boolean;
 }
 
 interface CreateOrderResponse {

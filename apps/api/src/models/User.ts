@@ -1,4 +1,4 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
 import bcrypt from "bcryptjs";
 
 export interface IUser extends Document {
@@ -6,7 +6,7 @@ export interface IUser extends Document {
   password: string;
   name: string;
   role: "admin" | "customer";
-  customerId?: Schema.Types.ObjectId;
+  customerId?: Types.ObjectId;
   phone?: string;
   isActive: boolean;
   createdAt: Date;

@@ -1,47 +1,55 @@
-import { Client, LocalAuth } from "whatsapp-web.js";
-import qrcode from "qrcode-terminal";
-import dotenv from "dotenv";
-import { handleMessage } from "./handlers/index";
-import { getSession, updateSession } from "./utils/context";
-
-dotenv.config();
+import { config } from './config';
+import { Client, LocalAuth } from 'whatsapp-web.js';
+import qrcode from 'qrcode-terminal';
+import { handleMessage } from './handlers/index';
+import { startClient } from './lifecycle';
+import { resolveSenderPhone } from './sender';
 
 const client = new Client({
-  authStrategy: new LocalAuth({ dataPath: ".wwebjs_auth" }),
+  authStrategy: new LocalAuth({ dataPath: config.authPath, rmMaxRetries: 10 }),
+  authTimeoutMs: config.readyTimeoutMs,
+  // Use the live web version, not HTML previously cached in the repository.
+  webVersionCache: { type: 'none' },
   puppeteer: {
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    headless: config.headless,
+    executablePath: config.executablePath,
+    args: config.noSandbox ? ['--no-sandbox', '--disable-setuid-sandbox'] : [],
   },
 });
 
-client.on("qr", (qr) => {
-  qrcode.generate(qr, { small: true });
+console.log(`[whatsapp] PID ${process.pid}; sesión: ${config.authPath}`);
+console.log(`[whatsapp] Modo: ${config.diagnostic ? 'diagnóstico (sin responder mensajes)' : 'ventas'}`);
+client.on('qr', (qr: string) => qrcode.generate(qr, { small: true }));
+
+const lifecycle = startClient(client, {
+  startupTimeoutMs: config.startupTimeoutMs,
+  readyTimeoutMs: config.readyTimeoutMs,
+  log: console.log,
+  exit: (code) => process.exit(code),
 });
 
-client.on("ready", () => {
-  console.log("🤖 Bot de WhatsApp conectado y listo");
-});
+if (!config.diagnostic) {
+  client.on('message', async (msg) => {
+    if (!lifecycle.isReady() || msg.fromMe || msg.isStatus || msg.from.endsWith('@g.us')) return;
+    try {
+      const contact = await msg.getContact();
+      // Use the same resolved phone key in every handler, including LID senders.
+      const phone = await resolveSenderPhone(client, msg.from);
+      if (!phone || !/^\d+$/.test(phone)) {
+        console.warn('[whatsapp] No se pudo resolver el teléfono del remitente.');
+        return;
+      }
+      await handleMessage(client, msg, {
+        phone,
+        name: contact.pushname || contact.name || 'Desconocido',
+      });
+    } catch (error) {
+      console.error('[whatsapp] Error procesando mensaje:', error);
+    }
+  });
+}
 
-client.on("message", async (msg) => {
-  try {
-    const contact = await msg.getContact();
-    const number = contact.number; // ✅ Número sin el @c.us
-    const name = contact.pushname || contact.name || "Desconocido";
-
-    console.log(`📩 Mensaje recibido de ${name} (${number}): ${msg.body}`);
-
-      // ensure session contains contactName and phone for handlers
-      let session = getSession(number);
-      if (!session) session = { step: "greeting", cart: [] };
-      session.contactName = name;
-      session.phone = number;
-      updateSession(number, session);
-
-    // Ahora puedes pasar esta info al manejador de mensajes
-    await handleMessage(client, msg );
-  } catch (err) {
-    console.error("⚠️ Error al procesar el mensaje:", err);
-  }
-});
-
-client.initialize();
+process.once('SIGINT', () => void lifecycle.stop(0, 'Cierre solicitado (SIGINT).'));
+process.once('SIGTERM', () => void lifecycle.stop(0, 'Cierre solicitado (SIGTERM).'));
+process.on('uncaughtException', (error) => void lifecycle.stop(1, `Error no capturado: ${String(error)}`));
+process.on('unhandledRejection', (error: unknown) => void lifecycle.stop(1, `Promesa rechazada: ${String(error)}`));

@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  HUSKY: '0'
+  PUPPETEER_SKIP_DOWNLOAD: 'true'
+
+jobs:
+  build:
+    name: Build (${{ matrix.workspace }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace: [api, frontend, docs, whatsapp-bot]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build --workspace=${{ matrix.workspace }}
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  whatsapp-tests:
+    name: WhatsApp lifecycle tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm test --workspace=whatsapp-bot
+
+  security-tests:
+    name: API authorization tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm test --workspace=api
+
+  docker:
+    name: Docker build and smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/docker-setup.cjs
+      - run: node scripts/docker-env-check.cjs
+      - run: docker compose --env-file .env.production build
+      - name: Action security tests
+        run: docker compose --env-file .env.production run --rm --no-deps -v "$PWD/apps/rasa-chatbot/tests:/tests:ro" --entrypoint python rasa-actions -m unittest discover -s /tests -p '*_test.py'
+      - name: Validate Rasa data
+        run: docker compose --env-file .env.production run --rm --no-deps --entrypoint rasa rasa-train data validate
+      - name: Start internal services (no WhatsApp session)
+        run: docker compose --env-file .env.production up -d --wait --wait-timeout 180 mongo api nginx rasa-actions
+      - run: node scripts/docker-smoke.cjs
+      - name: Logs on failure
+        if: failure()
+        run: docker compose --env-file .env.production logs --tail=100
+      - name: Stop containers
+        if: always()
+        run: docker compose --env-file .env.production down

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const { login, register } = useAuth();
-  const navigate = useNavigate();
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,9 +83,11 @@ export default function Login() {
                   <label className="text-sm font-medium">Teléfono</label>
                   <Input
                     type="tel"
-                    placeholder="+51 999 999 999"
+                    placeholder="51999999999"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
+                    required
+                    pattern="\+?[0-9]{7,15}"
                   />
                 </div>
               </>
@@ -110,7 +112,8 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={isLogin ? undefined : 12}
+                maxLength={72}
               />
             </div>
 

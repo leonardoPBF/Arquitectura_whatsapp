@@ -18,11 +18,16 @@ module.exports = defineConfig([
     "**/node_modules/",
     "**/dist/",
     "**/build/",
+    "**/venv/",
+    "**/.venv/",
+    "**/.wwebjs_auth/",
+    "**/.wwebjs_cache/",
+    "**/.cache/",
     "**/*.config.js",
     "**/.eslintrc.js",
   ]),
   {
-    files: ["**/*.js"],
+    files: ["**/*.js", "**/*.cjs"],
 
     rules: {
       "@typescript-eslint/no-require-imports": "off",

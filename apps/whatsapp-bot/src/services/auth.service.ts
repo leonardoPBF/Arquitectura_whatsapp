@@ -1,6 +1,7 @@
-import axios from 'axios';
+import { backend as axios } from './backend';
+import { config } from '../config';
 
-const API_URL = process.env.API_URL || 'http://localhost:3000';
+const API_URL = config.apiUrl;
 
 export const authService = {
   /**

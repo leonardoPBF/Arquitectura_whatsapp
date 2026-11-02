@@ -15,10 +15,11 @@ export interface RasaResponse {
 
 export const useRasa = () => {
   const [messages, setMessages] = useState<Array<{ sender: 'user' | 'bot'; text: string; timestamp: Date }>>([]);
+  const [conversationId, setConversationId] = useState(() => crypto.randomUUID());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const sendMessage = async (message: string, sender: string = 'admin_user') => {
+  const sendMessage = async (message: string) => {
     setLoading(true);
     setError(null);
 
@@ -32,10 +33,9 @@ export const useRasa = () => {
     try {
       const response = await api.post('/api/chatbot', {
         message,
-        sender,
+        conversationId,
       });
 
-      console.log('📥 Respuesta completa de Rasa:', response.data);
       
       // Manejar diferentes formatos de respuesta
       let rasaResponses: RasaResponse[] = [];
@@ -50,7 +50,6 @@ export const useRasa = () => {
         rasaResponses = [{ text: response.data }];
       }
       
-      console.log('📝 Respuestas procesadas:', rasaResponses);
       
       // Process Rasa responses
       if (rasaResponses.length === 0) {
@@ -88,6 +87,7 @@ export const useRasa = () => {
   };
 
   const clearMessages = () => {
+    setConversationId(crypto.randomUUID());
     setMessages([]);
     setError(null);
   };

@@ -1,5 +1,8 @@
 import app from "./app";
 import { connectDB } from "./database";
+import { jwtSecret } from './middlewares/security';
+
+jwtSecret();
 
 const port = process.env.PORT || 3000;
 

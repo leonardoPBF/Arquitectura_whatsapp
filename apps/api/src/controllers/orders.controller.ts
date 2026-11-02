@@ -2,15 +2,15 @@ import { Request, Response } from "express";
 import { Order } from "../models/Order";
 import { IProduct, Product } from "../models/Product";
 import { Customer } from "../models/Customer";
-import { User } from "../models/User";
-import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
+import { identity } from "../middlewares/security";
+
 
 // GET /api/orders
-export const getOrders = async (_: Request, res: Response) => {
+export const getOrders = async (_req: Request, res: Response) => {
   try {
-    const orders = await Order.find()
+    const principal = identity(res);
+    const orders = await Order.find(principal.role === 'customer' ? { customerId: principal.customerId } : {})
       .populate("customerId")
       .populate("items.productId");
     res.json(orders);
@@ -49,6 +49,10 @@ export const createOrder = async (req: Request, res: Response) => {
     let { customerId, items } = req.body;
     const { customer: customerData, deliveryAddress, shippingAddress, notes } = req.body;
 
+    if (!Array.isArray(items) || items.length < 1 || items.length > 50 || items.some(item =>
+      !item || typeof item.productId !== 'string' || !/^[a-f\d]{24}$/i.test(item.productId) || !Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 100)) {
+      return res.status(400).json({ message: 'Productos o cantidades inválidos' });
+    }
     let customer = null;
     if (customerId) {
       customer = await Customer.findById(customerId);
@@ -78,26 +82,6 @@ export const createOrder = async (req: Request, res: Response) => {
 
     if (!customerId || !customer || !items || !Array.isArray(items)) {
       return res.status(400).json({ message: "Datos incompletos" });
-    }
-
-    // Vincular customerId al User si el usuario está autenticado y no tiene customerId asignado
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
-      const token = authHeader.split(" ")[1];
-      if (token) {
-        try {
-          const decoded: any = jwt.verify(token, JWT_SECRET);
-          if (decoded && decoded.userId) {
-            const user = await User.findById(decoded.userId);
-            if (user && !user.customerId) {
-              user.customerId = customer._id;
-              await user.save();
-            }
-          }
-        } catch (err) {
-          console.error("⚠️ Error linking customer to user:", err);
-        }
-      }
     }
 
     const products = await Product.find({ _id: { $in: items.map(i => i.productId) } }) as (IProduct & { _id: any })[];
@@ -138,66 +122,43 @@ export const createOrder = async (req: Request, res: Response) => {
   }
 };
 
-// PATCH /api/orders/:id/status
-export const updateOrderStatus = async (req: Request, res: Response) => {
-  try {
-    const { status } = req.body;
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
-    if (!order)
-      return res.status(404).json({ message: "Orden no encontrada" });
-    res.json(order);
-  } catch (error) {
-    res.status(400).json({ message: "Error al actualizar estado", error });
-  }
+// Order transitions are checked server-side and applied atomically.
+const transitions: Record<string, string[]> = {
+  pending: ['confirmed', 'cancelled'], confirmed: ['preparing', 'cancelled'],
+  preparing: ['shipped'], shipped: ['delivered'], delivered: [], cancelled: [],
 };
-
-// PUT /api/orders/:id
-export const updateOrder = async (req: Request, res: Response) => {
-  try {
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    )
-      .populate("customerId")
-      .populate("items.productId");
-    if (!order)
-      return res.status(404).json({ message: "Orden no encontrada" });
-    res.json(order);
-  } catch (error) {
-    res.status(400).json({ message: "Error al actualizar orden", error });
-  }
-};
-
-// DELETE /api/orders/:id
-export const deleteOrder = async (req: Request, res: Response) => {
-  try {
-    const order = await Order.findByIdAndDelete(req.params.id);
-    if (!order)
-      return res.status(404).json({ message: "Orden no encontrada" });
-    res.json({ message: "Orden eliminada" });
-  } catch (error) {
-    res.status(500).json({ message: "Error al eliminar orden", error });
-  }
-};
-
-// POST /api/orders/:id/cancel
-export const cancelOrder = async (req: Request, res: Response) => {
+async function transition(req: Request, res: Response, target: unknown) {
+  if (typeof target !== 'string' || !Object.prototype.hasOwnProperty.call(transitions, target)) return res.status(400).json({ message: 'Estado inválido' });
   try {
     const order = await Order.findById(req.params.id);
-    if (!order)
-      return res.status(404).json({ message: "Orden no encontrada" });
-    if (order.status === "delivered")
-      return res.status(400).json({ message: "No se puede cancelar una orden entregada" });
-
-    order.status = "cancelled";
-    await order.save();
-    res.json({ message: "Orden cancelada", order });
-  } catch (error) {
-    res.status(500).json({ message: "Error al cancelar orden", error });
+    if (!order) return res.sendStatus(404);
+    if (order.status === target) return res.json(order); // Idempotent retry.
+    if (!transitions[order.status]?.includes(target) || (target === 'cancelled' && order.paymentStatus !== 'pending')) {
+      return res.status(409).json({ message: 'Transición no permitida; los pagos requieren gestión de reembolso' });
+    }
+    const updated = await Order.findOneAndUpdate(
+      { _id: order._id, status: order.status, paymentStatus: order.paymentStatus },
+      { $set: { status: target, updatedAt: new Date() } }, { new: true, runValidators: true });
+    if (!updated) return res.status(409).json({ message: 'La orden cambió; actualiza antes de continuar' });
+    console.info('order.transition', { actor: identity(res).id, orderId: String(order._id), from: order.status, to: target });
+    return res.json(updated);
+  } catch { return res.status(400).json({ message: 'No se pudo actualizar la orden' }); }
+}
+export const updateOrderStatus = (req: Request, res: Response) => transition(req, res, req.body.status);
+export const cancelOrder = (req: Request, res: Response) => transition(req, res, 'cancelled');
+export const deleteOrder = (_req: Request, res: Response) => res.status(405).json({ message: 'Las órdenes se cancelan, no se eliminan' });
+export const updateOrder = async (req: Request, res: Response) => {
+  const keys = Object.keys(req.body || {});
+  if (keys.length === 1 && keys[0] === 'status') return transition(req, res, req.body.status);
+  if (!keys.length || keys.some(key => !['deliveryAddress', 'notes'].includes(key) || typeof req.body[key] !== 'string' || req.body[key].length > 1000)) {
+    return res.status(400).json({ message: 'Solo se permite actualizar dirección y notas, o un estado válido' });
   }
+  try {
+    const principal = identity(res);
+    const filter = principal.role === 'customer'
+      ? { _id: req.params.id, customerId: principal.customerId, status: 'pending', paymentStatus: 'pending' }
+      : { _id: req.params.id };
+    const order = await Order.findOneAndUpdate(filter, { $set: { ...req.body, updatedAt: new Date() } }, { new: true, runValidators: true });
+    return order ? res.json(order) : res.sendStatus(404);
+  } catch { return res.status(400).json({ message: 'Orden inválida' }); }
 };

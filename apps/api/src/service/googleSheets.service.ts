@@ -1,5 +1,4 @@
 import { GoogleAuth } from "google-auth-library";
-import { google } from "googleapis";
 import { writeFileSync } from "fs";
 
 /**
@@ -14,11 +13,13 @@ export const exportToGoogleSheets = async (
   data: any[][]
 ) => {
   try {
+    // Load the large optional SDK only for an authorized export, not on every API startup.
+    const { google } = await import('googleapis');
     console.log("📤 Exportando datos a Google Sheets...");
 
     // Autenticación con credenciales del servicio
     const auth = new GoogleAuth({
-      keyFile: "credentials.json", // ruta a tu archivo JSON de credenciales
+      keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS || "credentials.json", // ruta a tu archivo JSON de credenciales
       scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     });
 

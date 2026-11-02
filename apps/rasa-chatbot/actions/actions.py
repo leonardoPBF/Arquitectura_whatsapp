@@ -2,11 +2,12 @@ from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet
-import requests
+from .api_client import client as requests
+import os
 from datetime import datetime, timedelta
 
 # Configuración de la API
-API_BASE_URL = "http://localhost:3000/api"
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:3000/api").rstrip("/")
 
 # ============================================
 # ACCIONES DE ÓRDENES Y PEDIDOS
@@ -39,7 +40,7 @@ class ActionGetOrders(Action):
             else:
                 dispatcher.utter_message(text="❌ No pude obtener las órdenes.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -87,7 +88,7 @@ class ActionGetOrderStatus(Action):
                 else:
                     dispatcher.utter_message(text="❌ No encontré la orden.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -116,7 +117,7 @@ class ActionGetPendingOrders(Action):
             else:
                 dispatcher.utter_message(text="❌ No pude obtener las órdenes.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -145,7 +146,7 @@ class ActionGetRecentOrders(Action):
             else:
                 dispatcher.utter_message(text="❌ No pude obtener las órdenes.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -197,7 +198,7 @@ class ActionGetMostExpensiveOrder(Action):
             else:
                 dispatcher.utter_message(text="❌ No pude obtener las órdenes.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -206,24 +207,8 @@ class ActionCancelOrder(Action):
     def name(self) -> Text:
         return "action_cancel_order"
 
-    def run(self, dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        
-        order_id = tracker.get_slot("order_id")
-        if not order_id:
-            dispatcher.utter_message(text="Por favor, indícame el número de orden a cancelar.")
-            return []
-        
-        try:
-            response = requests.delete(f"{API_BASE_URL}/orders/{order_id}")
-            if response.status_code == 200:
-                dispatcher.utter_message(text=f"✅ Orden {order_id} cancelada exitosamente.")
-            else:
-                dispatcher.utter_message(text="❌ No se pudo cancelar la orden.")
-        except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
-        
+    def run(self, dispatcher, tracker, domain):
+        dispatcher.utter_message(text="Por seguridad, este asistente solo consulta información. Gestiona los cambios de la orden desde el dashboard autenticado.")
         return []
 
 
@@ -231,26 +216,8 @@ class ActionUpdateOrderStatus(Action):
     def name(self) -> Text:
         return "action_update_order_status"
 
-    def run(self, dispatcher: CollectingDispatcher,
-            tracker: Tracker,
-            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
-        
-        order_id = tracker.get_slot("order_id")
-        new_status = tracker.get_slot("order_status")
-        
-        if not order_id or not new_status:
-            dispatcher.utter_message(text="Necesito el ID de orden y el nuevo estado.")
-            return []
-        
-        try:
-            response = requests.put(f"{API_BASE_URL}/orders/{order_id}", json={"status": new_status})
-            if response.status_code == 200:
-                dispatcher.utter_message(text=f"✅ Orden actualizada a: {new_status}")
-            else:
-                dispatcher.utter_message(text="❌ No se pudo actualizar la orden.")
-        except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
-        
+    def run(self, dispatcher, tracker, domain):
+        dispatcher.utter_message(text="Por seguridad, este asistente solo consulta información. Gestiona los cambios de la orden desde el dashboard autenticado.")
         return []
 
 
@@ -278,7 +245,7 @@ class ActionFilterOrders(Action):
             else:
                 dispatcher.utter_message(text="❌ No pude obtener las órdenes.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -309,7 +276,7 @@ class ActionGetCustomerInfo(Action):
             else:
                 dispatcher.utter_message(text="❌ No encontré al cliente.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -334,6 +301,8 @@ class ActionGetTopCustomers(Action):
                 customer_totals = {}
                 for order in orders:
                     customer_id = order.get('customerId')
+                    if isinstance(customer_id, dict):
+                        customer_id = customer_id.get('_id')
                     if customer_id:
                         if customer_id not in customer_totals:
                             customer_totals[customer_id] = {'total': 0, 'orders': 0}
@@ -363,7 +332,7 @@ class ActionGetTopCustomers(Action):
             else:
                 dispatcher.utter_message(text="❌ No pude obtener los clientes.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -417,7 +386,7 @@ class ActionGetBestActiveCustomer(Action):
             else:
                 dispatcher.utter_message(text="❌ No pude obtener los datos.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -438,7 +407,7 @@ class ActionGetCustomerCount(Action):
             else:
                 dispatcher.utter_message(text="❌ No pude obtener los clientes.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -478,7 +447,7 @@ class ActionSearchCustomer(Action):
             else:
                 dispatcher.utter_message(text="❌ Error al buscar cliente.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -507,7 +476,7 @@ class ActionGetProducts(Action):
             else:
                 dispatcher.utter_message(text="❌ No pude obtener los productos.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -552,7 +521,7 @@ class ActionGetTopProducts(Action):
             else:
                 dispatcher.utter_message(text="❌ No pude obtener los productos.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -609,7 +578,7 @@ class ActionGetMostSoldProduct(Action):
             else:
                 dispatcher.utter_message(text="❌ No pude obtener los datos.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -656,7 +625,7 @@ class ActionGetLowestStockProduct(Action):
             else:
                 dispatcher.utter_message(text="❌ No pude obtener los productos.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -670,6 +639,9 @@ class ActionGetProductStock(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         
         product_name = tracker.get_slot("product_name")
+        if not product_name:
+            dispatcher.utter_message(text="¿De qué producto quieres consultar el stock?")
+            return []
         
         try:
             response = requests.get(f"{API_BASE_URL}/products")
@@ -689,7 +661,7 @@ class ActionGetProductStock(Action):
             else:
                 dispatcher.utter_message(text="❌ Error al consultar productos.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -723,7 +695,7 @@ class ActionGetTotalSales(Action):
             else:
                 dispatcher.utter_message(text="❌ No pude obtener las ventas.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -751,7 +723,7 @@ class ActionGetRevenue(Action):
             else:
                 dispatcher.utter_message(text="❌ No pude obtener los ingresos.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -765,7 +737,7 @@ class ActionGetSalesByPeriod(Action):
             domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
         
         # Por ahora, mostrar ventas de hoy
-        dispatcher.utter_message(text="📊 Ventas del día: S/ 1,234.56 (placeholder)")
+        dispatcher.utter_message(text="La consulta por período todavía no está disponible. Consulta el reporte del dashboard.")
         return []
 
 
@@ -797,7 +769,7 @@ class ActionGetAbandonedCarts(Action):
             else:
                 dispatcher.utter_message(text="❌ Error al consultar carritos.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -834,7 +806,7 @@ class ActionGetPaymentStatus(Action):
             else:
                 dispatcher.utter_message(text="❌ Error al consultar pago.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -864,7 +836,7 @@ class ActionGetPendingPayments(Action):
             else:
                 dispatcher.utter_message(text="❌ Error al consultar pagos.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -899,7 +871,7 @@ class ActionGetConversionRate(Action):
             else:
                 dispatcher.utter_message(text="❌ Error al calcular conversión.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -932,7 +904,7 @@ class ActionGetAverageOrder(Action):
             else:
                 dispatcher.utter_message(text="❌ Error al calcular ticket promedio.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []
 
@@ -968,6 +940,6 @@ class ActionGetDashboardSummary(Action):
             else:
                 dispatcher.utter_message(text="❌ Error al obtener resumen.")
         except Exception as e:
-            dispatcher.utter_message(text=f"❌ Error: {str(e)}")
+            dispatcher.utter_message(text="❌ No pude completar la consulta. Revisa los datos o intenta nuevamente.")
         
         return []

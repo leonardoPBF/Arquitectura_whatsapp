@@ -6,6 +6,7 @@ export const setupSwagger = (app: Express) => {
   const options = {
     definition: {
       openapi: "3.0.0",
+      components: { securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } } },
       info: {
         title: "WhatsApp Sales Bot API",
         version: "1.0.0",
@@ -14,7 +15,7 @@ export const setupSwagger = (app: Express) => {
       },
       servers: [
         {
-          url: "http://localhost:3000",
+          url: "/",
         },
       ],
     },

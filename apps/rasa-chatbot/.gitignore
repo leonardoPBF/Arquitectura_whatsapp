@@ -24,6 +24,7 @@ logs/
 # Archivos de configuración locales o secretos
 .env
 .env.*
+!.env.production.example
 credentials.yml
 endpoints.yml
 

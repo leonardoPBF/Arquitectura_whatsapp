@@ -1,6 +1,6 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
 
-export interface ICustomer extends Document {
+export interface ICustomer extends Document<Types.ObjectId> {
   phone: string;
   name: string;
   email?: string;

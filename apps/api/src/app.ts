@@ -4,6 +4,9 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+import mongoose from "mongoose";
+import { rateLimit } from 'express-rate-limit';
+import { securityGate } from './middlewares/security';
 
 import productsRoutes from "./routes/products.routes";
 import ordersRoutes from "./routes/orders.routes";
@@ -18,7 +21,7 @@ import { setupSwagger } from "./config/swagger";
 
 const app = express();
 app.use(cors({
-  origin: [
+  origin: process.env.CORS_ORIGINS?.split(',').map(origin => origin.trim()).filter(Boolean) || [
     "http://localhost:5173",
     "http://localhost:5005",
     "http://localhost:5174",
@@ -27,13 +30,22 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: '64kb' }));
 app.use(morgan("dev"));
+app.use('/api/auth', rateLimit({ windowMs: 15 * 60_000, limit: 40, standardHeaders: 'draft-8', legacyHeaders: false }));
+app.use('/api', securityGate);
+app.use('/api/chatbot', rateLimit({ windowMs: 60_000, limit: 30,
+  keyGenerator: (_req, res) => res.locals.principal.id, standardHeaders: 'draft-8', legacyHeaders: false }));
 
 
 setupSwagger(app);
 
 app.get("/", (_, res) => res.send("🚀 API WhatsApp Sales funcionando"));
+app.get('/health/live', (_, res) => res.json({ status: 'up' }));
+app.get('/health/ready', (_, res) => {
+  const connected = mongoose.connection.readyState === 1;
+  res.status(connected ? 200 : 503).json({ status: connected ? 'ready' : 'not-ready' });
+});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productsRoutes);

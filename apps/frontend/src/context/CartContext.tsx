@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useCallback, ReactNode } from 'react';
+import React, { createContext, useState, useContext, useCallback, type ReactNode } from 'react';
 import toast from 'react-hot-toast';
 
 export interface CartItem {

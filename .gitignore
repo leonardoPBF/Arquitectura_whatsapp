@@ -1,5 +1,16 @@
 /node_modules
+**/node_modules/
+**/dist/
+**/.wwebjs_auth/
+**/.wwebjs_cache/
+**/*.tsbuildinfo
+**/__pycache__/
+*.log
+.cache/
 .node_modules
 .env
+.env.docker
+**/.env.production
+secrets/
 /venv
 venv
