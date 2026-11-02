@@ -29,6 +29,7 @@ try {
   assert.deepEqual(Object.keys(source.services).sort(), Object.keys(files).sort());
   for (const [service, file] of Object.entries(files)) {
     const envFiles = source.services[service].env_file;
+    assert.ok(Array.isArray(envFiles), `${service}: Compose no conserva env_file; usa Compose 5.6.1 como CI y el instalador AWS`);
     assert.equal(envFiles.length, 1, `${service}: se esperaba un env_file`);
     assert.equal(path.resolve(root, envFiles[0].path || envFiles[0]), path.resolve(root, file));
     const expected = parseEnv(fs.readFileSync(path.join(root, file), 'utf8'));

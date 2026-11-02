@@ -89,6 +89,9 @@ jobs:
         with:
           node-version: '22'
       - run: node scripts/docker-setup.cjs
+      - uses: docker/setup-compose-action@v1
+        with:
+          version: v5.6.1
       - run: node scripts/docker-env-check.cjs
       - run: docker compose --env-file .env.production build
       - name: Browser launch without a WhatsApp session
