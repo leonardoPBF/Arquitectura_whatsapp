@@ -109,3 +109,58 @@ jobs:
       - name: Stop containers
         if: always()
         run: docker compose --env-file .env.production down
+  
+  deploy:
+    name: Deploy AWS Lightsail
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    needs:
+      - build
+      - lint
+      - whatsapp-tests
+      - security-tests
+      - docker
+
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          SSH_HOST_KEYS: ${{ secrets.LIGHTSAIL_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_HOST_KEYS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy application
+        env:
+          HOST: ${{ secrets.LIGHTSAIL_HOST }}
+          USER: ${{ secrets.LIGHTSAIL_USER }}
+        run: |
+          ssh -o StrictHostKeyChecking=yes \
+            -i ~/.ssh/id_ed25519 \
+            "$USER@$HOST" 'bash -se' <<'EOF'
+          set -euo pipefail
+
+          cd /home/ubuntu/Arquitectura_whatsapp
+
+          git fetch origin main
+          git checkout main
+          git pull --ff-only origin main
+
+          docker compose \
+            --env-file .env.production \
+            build
+
+          docker compose \
+            --env-file .env.production \
+            up -d --remove-orphans
+
+          docker compose ps
+          EOF
+        
