@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import { Conversation } from "../models/Conversation";
+import { Request, Response } from 'express';
+import { Conversation } from '../models/Conversation';
 
 // GET /api/conversations
 export const getConversations = async (_: Request, res: Response) => {
@@ -7,7 +7,7 @@ export const getConversations = async (_: Request, res: Response) => {
     const conversations = await Conversation.find();
     res.json(conversations);
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener conversaciones", error });
+    res.status(500).json({ message: 'Error al obtener conversaciones', error });
   }
 };
 
@@ -16,10 +16,10 @@ export const getConversationByPhone = async (req: Request, res: Response) => {
   try {
     const { phone } = req.params;
     const conversation = await Conversation.findOne({ phone });
-    if (!conversation) return res.status(404).json({ message: "Conversación no encontrada" });
+    if (!conversation) return res.status(404).json({ message: 'Conversación no encontrada' });
     res.json(conversation);
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener conversación", error });
+    res.status(500).json({ message: 'Error al obtener conversación', error });
   }
 };
 
@@ -34,7 +34,7 @@ export const createConversation = async (req: Request, res: Response) => {
     }
     res.status(201).json(conversation);
   } catch (error) {
-    res.status(400).json({ message: "Error al crear conversación", error });
+    res.status(400).json({ message: 'Error al crear conversación', error });
   }
 };
 
@@ -48,10 +48,10 @@ export const updateConversationCart = async (req: Request, res: Response) => {
       { cart, updatedAt: Date.now() },
       { new: true }
     );
-    if (!conversation) return res.status(404).json({ message: "Conversación no encontrada" });
+    if (!conversation) return res.status(404).json({ message: 'Conversación no encontrada' });
     res.json(conversation);
   } catch (error) {
-    res.status(400).json({ message: "Error al actualizar carrito", error });
+    res.status(400).json({ message: 'Error al actualizar carrito', error });
   }
 };
 
@@ -60,10 +60,10 @@ export const getConversationCart = async (req: Request, res: Response) => {
   try {
     const { phone } = req.params;
     const conversation = await Conversation.findOne({ phone });
-    if (!conversation) return res.status(404).json({ message: "Conversación no encontrada" });
+    if (!conversation) return res.status(404).json({ message: 'Conversación no encontrada' });
     res.json({ cart: conversation.cart });
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener carrito", error });
+    res.status(500).json({ message: 'Error al obtener carrito', error });
   }
 };
 
@@ -73,10 +73,10 @@ export const addItemToConversationCart = async (req: Request, res: Response) => 
     const { phone } = req.params;
     const { productId, productName, quantity = 1, price = 0 } = req.body;
 
-    if (!productId) return res.status(400).json({ message: "productId requerido" });
+    if (!productId) return res.status(400).json({ message: 'productId requerido' });
 
     const conversation = await Conversation.findOne({ phone });
-    if (!conversation) return res.status(404).json({ message: "Conversación no encontrada" });
+    if (!conversation) return res.status(404).json({ message: 'Conversación no encontrada' });
 
     const existing = conversation.cart.find((c: any) => c.productId?.toString() === productId.toString());
     if (existing) {
@@ -91,7 +91,7 @@ export const addItemToConversationCart = async (req: Request, res: Response) => 
     await conversation.save();
     res.json(conversation);
   } catch (error) {
-    res.status(400).json({ message: "Error al agregar item al carrito", error });
+    res.status(400).json({ message: 'Error al agregar item al carrito', error });
   }
 };
 
@@ -101,13 +101,13 @@ export const removeItemFromConversationCart = async (req: Request, res: Response
     const { phone } = req.params;
     const { productId, quantity } = req.body;
 
-    if (!productId) return res.status(400).json({ message: "productId requerido" });
+    if (!productId) return res.status(400).json({ message: 'productId requerido' });
 
     const conversation = await Conversation.findOne({ phone });
-    if (!conversation) return res.status(404).json({ message: "Conversación no encontrada" });
+    if (!conversation) return res.status(404).json({ message: 'Conversación no encontrada' });
 
     const idx = conversation.cart.findIndex((c: any) => c.productId?.toString() === productId.toString());
-    if (idx === -1) return res.status(404).json({ message: "Producto no encontrado en el carrito" });
+    if (idx === -1) return res.status(404).json({ message: 'Producto no encontrado en el carrito' });
 
     if (quantity && quantity > 0) {
       // reducir cantidad
@@ -124,7 +124,7 @@ export const removeItemFromConversationCart = async (req: Request, res: Response
     await conversation.save();
     res.json(conversation);
   } catch (error) {
-    res.status(400).json({ message: "Error al remover item del carrito", error });
+    res.status(400).json({ message: 'Error al remover item del carrito', error });
   }
 };
 
@@ -138,28 +138,28 @@ export const updateConversationStep = async (req: Request, res: Response) => {
       { currentStep, lastMessage, updatedAt: Date.now() },
       { new: true }
     );
-    if (!conversation) return res.status(404).json({ message: "Conversación no encontrada" });
+    if (!conversation) return res.status(404).json({ message: 'Conversación no encontrada' });
     res.json(conversation);
   } catch (error) {
-    res.status(400).json({ message: "Error al actualizar paso", error });
+    res.status(400).json({ message: 'Error al actualizar paso', error });
   }
 };
 
 // DELETE /api/conversations/:phone/cart
 export const clearConversationCart = async (req: Request, res: Response) => {
   try {
-    console.log(`[clearConversationCart] request params:`, req.params);
+    console.log('[clearConversationCart] request params:', req.params);
     const { phone } = req.params;
     const conversation = await Conversation.findOneAndUpdate(
       { phone },
       { cart: [], updatedAt: Date.now() },
       { new: true }
     );
-    if (!conversation) return res.status(404).json({ message: "Conversación no encontrada" });
+    if (!conversation) return res.status(404).json({ message: 'Conversación no encontrada' });
     console.log(`[clearConversationCart] cleared cart for phone=${phone}`);
-    res.json({ message: "Carrito vaciado", conversation });
+    res.json({ message: 'Carrito vaciado', conversation });
   } catch (error) {
-    console.error("[clearConversationCart] error:", error);
-    res.status(500).json({ message: "Error al vaciar carrito", error });
+    console.error('[clearConversationCart] error:', error);
+    res.status(500).json({ message: 'Error al vaciar carrito', error });
   }
 };

@@ -1,25 +1,25 @@
-import { Bot, ShoppingCart, Headphones, BarChart3 } from "lucide-react";
+import { Bot, ShoppingCart, Headphones, BarChart3 } from 'lucide-react';
 
 const items = [
   {
     icon: Bot,
-    title: "Chatbot inteligente",
-    desc: "IA conversacional que entiende a tus clientes, responde 24/7 y aprende de cada interacción.",
+    title: 'Chatbot inteligente',
+    desc: 'IA conversacional que entiende a tus clientes, responde 24/7 y aprende de cada interacción.',
   },
   {
     icon: ShoppingCart,
-    title: "Pedidos automatizados",
-    desc: "De la consulta al checkout sin salir de WhatsApp. Confirmación, pago y seguimiento al instante.",
+    title: 'Pedidos automatizados',
+    desc: 'De la consulta al checkout sin salir de WhatsApp. Confirmación, pago y seguimiento al instante.',
   },
   {
     icon: Headphones,
-    title: "Atención escalable",
-    desc: "Resuelve miles de conversaciones simultáneas con derivación inteligente a tu equipo humano.",
+    title: 'Atención escalable',
+    desc: 'Resuelve miles de conversaciones simultáneas con derivación inteligente a tu equipo humano.',
   },
   {
     icon: BarChart3,
-    title: "Analítica en tiempo real",
-    desc: "Dashboard con KPIs de ventas, satisfacción y rendimiento operativo en un solo lugar.",
+    title: 'Analítica en tiempo real',
+    desc: 'Dashboard con KPIs de ventas, satisfacción y rendimiento operativo en un solo lugar.',
   },
 ];
 

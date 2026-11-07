@@ -14,6 +14,11 @@ module.exports = defineConfig([
   {
     extends: compat.extends("./packages/config/eslint/base.js"),
   },
+  { files: ['**/*.ts', '**/*.tsx'], rules: {
+    // Existing untyped boundaries remain visible until they are migrated deliberately.
+    '@typescript-eslint/no-explicit-any': 'warn',
+    'react/prop-types': 'off',
+  } },
   globalIgnores([
     "**/node_modules/",
     "**/dist/",

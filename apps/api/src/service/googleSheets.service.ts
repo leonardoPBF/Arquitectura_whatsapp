@@ -1,5 +1,4 @@
-import { GoogleAuth } from "google-auth-library";
-import { writeFileSync } from "fs";
+import { GoogleAuth } from 'google-auth-library';
 
 /**
  * Exporta datos a Google Sheets usando la API de Google Sheets.
@@ -15,30 +14,30 @@ export const exportToGoogleSheets = async (
   try {
     // Load the large optional SDK only for an authorized export, not on every API startup.
     const { google } = await import('googleapis');
-    console.log("📤 Exportando datos a Google Sheets...");
+    console.log('📤 Exportando datos a Google Sheets...');
 
     // Autenticación con credenciales del servicio
     const auth = new GoogleAuth({
-      keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS || "credentials.json", // ruta a tu archivo JSON de credenciales
-      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+      keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS || 'credentials.json', // ruta a tu archivo JSON de credenciales
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
-    const sheets = google.sheets({ version: "v4", auth });
+    const sheets = google.sheets({ version: 'v4', auth });
 
     // Inserta los datos en el rango especificado
     const response = await sheets.spreadsheets.values.update({
       spreadsheetId,
       range: `${sheetName}!A1`,
-      valueInputOption: "RAW",
+      valueInputOption: 'RAW',
       requestBody: {
         values: data,
       },
     });
 
-    console.log("✅ Datos exportados correctamente a Google Sheets");
+    console.log('✅ Datos exportados correctamente a Google Sheets');
     return response.data;
   } catch (error) {
-    console.error("❌ Error al exportar a Google Sheets:", error);
+    console.error('❌ Error al exportar a Google Sheets:', error);
     throw error;
   }
 };
@@ -48,24 +47,24 @@ export const exportToGoogleSheets = async (
  * @param data Arreglo de objetos o de arreglos
  * @param filePath Ruta del archivo CSV a generar
  */
-import fs from "fs";
-import { Parser } from "json2csv";
+import fs from 'fs';
+import { Parser } from 'json2csv';
 
 // ✅ Exportar a CSV desde datos de MongoDB
 export const exportToCSV = async (data: any[], filePath: string): Promise<string> => {
   try {
     if (!data || data.length === 0) {
-      throw new Error("No hay datos para exportar");
+      throw new Error('No hay datos para exportar');
     }
 
     // Definir las columnas que quieres en el CSV
     const fields = [
-      { label: "ID", value: "_id" },
-      { label: "Cliente", value: "customerId" },
-      { label: "Teléfono", value: "customerPhone" },
-      { label: "Total", value: "totalAmount" },
-      { label: "Estado", value: "status" },
-      { label: "Fecha de creación", value: (row: any) => new Date(row.createdAt).toLocaleString("es-PE") },
+      { label: 'ID', value: '_id' },
+      { label: 'Cliente', value: 'customerId' },
+      { label: 'Teléfono', value: 'customerPhone' },
+      { label: 'Total', value: 'totalAmount' },
+      { label: 'Estado', value: 'status' },
+      { label: 'Fecha de creación', value: (row: any) => new Date(row.createdAt).toLocaleString('es-PE') },
     ];
 
     // Usar json2csv para convertir los datos
@@ -73,16 +72,16 @@ export const exportToCSV = async (data: any[], filePath: string): Promise<string
     const csv = json2csv.parse(data);
 
     // Crear directorio temporal si no existe
-    const dir = filePath.substring(0, filePath.lastIndexOf("/"));
+    const dir = filePath.substring(0, filePath.lastIndexOf('/'));
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
     // Guardar archivo CSV
-    fs.writeFileSync(filePath, csv, "utf-8");
+    fs.writeFileSync(filePath, csv, 'utf-8');
 
     console.log(`✅ Archivo CSV generado en: ${filePath}`);
     return csv;
   } catch (error) {
-    console.error("❌ Error al exportar CSV:", error);
+    console.error('❌ Error al exportar CSV:', error);
     throw error;
   }
 };

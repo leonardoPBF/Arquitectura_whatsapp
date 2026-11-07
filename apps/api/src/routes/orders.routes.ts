@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router } from 'express';
 import {
   getOrders,
   getOrderById,
@@ -8,7 +8,7 @@ import {
   updateOrderStatus,
   deleteOrder,
   cancelOrder
-} from "../controllers/orders.controller";
+} from '../controllers/orders.controller';
 
 const router = Router();
 
@@ -78,7 +78,7 @@ const router = Router();
  *               items:
  *                 $ref: '#/components/schemas/Order'
  */
-router.get("/", getOrders);
+router.get('/', getOrders);
 
 /**
  * @swagger
@@ -98,7 +98,7 @@ router.get("/", getOrders);
  *       404:
  *         description: Orden no encontrada
  */
-router.get("/:id", getOrderById);
+router.get('/:id', getOrderById);
 
 /**
  * @swagger
@@ -116,7 +116,7 @@ router.get("/:id", getOrderById);
  *       200:
  *         description: Lista de órdenes del cliente
  */
-router.get("/customer/:customerId", getOrdersByCustomer);
+router.get('/customer/:customerId', getOrdersByCustomer);
 
 /**
  * @swagger
@@ -134,7 +134,7 @@ router.get("/customer/:customerId", getOrdersByCustomer);
  *       201:
  *         description: Orden creada
  */
-router.post("/", createOrder);
+router.post('/', createOrder);
 
 /**
  * @swagger
@@ -162,7 +162,7 @@ router.post("/", createOrder);
  *       200:
  *         description: Estado actualizado
  */
-router.patch("/:id/status", updateOrderStatus);
+router.patch('/:id/status', updateOrderStatus);
 
 /**
  * @swagger
@@ -182,8 +182,8 @@ router.patch("/:id/status", updateOrderStatus);
  *       400:
  *         description: No se puede cancelar la orden
  */
-router.put("/:id", updateOrder);
-router.delete("/:id", deleteOrder);
-router.post("/:id/cancel", cancelOrder);
+router.put('/:id', updateOrder);
+router.delete('/:id', deleteOrder);
+router.post('/:id/cancel', cancelOrder);
 
 export default router;

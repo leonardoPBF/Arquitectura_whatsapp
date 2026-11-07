@@ -1,16 +1,16 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
-import { AuthProvider, useAuth } from "./context/AuthContext";
-import { CartProvider } from "./context/CartContext";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import Success from "./pages/Success";
-import Home from "./pages/Home";
-import Checkout from "./pages/checkout";
-import CheckoutCart from "./pages/CheckoutCart";
-import Dashboard from "./pages/Dashboard";
-import Admin from "./pages/Admin";
-import Login from "./pages/Login";
-import MyOrders from "./pages/MyOrders";
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import Success from './pages/Success';
+import Home from './pages/Home';
+import Checkout from './pages/checkout';
+import CheckoutCart from './pages/CheckoutCart';
+import Dashboard from './pages/Dashboard';
+import Admin from './pages/Admin';
+import Login from './pages/Login';
+import MyOrders from './pages/MyOrders';
 
 function AppRoutes() {
   const { isAuthenticated, isAdmin, loading } = useAuth();

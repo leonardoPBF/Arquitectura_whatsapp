@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
-import { useSearchParams, Link } from "react-router-dom";
-import { Navbar } from "@/components/Navbar";
-import api from "@/services/api";
+import { useEffect, useState } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { Navbar } from '@/components/Navbar';
+import api from '@/services/api';
 
 export default function Success() {
   const [searchParams] = useSearchParams();
-  const orderId = searchParams.get("order");
+  const orderId = searchParams.get('order');
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -17,7 +17,7 @@ export default function Success() {
         const res = await api.get(`/api/orders/${orderId}`);
         setOrder(res.data);
       } catch (err) {
-        console.error("Error al obtener la orden:", err);
+        console.error('Error al obtener la orden:', err);
       } finally {
         setLoading(false);
       }

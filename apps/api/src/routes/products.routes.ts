@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router } from 'express';
 import {
   getProducts,
   getProductById,
@@ -6,7 +6,7 @@ import {
   updateProduct,
   deleteProduct,
   searchProducts
-} from "../controllers/products.controller";
+} from '../controllers/products.controller';
 
 const router = Router();
 
@@ -71,7 +71,7 @@ const router = Router();
  *               items:
  *                 $ref: '#/components/schemas/Product'
  */
-router.get("/", getProducts);
+router.get('/', getProducts);
 
 /**
  * @swagger
@@ -94,7 +94,7 @@ router.get("/", getProducts);
  *       200:
  *         description: Resultados de búsqueda
  */
-router.get("/search", searchProducts);
+router.get('/search', searchProducts);
 
 /**
  * @swagger
@@ -114,7 +114,7 @@ router.get("/search", searchProducts);
  *       404:
  *         description: Producto no encontrado
  */
-router.get("/:id", getProductById);
+router.get('/:id', getProductById);
 
 /**
  * @swagger
@@ -132,7 +132,7 @@ router.get("/:id", getProductById);
  *       201:
  *         description: Producto creado
  */
-router.post("/", createProduct);
+router.post('/', createProduct);
 
 /**
  * @swagger
@@ -158,7 +158,7 @@ router.post("/", createProduct);
  *       404:
  *         description: Producto no encontrado
  */
-router.put("/:id", updateProduct);
+router.put('/:id', updateProduct);
 
 /**
  * @swagger
@@ -178,6 +178,6 @@ router.put("/:id", updateProduct);
  *       404:
  *         description: Producto no encontrado
  */
-router.delete("/:id", deleteProduct);
+router.delete('/:id', deleteProduct);
 
 export default router;

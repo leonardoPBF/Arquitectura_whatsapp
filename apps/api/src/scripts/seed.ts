@@ -1,11 +1,11 @@
-import mongoose, { Schema } from "mongoose";
-import dotenv from "dotenv";
-import { Product } from "../models/Product";
-import { Customer } from "../models/Customer";
-import { Order, IOrderItem } from "../models/Order";
-import { Payment } from "../models/Payment";
-import { Conversation } from "../models/Conversation";
-import { Counter } from "../models/Counter";
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import { Product } from '../models/Product';
+import { Customer } from '../models/Customer';
+import { Order, IOrderItem } from '../models/Order';
+import { Payment } from '../models/Payment';
+import { Conversation } from '../models/Conversation';
+import { Counter } from '../models/Counter';
 
 dotenv.config();
 
@@ -13,197 +13,197 @@ dotenv.config();
 const productsData = [
   // Tecnología - Precios accesibles
   {
-    name: "Auriculares Bluetooth JBL Tune 510BT",
-    description: "Auriculares inalámbricos con hasta 40 horas de batería. Sonido JBL Pure Bass.",
+    name: 'Auriculares Bluetooth JBL Tune 510BT',
+    description: 'Auriculares inalámbricos con hasta 40 horas de batería. Sonido JBL Pure Bass.',
     price: 89.90,
-    category: "Tecnología",
+    category: 'Tecnología',
     stock: 25,
-    imageUrl: "https://images-na.ssl-images-amazon.com/images/I/61d5F7xRZcL._AC_SL1500_.jpg",
+    imageUrl: 'https://images-na.ssl-images-amazon.com/images/I/61d5F7xRZcL._AC_SL1500_.jpg',
     isActive: true,
   },
   {
-    name: "Teclado Mecánico Redragon Kumara K552",
-    description: "Retroiluminado RGB, switches Outemu Blue, ideal para gaming.",
+    name: 'Teclado Mecánico Redragon Kumara K552',
+    description: 'Retroiluminado RGB, switches Outemu Blue, ideal para gaming.',
     price: 129.90,
-    category: "Tecnología",
+    category: 'Tecnología',
     stock: 18,
-    imageUrl: "https://m.media-amazon.com/images/I/71l9N8eN6BL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/71l9N8eN6BL._AC_SL1500_.jpg',
     isActive: true,
   },
   {
-    name: "Mouse Gamer Logitech G203",
-    description: "Sensor de 8000 DPI con RGB LIGHTSYNC y diseño ergonómico.",
+    name: 'Mouse Gamer Logitech G203',
+    description: 'Sensor de 8000 DPI con RGB LIGHTSYNC y diseño ergonómico.',
     price: 49.90,
-    category: "Tecnología",
+    category: 'Tecnología',
     stock: 30,
-    imageUrl: "https://m.media-amazon.com/images/I/61LUYk0sBPL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/61LUYk0sBPL._AC_SL1500_.jpg',
     isActive: true,
   },
   {
-    name: "Smartwatch Amazfit Bip U Pro",
-    description: "Monitoreo de oxígeno, GPS integrado y resistencia al agua 5 ATM.",
+    name: 'Smartwatch Amazfit Bip U Pro',
+    description: 'Monitoreo de oxígeno, GPS integrado y resistencia al agua 5 ATM.',
     price: 199.90,
-    category: "Tecnología",
+    category: 'Tecnología',
     stock: 15,
-    imageUrl: "https://m.media-amazon.com/images/I/61gscZYmaoL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/61gscZYmaoL._AC_SL1500_.jpg',
     isActive: true,
   },
   {
-    name: "Parlante Bluetooth Anker Soundcore 2",
-    description: "Sonido estéreo de 12W con 24 horas de reproducción continua.",
+    name: 'Parlante Bluetooth Anker Soundcore 2',
+    description: 'Sonido estéreo de 12W con 24 horas de reproducción continua.',
     price: 79.90,
-    category: "Tecnología",
+    category: 'Tecnología',
     stock: 20,
-    imageUrl: "https://m.media-amazon.com/images/I/71rXSVqET9L._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/71rXSVqET9L._AC_SL1500_.jpg',
     isActive: true,
   },
   {
-    name: "Webcam Logitech C920 HD Pro",
-    description: "Video Full HD 1080p, micrófono estéreo dual, corrección de luz automática.",
+    name: 'Webcam Logitech C920 HD Pro',
+    description: 'Video Full HD 1080p, micrófono estéreo dual, corrección de luz automática.',
     price: 149.90,
-    category: "Tecnología",
+    category: 'Tecnología',
     stock: 24,
-    imageUrl: "https://m.media-amazon.com/images/I/71iNwni9TsL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/71iNwni9TsL._AC_SL1500_.jpg',
     isActive: true,
   },
   {
-    name: "Cargador Inalámbrico Belkin BoostCharge",
-    description: "Carga rápida inalámbrica de 15W, compatible con iPhone y Android.",
+    name: 'Cargador Inalámbrico Belkin BoostCharge',
+    description: 'Carga rápida inalámbrica de 15W, compatible con iPhone y Android.',
     price: 59.90,
-    category: "Tecnología",
+    category: 'Tecnología',
     stock: 32,
-    imageUrl: "https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg',
     isActive: true,
   },
   {
-    name: "Batería Externa Anker PowerCore 20000",
-    description: "Batería portátil de 20000mAh, carga rápida, compatible con múltiples dispositivos.",
+    name: 'Batería Externa Anker PowerCore 20000',
+    description: 'Batería portátil de 20000mAh, carga rápida, compatible con múltiples dispositivos.',
     price: 89.90,
-    category: "Tecnología",
+    category: 'Tecnología',
     stock: 27,
-    imageUrl: "https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg',
     isActive: true,
   },
   // Audio
   {
-    name: "AirPods Pro 2da Generación",
-    description: "Cancelación activa de ruido, audio espacial, resistencia al agua IPX4.",
+    name: 'AirPods Pro 2da Generación',
+    description: 'Cancelación activa de ruido, audio espacial, resistencia al agua IPX4.',
     price: 349.90,
-    category: "Audio",
+    category: 'Audio',
     stock: 22,
-    imageUrl: "https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg',
     isActive: true,
   },
   {
-    name: "Sony WH-1000XM5",
-    description: "Auriculares con cancelación de ruido líder, 30 horas de batería, sonido Hi-Res.",
+    name: 'Sony WH-1000XM5',
+    description: 'Auriculares con cancelación de ruido líder, 30 horas de batería, sonido Hi-Res.',
     price: 449.90,
-    category: "Audio",
+    category: 'Audio',
     stock: 16,
-    imageUrl: "https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg',
     isActive: true,
   },
   // Gaming
   {
-    name: "Nintendo Switch OLED",
-    description: "Pantalla OLED de 7 pulgadas, 64GB de almacenamiento, Joy-Con incluidos.",
+    name: 'Nintendo Switch OLED',
+    description: 'Pantalla OLED de 7 pulgadas, 64GB de almacenamiento, Joy-Con incluidos.',
     price: 1299.90,
-    category: "Gaming",
+    category: 'Gaming',
     stock: 11,
-    imageUrl: "https://m.media-amazon.com/images/I/61-PblYntsL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/61-PblYntsL._AC_SL1500_.jpg',
     isActive: true,
   },
   {
-    name: "Control Xbox Series X",
-    description: "Control inalámbrico para Xbox Series X/S y PC, diseño ergonómico.",
+    name: 'Control Xbox Series X',
+    description: 'Control inalámbrico para Xbox Series X/S y PC, diseño ergonómico.',
     price: 199.90,
-    category: "Gaming",
+    category: 'Gaming',
     stock: 25,
-    imageUrl: "https://m.media-amazon.com/images/I/51wS8C9j5DL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/51wS8C9j5DL._AC_SL1500_.jpg',
     isActive: true,
   },
   {
-    name: "PlayStation 5 DualSense",
-    description: "Control inalámbrico con retroalimentación háptica y gatillos adaptativos.",
+    name: 'PlayStation 5 DualSense',
+    description: 'Control inalámbrico con retroalimentación háptica y gatillos adaptativos.',
     price: 249.90,
-    category: "Gaming",
+    category: 'Gaming',
     stock: 20,
-    imageUrl: "https://m.media-amazon.com/images/I/51PBXm6xYDL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/51PBXm6xYDL._AC_SL1500_.jpg',
     isActive: true,
   },
   // Smart Home
   {
-    name: "Echo Dot 5ta Generación",
-    description: "Altavoz inteligente con Alexa, sonido mejorado, diseño esférico.",
+    name: 'Echo Dot 5ta Generación',
+    description: 'Altavoz inteligente con Alexa, sonido mejorado, diseño esférico.',
     price: 79.90,
-    category: "Smart Home",
+    category: 'Smart Home',
     stock: 35,
-    imageUrl: "https://m.media-amazon.com/images/I/714Rq4k05UL._AC_SL1000_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/714Rq4k05UL._AC_SL1000_.jpg',
     isActive: true,
   },
   {
-    name: "Ring Video Doorbell Pro 2",
-    description: "Timbre inteligente con video HD, visión nocturna, detección de movimiento.",
+    name: 'Ring Video Doorbell Pro 2',
+    description: 'Timbre inteligente con video HD, visión nocturna, detección de movimiento.',
     price: 299.90,
-    category: "Smart Home",
+    category: 'Smart Home',
     stock: 13,
-    imageUrl: "https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg',
     isActive: true,
   },
   // Lectura y Fitness
   {
-    name: "Kindle Paperwhite 11va Generación",
-    description: "Pantalla de 6.8 pulgadas, iluminación ajustable, resistencia al agua IPX8.",
+    name: 'Kindle Paperwhite 11va Generación',
+    description: 'Pantalla de 6.8 pulgadas, iluminación ajustable, resistencia al agua IPX8.',
     price: 199.90,
-    category: "Lectura",
+    category: 'Lectura',
     stock: 28,
-    imageUrl: "https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg',
     isActive: true,
   },
   {
-    name: "Fitbit Charge 5",
-    description: "Monitor de actividad física, GPS integrado, monitoreo de frecuencia cardíaca.",
+    name: 'Fitbit Charge 5',
+    description: 'Monitor de actividad física, GPS integrado, monitoreo de frecuencia cardíaca.',
     price: 249.90,
-    category: "Fitness",
+    category: 'Fitness',
     stock: 19,
-    imageUrl: "https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg',
     isActive: true,
   },
   // Accesorios
   {
-    name: "SSD Samsung 980 PRO 1TB",
-    description: "NVMe PCIe 4.0, velocidad de lectura hasta 7000MB/s, ideal para gaming.",
+    name: 'SSD Samsung 980 PRO 1TB',
+    description: 'NVMe PCIe 4.0, velocidad de lectura hasta 7000MB/s, ideal para gaming.',
     price: 299.90,
-    category: "Almacenamiento",
+    category: 'Almacenamiento',
     stock: 17,
-    imageUrl: "https://m.media-amazon.com/images/I/81vj2b+5KDL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/81vj2b+5KDL._AC_SL1500_.jpg',
     isActive: true,
   },
   {
-    name: "Teclado Logitech MX Keys",
-    description: "Teclado inalámbrico, retroiluminado, diseño ergonómico, batería de larga duración.",
+    name: 'Teclado Logitech MX Keys',
+    description: 'Teclado inalámbrico, retroiluminado, diseño ergonómico, batería de larga duración.',
     price: 199.90,
-    category: "Periféricos",
+    category: 'Periféricos',
     stock: 21,
-    imageUrl: "https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg',
     isActive: true,
   },
   {
-    name: "Mouse Logitech MX Master 3S",
-    description: "Mouse inalámbrico ergonómico, sensor de alta precisión, batería de 70 días.",
+    name: 'Mouse Logitech MX Master 3S',
+    description: 'Mouse inalámbrico ergonómico, sensor de alta precisión, batería de 70 días.',
     price: 179.90,
-    category: "Periféricos",
+    category: 'Periféricos',
     stock: 23,
-    imageUrl: "https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg',
     isActive: true,
   },
   {
-    name: "Monitor LG UltraGear 27 pulgadas",
-    description: "QHD 2560x1440, 165Hz, 1ms, G-Sync Compatible, HDR10.",
+    name: 'Monitor LG UltraGear 27 pulgadas',
+    description: 'QHD 2560x1440, 165Hz, 1ms, G-Sync Compatible, HDR10.',
     price: 899.90,
-    category: "Monitores",
+    category: 'Monitores',
     stock: 12,
-    imageUrl: "https://m.media-amazon.com/images/I/81QpkIctqPL._AC_SL1500_.jpg",
+    imageUrl: 'https://m.media-amazon.com/images/I/81QpkIctqPL._AC_SL1500_.jpg',
     isActive: true,
   },
 ];
@@ -211,31 +211,31 @@ const productsData = [
 // Generar 65 clientes con datos variados
 function generateCustomers() {
   const firstNames = [
-    "Carlos", "María", "Luis", "Ana", "José", "Laura", "Miguel", "Carmen",
-    "Juan", "Patricia", "Roberto", "Sandra", "Fernando", "Lucía", "Diego",
-    "Andrea", "Ricardo", "Mónica", "Andrés", "Paola", "Javier", "Daniela",
-    "Alejandro", "Valentina", "Sebastián", "Camila", "Rodrigo", "Natalia",
-    "Gustavo", "Isabella", "Pablo", "Sofía", "Eduardo", "Gabriela", "Manuel",
-    "Mariana", "Francisco", "Alejandra", "Raúl", "Carolina", "Óscar", "Andrea",
-    "Héctor", "Diana", "Víctor", "Claudia", "Mario", "Elena", "Sergio", "Rosa",
-    "Alberto", "Carmen", "Jorge", "Liliana", "Pedro", "Teresa", "Rafael",
-    "Beatriz", "Antonio", "Martha", "Enrique", "Silvia", "Felipe", "Rosa",
+    'Carlos', 'María', 'Luis', 'Ana', 'José', 'Laura', 'Miguel', 'Carmen',
+    'Juan', 'Patricia', 'Roberto', 'Sandra', 'Fernando', 'Lucía', 'Diego',
+    'Andrea', 'Ricardo', 'Mónica', 'Andrés', 'Paola', 'Javier', 'Daniela',
+    'Alejandro', 'Valentina', 'Sebastián', 'Camila', 'Rodrigo', 'Natalia',
+    'Gustavo', 'Isabella', 'Pablo', 'Sofía', 'Eduardo', 'Gabriela', 'Manuel',
+    'Mariana', 'Francisco', 'Alejandra', 'Raúl', 'Carolina', 'Óscar', 'Andrea',
+    'Héctor', 'Diana', 'Víctor', 'Claudia', 'Mario', 'Elena', 'Sergio', 'Rosa',
+    'Alberto', 'Carmen', 'Jorge', 'Liliana', 'Pedro', 'Teresa', 'Rafael',
+    'Beatriz', 'Antonio', 'Martha', 'Enrique', 'Silvia', 'Felipe', 'Rosa',
   ];
 
   const lastNames = [
-    "García", "Rodríguez", "López", "Martínez", "González", "Pérez", "Sánchez",
-    "Ramírez", "Torres", "Flores", "Rivera", "Gómez", "Díaz", "Cruz", "Morales",
-    "Ortiz", "Gutiérrez", "Chávez", "Ramos", "Mendoza", "Herrera", "Jiménez",
-    "Ruiz", "Vargas", "Castro", "Romero", "Álvarez", "Méndez", "Guerrero",
-    "Moreno", "Fernández", "Medina", "Vásquez", "Castro", "Reyes", "Ortega",
-    "Delgado", "Silva", "Vega", "Rojas", "Navarro", "Aguilar", "Molina",
-    "Suárez", "Herrera", "Peña", "Soto", "Contreras", "Valdez", "Campos",
+    'García', 'Rodríguez', 'López', 'Martínez', 'González', 'Pérez', 'Sánchez',
+    'Ramírez', 'Torres', 'Flores', 'Rivera', 'Gómez', 'Díaz', 'Cruz', 'Morales',
+    'Ortiz', 'Gutiérrez', 'Chávez', 'Ramos', 'Mendoza', 'Herrera', 'Jiménez',
+    'Ruiz', 'Vargas', 'Castro', 'Romero', 'Álvarez', 'Méndez', 'Guerrero',
+    'Moreno', 'Fernández', 'Medina', 'Vásquez', 'Castro', 'Reyes', 'Ortega',
+    'Delgado', 'Silva', 'Vega', 'Rojas', 'Navarro', 'Aguilar', 'Molina',
+    'Suárez', 'Herrera', 'Peña', 'Soto', 'Contreras', 'Valdez', 'Campos',
   ];
 
   const cities = [
-    "Lima", "Cusco", "Arequipa", "Trujillo", "Chiclayo", "Piura", "Iquitos",
-    "Huancayo", "Tacna", "Ica", "Pucallpa", "Cajamarca", "Juliaca", "Sullana",
-    "Chimbote", "Ayacucho", "Tumbes", "Puno", "Tarapoto", "Huaraz",
+    'Lima', 'Cusco', 'Arequipa', 'Trujillo', 'Chiclayo', 'Piura', 'Iquitos',
+    'Huancayo', 'Tacna', 'Ica', 'Pucallpa', 'Cajamarca', 'Juliaca', 'Sullana',
+    'Chimbote', 'Ayacucho', 'Tumbes', 'Puno', 'Tarapoto', 'Huaraz',
   ];
 
   const customers = [];
@@ -271,7 +271,7 @@ function generateCustomers() {
 (async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI!);
-    console.log("✅ Conectado a MongoDB");
+    console.log('✅ Conectado a MongoDB');
 
     // --- PASO 1: LIMPIAR COLECCIONES ---
     await Promise.all([
@@ -282,7 +282,7 @@ function generateCustomers() {
       Conversation.deleteMany(),
       Counter.deleteMany(), // importante para resetear el autoincremental
     ]);
-    console.log("🧹 Colecciones limpiadas");
+    console.log('🧹 Colecciones limpiadas');
 
     // --- PASO 2: INSERTAR PRODUCTOS ---
     const products = await Product.insertMany(productsData);
@@ -294,17 +294,11 @@ function generateCustomers() {
     console.log(`👥 ${customers.length} clientes insertados`);
 
     // --- PASO 4: CREAR ÓRDENES Y PAGOS ---
-    const orderStatuses: Array<"pending" | "confirmed" | "preparing" | "shipped" | "delivered" | "cancelled"> = [
-      "pending", "confirmed", "preparing", "shipped", "delivered", "cancelled"
+    const orderStatuses: Array<'pending' | 'confirmed' | 'preparing' | 'shipped' | 'delivered' | 'cancelled'> = [
+      'pending', 'confirmed', 'preparing', 'shipped', 'delivered', 'cancelled'
     ];
-    const paymentStatuses: Array<"pending" | "paid" | "refunded" | "failed"> = [
-      "pending", "paid", "refunded", "failed"
-    ];
-    const paymentMethods: Array<"card" | "billetera_movil" | "pagoefectivo"> = [
-      "card", "billetera_movil", "pagoefectivo"
-    ];
-    const paymentStatusesForGateway: Array<"pending" | "completed" | "failed" | "refunded" | "expired"> = [
-      "pending", "completed", "failed", "refunded", "expired"
+    const paymentMethods: Array<'card' | 'billetera_movil' | 'pagoefectivo'> = [
+      'card', 'billetera_movil', 'pagoefectivo'
     ];
 
     const orders = [];
@@ -394,9 +388,9 @@ function generateCustomers() {
         const status = orderStatuses[statusIndex];
         
         // Si está entregada, probablemente está pagada
-        const paymentStatus = status === "delivered" ? 
-          (Math.random() < 0.9 ? "paid" : "pending") :
-          (Math.random() < 0.6 ? "paid" : "pending");
+        const paymentStatus = status === 'delivered' ?
+          (Math.random() < 0.9 ? 'paid' : 'pending') :
+          (Math.random() < 0.6 ? 'paid' : 'pending');
 
         const order = new Order({
           customerId: customer._id,
@@ -406,36 +400,36 @@ function generateCustomers() {
           status,
           paymentStatus,
           deliveryAddress: customer.address,
-          notes: j === 0 && Math.random() < 0.3 ? "Entregar en horario de oficina." : undefined,
+          notes: j === 0 && Math.random() < 0.3 ? 'Entregar en horario de oficina.' : undefined,
         });
         await order.save();
         orders.push(order);
 
         // Crear pago asociado
         const paymentMethod = paymentMethods[Math.floor(Math.random() * paymentMethods.length)];
-        const gatewayStatus = paymentStatus === "paid" ? 
-          (Math.random() < 0.9 ? "completed" : "pending") :
-          (Math.random() < 0.3 ? "completed" : "pending");
+        const gatewayStatus = paymentStatus === 'paid' ?
+          (Math.random() < 0.9 ? 'completed' : 'pending') :
+          (Math.random() < 0.3 ? 'completed' : 'pending');
         
         const payment = new Payment({
           orderId: order._id,
           orderNumber: order.orderNumber,
           customerId: customer._id,
           amount: order.totalAmount,
-          gateway: "culqi",
+          gateway: 'culqi',
           culqiOrderId: `CULQI-${order.orderNumber}-${Date.now()}-${i}-${j}`,
           checkoutUrl: `https://pago.culqi.com/checkout/CULQI-${order.orderNumber}`,
           method: paymentMethod,
           status: gatewayStatus,
-          transactionId: gatewayStatus === "completed" ? `TXN${Math.floor(Math.random() * 1000000)}` : undefined,
-          receiptUrl: gatewayStatus === "completed" ? `https://www.culqi.com/recibo/TXN${Math.floor(Math.random() * 1000000)}` : undefined,
+          transactionId: gatewayStatus === 'completed' ? `TXN${Math.floor(Math.random() * 1000000)}` : undefined,
+          receiptUrl: gatewayStatus === 'completed' ? `https://www.culqi.com/recibo/TXN${Math.floor(Math.random() * 1000000)}` : undefined,
         });
         await payment.save();
         payments.push(payment);
 
         // Actualizar estadísticas del cliente
         customer.totalOrders += 1;
-        if (paymentStatus === "paid") {
+        if (paymentStatus === 'paid') {
           customer.totalSpent += order.totalAmount;
         }
       }
@@ -469,13 +463,13 @@ function generateCustomers() {
 
         if (cartProducts.length > 0) {
           const lastMessages = [
-            "Gracias por su compra, su pedido ha sido entregado ✅",
-            "Su pedido está en preparación 🍳",
-            "Su pedido ha sido enviado 📦",
-            "Esperando confirmación de pago 💳",
-            "¿En qué puedo ayudarte hoy?",
+            'Gracias por su compra, su pedido ha sido entregado ✅',
+            'Su pedido está en preparación 🍳',
+            'Su pedido ha sido enviado 📦',
+            'Esperando confirmación de pago 💳',
+            '¿En qué puedo ayudarte hoy?',
           ];
-          const steps = ["greeting", "browsing", "cart", "checkout", "completed", "follow_up"];
+          const steps = ['greeting', 'browsing', 'cart', 'checkout', 'completed', 'follow_up'];
 
           const conversation = new Conversation({
             phone: customer.phone,
@@ -503,7 +497,7 @@ function generateCustomers() {
     console.log(`💬 ${conversations.length} conversaciones insertadas`);
 
     // Mostrar distribución de productos vendidos
-    console.log("\n📊 Distribución de productos vendidos:");
+    console.log('\n📊 Distribución de productos vendidos:');
     const sortedSales = Array.from(productSalesCount.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10);
@@ -515,8 +509,8 @@ function generateCustomers() {
       }
     }
 
-    console.log("\n🎉 Seed ejecutado correctamente ✅");
-    console.log(`\n📊 Resumen:`);
+    console.log('\n🎉 Seed ejecutado correctamente ✅');
+    console.log('\n📊 Resumen:');
     console.log(`   - Productos: ${products.length}`);
     console.log(`   - Clientes: ${customers.length}`);
     console.log(`   - Órdenes: ${orders.length}`);
@@ -526,7 +520,7 @@ function generateCustomers() {
     
     process.exit(0);
   } catch (error) {
-    console.error("❌ Error al ejecutar seed:", error);
+    console.error('❌ Error al ejecutar seed:', error);
     process.exit(1);
   }
 })();

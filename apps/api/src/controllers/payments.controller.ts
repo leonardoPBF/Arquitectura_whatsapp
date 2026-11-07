@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
-import { identity } from "../middlewares/security";
-import { Payment } from "../models/Payment";
+import { Request, Response } from 'express';
+import { identity } from '../middlewares/security';
+import { Payment } from '../models/Payment';
 
 // GET /api/payments
 // Soporta query params: ?orderId=xxx&status=xxx&culqiOrderId=xxx
@@ -21,7 +21,7 @@ export const getPayments = async (req: Request, res: Response) => {
     
     res.json(payments);
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener pagos", error });
+    res.status(500).json({ message: 'Error al obtener pagos', error });
   }
 };
 
@@ -30,10 +30,10 @@ export const getPaymentById = async (req: Request, res: Response) => {
   try {
     const payment = await Payment.findById(req.params.id);
     if (!payment)
-      return res.status(404).json({ message: "Pago no encontrado" });
+      return res.status(404).json({ message: 'Pago no encontrado' });
     res.json(payment);
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener pago", error });
+    res.status(500).json({ message: 'Error al obtener pago', error });
   }
 };
 
@@ -44,7 +44,7 @@ export const createPayment = async (req: Request, res: Response) => {
     await payment.save();
     res.status(201).json(payment);
   } catch (error) {
-    res.status(400).json({ message: "Error al registrar pago", error });
+    res.status(400).json({ message: 'Error al registrar pago', error });
   }
 };
 
@@ -59,10 +59,10 @@ export const updatePayment = async (req: Request, res: Response) => {
       .populate('orderId')
       .populate('customerId');
     if (!payment)
-      return res.status(404).json({ message: "Pago no encontrado" });
+      return res.status(404).json({ message: 'Pago no encontrado' });
     res.json(payment);
   } catch (error) {
-    res.status(400).json({ message: "Error al actualizar pago", error });
+    res.status(400).json({ message: 'Error al actualizar pago', error });
   }
 };
 
@@ -76,10 +76,10 @@ export const updatePaymentStatus = async (req: Request, res: Response) => {
       { new: true }
     );
     if (!payment)
-      return res.status(404).json({ message: "Pago no encontrado" });
+      return res.status(404).json({ message: 'Pago no encontrado' });
     res.json(payment);
   } catch (error) {
-    res.status(400).json({ message: "Error al actualizar estado de pago", error });
+    res.status(400).json({ message: 'Error al actualizar estado de pago', error });
   }
 };
 
@@ -88,9 +88,9 @@ export const deletePayment = async (req: Request, res: Response) => {
   try {
     const payment = await Payment.findByIdAndDelete(req.params.id);
     if (!payment)
-      return res.status(404).json({ message: "Pago no encontrado" });
-    res.json({ message: "Pago eliminado" });
+      return res.status(404).json({ message: 'Pago no encontrado' });
+    res.json({ message: 'Pago eliminado' });
   } catch (error) {
-    res.status(500).json({ message: "Error al eliminar pago", error });
+    res.status(500).json({ message: 'Error al eliminar pago', error });
   }
 };

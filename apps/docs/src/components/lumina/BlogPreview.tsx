@@ -1,26 +1,26 @@
-import { ArrowRight, Calendar } from "lucide-react";
+import { ArrowRight, Calendar } from 'lucide-react';
 
 const posts = [
   {
-    title: "Cómo aumentar ventas 45% con chatbots en WhatsApp",
-    excerpt: "Descubre las estrategias que las empresas más exitosas usan para convertir conversaciones en dinero.",
-    date: "Hace 2 días",
-    category: "Tips & Tricks",
-    icon: "📈",
+    title: 'Cómo aumentar ventas 45% con chatbots en WhatsApp',
+    excerpt: 'Descubre las estrategias que las empresas más exitosas usan para convertir conversaciones en dinero.',
+    date: 'Hace 2 días',
+    category: 'Tips & Tricks',
+    icon: '📈',
   },
   {
-    title: "Guía completa: Integraciones con sistemas legacy",
-    excerpt: "Conecta fácilmente Lumina con ERPs antiguos sin necesidad de intermediarios costosos.",
-    date: "Hace 5 días",
-    category: "Integración",
-    icon: "🔗",
+    title: 'Guía completa: Integraciones con sistemas legacy',
+    excerpt: 'Conecta fácilmente Lumina con ERPs antiguos sin necesidad de intermediarios costosos.',
+    date: 'Hace 5 días',
+    category: 'Integración',
+    icon: '🔗',
   },
   {
-    title: "2026: Tendencias de comercio conversacional en LATAM",
-    excerpt: "Análisis profundo sobre cómo las empresas latinoamericanas están adoptando IA para ventas.",
-    date: "Hace 1 semana",
-    category: "Análisis",
-    icon: "🌐",
+    title: '2026: Tendencias de comercio conversacional en LATAM',
+    excerpt: 'Análisis profundo sobre cómo las empresas latinoamericanas están adoptando IA para ventas.',
+    date: 'Hace 1 semana',
+    category: 'Análisis',
+    icon: '🌐',
   },
 ];
 

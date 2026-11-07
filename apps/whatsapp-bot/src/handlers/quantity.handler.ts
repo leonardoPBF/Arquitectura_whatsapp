@@ -1,14 +1,14 @@
-import { api } from "../services/whatsapp.service";
-import { showCart } from "../utils/messages";
+import { api } from '../services/whatsapp.service';
+import { showCart } from '../utils/messages';
 
 export async function handleQuantity(ctx: any, text: string) {
   const quantity = parseInt(text);
   if (isNaN(quantity) || quantity <= 0) {
-    return "Por favor ingresa una cantidad válida (número mayor que 0).";
+    return 'Por favor ingresa una cantidad válida (número mayor que 0).';
   }
 
   const selected = ctx.selectedProduct;
-  if (!selected) return "Producto no encontrado. Escribe 'menu' para comenzar.";
+  if (!selected) return 'Producto no encontrado. Escribe \'menu\' para comenzar.';
 
   // obtener versión más reciente del producto desde el backend por si cambió el stock
   let product = selected;
@@ -17,9 +17,9 @@ export async function handleQuantity(ctx: any, text: string) {
       const fresh = await api.getProductById(selected._id);
       if (fresh) product = fresh;
     }
-  } catch (err) {
+  } catch {
     // si falla la llamada, usamos el producto en sesión
-    console.warn("No se pudo obtener producto actualizado, usando datos en sesión");
+    console.warn('No se pudo obtener producto actualizado, usando datos en sesión');
   }
 
   if (product.stock == null) {
@@ -47,12 +47,12 @@ export async function handleQuantity(ctx: any, text: string) {
         quantity: it.quantity,
         productId: it.productId || it.id || it._id,
       }));
-      ctx.step = "cart";
+      ctx.step = 'cart';
 
       return `${quantity}x ${product.name} agregado al carrito ✅\n\n${showCart(ctx)}`;
     }
   } catch (err) {
-    console.warn("No se pudo agregar item via API, actualizando localmente:", err);
+    console.warn('No se pudo agregar item via API, actualizando localmente:', err);
   }
 
   // fallback local si no se pudo persistir
@@ -63,7 +63,7 @@ export async function handleQuantity(ctx: any, text: string) {
     price: product.price,
     quantity,
   });
-  ctx.step = "cart";
+  ctx.step = 'cart';
 
   return `${quantity}x ${product.name} agregado al carrito ✅\n\n${showCart(ctx)}`;
 }

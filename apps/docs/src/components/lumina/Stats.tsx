@@ -1,8 +1,8 @@
 const stats = [
-  { number: "500+", label: "Empresas activas", icon: "🏢" },
-  { number: "10M+", label: "Mensajes procesados", icon: "💬" },
-  { number: "45%", label: "Aumento promedio en ventas", icon: "📈" },
-  { number: "2s", label: "Tiempo de respuesta", icon: "⚡" },
+  { number: '500+', label: 'Empresas activas', icon: '🏢' },
+  { number: '10M+', label: 'Mensajes procesados', icon: '💬' },
+  { number: '45%', label: 'Aumento promedio en ventas', icon: '📈' },
+  { number: '2s', label: 'Tiempo de respuesta', icon: '⚡' },
 ];
 
 const Stats = () => {

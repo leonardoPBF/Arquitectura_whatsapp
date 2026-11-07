@@ -1,9 +1,9 @@
-import { Request, Response } from "express";
-import { Order } from "../models/Order";
-import { IProduct, Product } from "../models/Product";
-import { Customer } from "../models/Customer";
+import { Request, Response } from 'express';
+import { Order } from '../models/Order';
+import { IProduct, Product } from '../models/Product';
+import { Customer } from '../models/Customer';
 
-import { identity } from "../middlewares/security";
+import { identity } from '../middlewares/security';
 
 
 // GET /api/orders
@@ -11,11 +11,11 @@ export const getOrders = async (_req: Request, res: Response) => {
   try {
     const principal = identity(res);
     const orders = await Order.find(principal.role === 'customer' ? { customerId: principal.customerId } : {})
-      .populate("customerId")
-      .populate("items.productId");
+      .populate('customerId')
+      .populate('items.productId');
     res.json(orders);
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener órdenes", error });
+    res.status(500).json({ message: 'Error al obtener órdenes', error });
   }
 };
 
@@ -23,13 +23,13 @@ export const getOrders = async (_req: Request, res: Response) => {
 export const getOrderById = async (req: Request, res: Response) => {
   try {
     const order = await Order.findById(req.params.id)
-      .populate("customerId")
-      .populate("items.productId");
+      .populate('customerId')
+      .populate('items.productId');
     if (!order)
-      return res.status(404).json({ message: "Orden no encontrada" });
+      return res.status(404).json({ message: 'Orden no encontrada' });
     res.json(order);
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener orden", error });
+    res.status(500).json({ message: 'Error al obtener orden', error });
   }
 };
 
@@ -39,14 +39,15 @@ export const getOrdersByCustomer = async (req: Request, res: Response) => {
     const orders = await Order.find({ customerId: req.params.customerId });
     res.json(orders);
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener órdenes del cliente", error });
+    res.status(500).json({ message: 'Error al obtener órdenes del cliente', error });
   }
 };
 
 // POST /api/orders
 export const createOrder = async (req: Request, res: Response) => {
   try {
-    let { customerId, items } = req.body;
+    let { customerId } = req.body;
+    const { items } = req.body;
     const { customer: customerData, deliveryAddress, shippingAddress, notes } = req.body;
 
     if (!Array.isArray(items) || items.length < 1 || items.length > 50 || items.some(item =>
@@ -70,8 +71,8 @@ export const createOrder = async (req: Request, res: Response) => {
       // Si aún así no existe, crear un nuevo Customer
       if (!customer) {
         customer = new Customer({
-          name: customerData.name || "Cliente Sin Nombre",
-          email: customerData.email || "",
+          name: customerData.name || 'Cliente Sin Nombre',
+          email: customerData.email || '',
           phone: customerData.phone || `TEMP-${Date.now()}`,
         });
         await customer.save();
@@ -81,7 +82,7 @@ export const createOrder = async (req: Request, res: Response) => {
     }
 
     if (!customerId || !customer || !items || !Array.isArray(items)) {
-      return res.status(400).json({ message: "Datos incompletos" });
+      return res.status(400).json({ message: 'Datos incompletos' });
     }
 
     const products = await Product.find({ _id: { $in: items.map(i => i.productId) } }) as (IProduct & { _id: any })[];
@@ -96,12 +97,12 @@ export const createOrder = async (req: Request, res: Response) => {
       return { productId: product._id, productName, quantity: item.quantity, price: product.price, subtotal };
     });
 
-    let finalDeliveryAddress = "";
-    if (typeof deliveryAddress === "string") {
+    let finalDeliveryAddress = '';
+    if (typeof deliveryAddress === 'string') {
       finalDeliveryAddress = deliveryAddress;
     } else if (shippingAddress) {
       const { address, city, zipCode } = shippingAddress;
-      finalDeliveryAddress = [address, city, zipCode].filter(Boolean).join(", ");
+      finalDeliveryAddress = [address, city, zipCode].filter(Boolean).join(', ');
     }
 
     const order = new Order({
@@ -109,7 +110,7 @@ export const createOrder = async (req: Request, res: Response) => {
       customerPhone: customer.phone,
       items: detailedItems,
       totalAmount,
-      status: "pending",
+      status: 'pending',
       deliveryAddress: finalDeliveryAddress || undefined,
       notes: notes || undefined,
       createdAt: new Date(),
@@ -118,7 +119,7 @@ export const createOrder = async (req: Request, res: Response) => {
     await order.save();
     res.status(201).json(order);
   } catch (error) {
-    res.status(400).json({ message: "Error al crear orden", error });
+    res.status(400).json({ message: 'Error al crear orden', error });
   }
 };
 

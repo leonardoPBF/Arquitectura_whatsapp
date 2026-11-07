@@ -1,5 +1,5 @@
-import { Router } from "express";
-import { sendMessageToRasa } from "../controllers/chatbot.controller";
+import { Router } from 'express';
+import { sendMessageToRasa } from '../controllers/chatbot.controller';
 
 const router = Router();
 
@@ -34,6 +34,6 @@ const router = Router();
  *       429:
  *         description: Límite de consultas alcanzado
  */
-router.post("/", sendMessageToRasa);
+router.post('/', sendMessageToRasa);
 
 export default router;

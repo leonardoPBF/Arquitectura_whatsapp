@@ -1,49 +1,49 @@
-import { Check, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Check, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const plans = [
   {
-    name: "Startup",
+    name: 'Startup',
     price: 99,
-    desc: "Perfecto para pequeños negocios",
+    desc: 'Perfecto para pequeños negocios',
     features: [
-      "1 bot WhatsApp",
-      "Hasta 5,000 conversaciones/mes",
-      "Respuestas automáticas básicas",
-      "Integración con 3 servicios",
-      "Dashboard básico",
-      "Soporte por email",
+      '1 bot WhatsApp',
+      'Hasta 5,000 conversaciones/mes',
+      'Respuestas automáticas básicas',
+      'Integración con 3 servicios',
+      'Dashboard básico',
+      'Soporte por email',
     ],
   },
   {
-    name: "Business",
+    name: 'Business',
     price: 299,
-    desc: "Para empresas en crecimiento",
+    desc: 'Para empresas en crecimiento',
     highlighted: true,
     features: [
-      "5 bots WhatsApp",
-      "Hasta 50,000 conversaciones/mes",
-      "IA conversacional avanzada",
-      "Integración con 20+ servicios",
-      "Analytics en tiempo real",
-      "Soporte prioritario 24/7",
-      "API REST completa",
-      "Webhooks personalizados",
+      '5 bots WhatsApp',
+      'Hasta 50,000 conversaciones/mes',
+      'IA conversacional avanzada',
+      'Integración con 20+ servicios',
+      'Analytics en tiempo real',
+      'Soporte prioritario 24/7',
+      'API REST completa',
+      'Webhooks personalizados',
     ],
   },
   {
-    name: "Enterprise",
-    price: "Custom",
-    desc: "Soluciones empresariales",
+    name: 'Enterprise',
+    price: 'Custom',
+    desc: 'Soluciones empresariales',
     features: [
-      "Bots ilimitados",
-      "Conversaciones ilimitadas",
-      "IA personalizada y fine-tuning",
-      "Integraciones custom",
-      "Soporte dedicado",
-      "SLA 99.9% uptime",
-      "On-premise option",
-      "Capacitación incluida",
+      'Bots ilimitados',
+      'Conversaciones ilimitadas',
+      'IA personalizada y fine-tuning',
+      'Integraciones custom',
+      'Soporte dedicado',
+      'SLA 99.9% uptime',
+      'On-premise option',
+      'Capacitación incluida',
     ],
   },
 ];
@@ -66,8 +66,8 @@ const Pricing = () => {
               key={plan.name}
               className={`relative overflow-hidden rounded-2xl border transition-smooth ${
                 plan.highlighted
-                  ? "border-primary/60 bg-gradient-card ring-1 ring-primary/30 md:scale-105 shadow-glow"
-                  : "border-border/60 bg-card hover:border-primary/40"
+                  ? 'border-primary/60 bg-gradient-card ring-1 ring-primary/30 md:scale-105 shadow-glow'
+                  : 'border-border/60 bg-card hover:border-primary/40'
               } p-8`}
             >
               {plan.highlighted && (
@@ -81,7 +81,7 @@ const Pricing = () => {
                 <p className="mt-1 text-sm text-muted-foreground">{plan.desc}</p>
 
                 <div className="mt-6 flex items-baseline gap-1">
-                  {typeof plan.price === "number" ? (
+                  {typeof plan.price === 'number' ? (
                     <>
                       <span className="font-display text-4xl font-bold">${plan.price}</span>
                       <span className="text-muted-foreground">/mes</span>
@@ -94,10 +94,10 @@ const Pricing = () => {
                 <Button
                   className={`w-full mt-8 group ${
                     plan.highlighted
-                      ? "bg-gradient-button text-primary-foreground hover:opacity-90"
-                      : "border-border bg-card/40 hover:bg-card"
+                      ? 'bg-gradient-button text-primary-foreground hover:opacity-90'
+                      : 'border-border bg-card/40 hover:bg-card'
                   }`}
-                  variant={plan.highlighted ? "default" : "outline"}
+                  variant={plan.highlighted ? 'default' : 'outline'}
                 >
                   Empezar ahora
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-smooth" />
@@ -118,7 +118,7 @@ const Pricing = () => {
 
         <div className="mt-16 text-center">
           <p className="text-muted-foreground">
-            ¿Preguntas sobre los planes?{" "}
+            ¿Preguntas sobre los planes?{' '}
             <button className="text-primary hover:underline font-medium">Habla con nuestro equipo</button>
           </p>
         </div>

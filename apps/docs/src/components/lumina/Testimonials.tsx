@@ -1,36 +1,36 @@
-import { Star } from "lucide-react";
+import { Star } from 'lucide-react';
 
 const testimonials = [
   {
-    name: "María Rodríguez",
-    role: "CEO, E-commerce Fashion",
-    company: "StyleHub",
-    image: "👩‍💼",
-    text: "Lumina aumentó nuestras ventas en 45% en los primeros 3 meses. Nuestros clientes aman interactuar directamente en WhatsApp.",
+    name: 'María Rodríguez',
+    role: 'CEO, E-commerce Fashion',
+    company: 'StyleHub',
+    image: '👩‍💼',
+    text: 'Lumina aumentó nuestras ventas en 45% en los primeros 3 meses. Nuestros clientes aman interactuar directamente en WhatsApp.',
     rating: 5,
   },
   {
-    name: "Carlos López",
-    role: "Founder, Pizzería Digital",
-    company: "PizzaExpress",
-    image: "👨‍💼",
-    text: "Pasamos de 20 a 200 pedidos diarios sin aumentar staff. El chatbot de Lumina es increíble.",
+    name: 'Carlos López',
+    role: 'Founder, Pizzería Digital',
+    company: 'PizzaExpress',
+    image: '👨‍💼',
+    text: 'Pasamos de 20 a 200 pedidos diarios sin aumentar staff. El chatbot de Lumina es increíble.',
     rating: 5,
   },
   {
-    name: "Daniela Morales",
-    role: "Marketing Manager, Retail",
-    company: "TiendaMax",
-    image: "👩‍💻",
-    text: "La integración con nuestro CRM fue sin fricciones. Ahora tenemos visibilidad total del customer journey.",
+    name: 'Daniela Morales',
+    role: 'Marketing Manager, Retail',
+    company: 'TiendaMax',
+    image: '👩‍💻',
+    text: 'La integración con nuestro CRM fue sin fricciones. Ahora tenemos visibilidad total del customer journey.',
     rating: 5,
   },
   {
-    name: "Juan Pérez",
-    role: "Owner, Consultoría",
-    company: "BizConsult",
-    image: "👨‍💻",
-    text: "Reducimos el tiempo de respuesta de 24h a 2 minutos. Nuestros clientes están mucho más satisfechos.",
+    name: 'Juan Pérez',
+    role: 'Owner, Consultoría',
+    company: 'BizConsult',
+    image: '👨‍💻',
+    text: 'Reducimos el tiempo de respuesta de 24h a 2 minutos. Nuestros clientes están mucho más satisfechos.',
     rating: 5,
   },
 ];
@@ -70,7 +70,7 @@ const Testimonials = () => {
                 </div>
 
                 <p className="mt-4 text-sm text-muted-foreground leading-relaxed italic">
-                  "{testimonial.text}"
+                  &quot;{testimonial.text}&quot;
                 </p>
               </div>
             </article>

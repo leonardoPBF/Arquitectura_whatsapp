@@ -68,15 +68,15 @@ export default function Checkout() {
 
   // Cargar SDK Culqi
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.culqi.com/js/v4";
+    const script = document.createElement('script');
+    script.src = 'https://checkout.culqi.com/js/v4';
     script.async = true;
     document.body.appendChild(script);
 
     script.onload = () => {
       if (window.Culqi) {
         window.Culqi.publicKey = CULQI_PUBLIC_KEY;
-        console.log("✅ Culqi SDK cargado");
+        console.log('✅ Culqi SDK cargado');
       }
     };
 
@@ -87,7 +87,7 @@ export default function Checkout() {
 
   const loadOrderData = async () => {
     if (!orderId) {
-      setError("No se proporcionó ID de orden");
+      setError('No se proporcionó ID de orden');
       setLoading(false);
       return;
     }
@@ -100,7 +100,7 @@ export default function Checkout() {
         const res = await api.get(`/api/orders/${orderId}`);
         const order = res.data;
 
-        if (order.paymentStatus === "paid" || order.status === "confirmed") {
+        if (order.paymentStatus === 'paid' || order.status === 'confirmed') {
           navigate(`/success?order=${order._id}`);
           return;
         }
@@ -111,7 +111,7 @@ export default function Checkout() {
 
         if (payment?.culqiOrderId) {
           setCulqiOrderId(payment.culqiOrderId);
-          console.log("✅ culqiOrderId encontrado:", payment.culqiOrderId);
+          console.log('✅ culqiOrderId encontrado:', payment.culqiOrderId);
         }
 
         const providedCheckout = searchParams.get('checkoutUrl');
@@ -124,8 +124,8 @@ export default function Checkout() {
           currency: 'PEN',
           state: order.status || 'pending',
           customer: {
-            email: order.customerId?.email || "",
-            name: order.customerId?.name || "",
+            email: order.customerId?.email || '',
+            name: order.customerId?.name || '',
           },
         };
 
@@ -138,15 +138,15 @@ export default function Checkout() {
         const resp = await culqiAPI.getOrder(orderId);
         const { payment, culqiOrder } = resp.data;
 
-        if (payment?.status === "completed") {
+        if (payment?.status === 'completed') {
           const dbOrderId = payment?.orderId?._id || payment?.orderId || null;
           if (dbOrderId) navigate(`/success?order=${dbOrderId}`);
-          else navigate(`/success`);
+          else navigate('/success');
           return;
         }
 
         setCulqiOrderId(orderId);
-        console.log("✅ culqiOrderId (desde URL):", orderId);
+        console.log('✅ culqiOrderId (desde URL):', orderId);
 
         const orderInfo: OrderData = {
           id: culqiOrder.id,
@@ -156,8 +156,8 @@ export default function Checkout() {
           currency: culqiOrder.currency || culqiOrder.currency_code || 'PEN',
           state: culqiOrder.state,
           customer: {
-            email: payment?.customerId?.email || culqiOrder.customer?.email || "",
-            name: payment?.customerId?.name || culqiOrder.customer?.name || "",
+            email: payment?.customerId?.email || culqiOrder.customer?.email || '',
+            name: payment?.customerId?.name || culqiOrder.customer?.name || '',
           },
         };
 
@@ -166,8 +166,8 @@ export default function Checkout() {
         if (payment?.checkoutUrl) setCheckoutUrl(payment.checkoutUrl);
       }
     } catch (err: any) {
-      console.error("Error al cargar orden:", err);
-      setError(err.response?.data?.message || "Error al cargar la orden");
+      console.error('Error al cargar orden:', err);
+      setError(err.response?.data?.message || 'Error al cargar la orden');
       setLoading(false);
     }
   };
@@ -182,7 +182,7 @@ export default function Checkout() {
     
     // Si hay URL de Culqi hosted checkout, abrirlo
     if (isValidCulqiUrl) {
-      console.log("✅ Abriendo Culqi hosted checkout:", checkoutUrl);
+      console.log('✅ Abriendo Culqi hosted checkout:', checkoutUrl);
       window.open(checkoutUrl, '_blank');
       startPaymentPolling();
       return;
@@ -191,10 +191,10 @@ export default function Checkout() {
     // Usar Culqi SDK
     if (currentOrder && window.Culqi && culqiOrderId) {
       try {
-        console.log("✅ Abriendo Culqi SDK para orden:", culqiOrderId);
+        console.log('✅ Abriendo Culqi SDK para orden:', culqiOrderId);
         
         window.Culqi.settings({
-          title: "Pago Seguro",
+          title: 'Pago Seguro',
           currency: currentOrder.currency,
           amount: currentOrder.amount,
           order: culqiOrderId, // ✅ CRÍTICO: Usar el culqiOrderId, no el order._id
@@ -217,20 +217,20 @@ export default function Checkout() {
         window.Culqi.open();
         return;
       } catch (err) {
-        console.error("❌ Error al abrir Culqi SDK:", err);
-        setError("Error al iniciar el proceso de pago");
+        console.error('❌ Error al abrir Culqi SDK:', err);
+        setError('Error al iniciar el proceso de pago');
         return;
       }
     }
 
-    console.error("❌ No hay método de pago disponible");
-    setError("Sistema de pago no disponible");
+    console.error('❌ No hay método de pago disponible');
+    setError('Sistema de pago no disponible');
   };
 
   const startPaymentPolling = useCallback(() => {
     // Prevenir múltiples instancias de polling
     if (isPollingActiveRef.current) {
-      console.warn("⚠️ Polling ya está activo, ignorando...");
+      console.warn('⚠️ Polling ya está activo, ignorando...');
       return;
     }
 
@@ -242,7 +242,7 @@ export default function Checkout() {
 
     isPollingActiveRef.current = true;
     setCheckingPayment(true);
-    console.log("🔄 Iniciando verificación de pago...");
+    console.log('🔄 Iniciando verificación de pago...');
 
     let attempts = 0;
     const maxAttempts = 120; // 2 minutos
@@ -253,12 +253,12 @@ export default function Checkout() {
 
       try {
         if (!culqiOrderId) {
-          console.error("No hay culqiOrderId para verificar");
+          console.error('No hay culqiOrderId para verificar');
           clearInterval(pollingIntervalRef.current!);
           pollingIntervalRef.current = null;
           isPollingActiveRef.current = false;
           setCheckingPayment(false);
-          setError("No se pudo obtener el ID de pago de Culqi");
+          setError('No se pudo obtener el ID de pago de Culqi');
           return;
         }
 
@@ -268,7 +268,7 @@ export default function Checkout() {
 
         // Si ya está pagado, evitar procesamiento duplicado
         if (response.data.alreadyPaid) {
-          console.log("✅ Pago ya procesado anteriormente");
+          console.log('✅ Pago ya procesado anteriormente');
           clearInterval(pollingIntervalRef.current!);
           pollingIntervalRef.current = null;
           isPollingActiveRef.current = false;
@@ -283,21 +283,21 @@ export default function Checkout() {
         }
 
         if (response.data.orderExpired) {
-          console.warn("⚠️ La orden de pago ha expirado");
+          console.warn('⚠️ La orden de pago ha expirado');
           clearInterval(pollingIntervalRef.current!);
           pollingIntervalRef.current = null;
           isPollingActiveRef.current = false;
           setCheckingPayment(false);
           setError(
-            "Esta orden de pago ha expirado. " +
-            "Por favor, regresa a 'Mis Pedidos' y genera un nuevo enlace de pago."
+            'Esta orden de pago ha expirado. ' +
+            'Por favor, regresa a \'Mis Pedidos\' y genera un nuevo enlace de pago.'
           );
           setTimeout(() => navigate('/my-orders'), 5000);
           return;
         }
 
-        if (response.data.success && response.data.payment?.status === "completed") {
-          console.log("✅ Pago confirmado!");
+        if (response.data.success && response.data.payment?.status === 'completed') {
+          console.log('✅ Pago confirmado!');
           clearInterval(pollingIntervalRef.current!);
           pollingIntervalRef.current = null;
           isPollingActiveRef.current = false;
@@ -311,24 +311,24 @@ export default function Checkout() {
           if (dbOrderId) {
             navigate(`/success?order=${dbOrderId}`);
           } else {
-            navigate(`/success`);
+            navigate('/success');
           }
         } else if (attempts >= maxAttempts) {
-          console.log("⏱️ Timeout alcanzado");
+          console.log('⏱️ Timeout alcanzado');
           clearInterval(pollingIntervalRef.current!);
           pollingIntervalRef.current = null;
           isPollingActiveRef.current = false;
           setCheckingPayment(false);
-          setError("El pago está tomando más tiempo del esperado. Puedes verificar el estado en 'Mis Pedidos'.");
+          setError('El pago está tomando más tiempo del esperado. Puedes verificar el estado en \'Mis Pedidos\'.');
         }
       } catch (err) {
-        console.error("Error al verificar pago:", err);
+        console.error('Error al verificar pago:', err);
         if (attempts >= maxAttempts) {
           clearInterval(pollingIntervalRef.current!);
           pollingIntervalRef.current = null;
           isPollingActiveRef.current = false;
           setCheckingPayment(false);
-          setError("No se pudo verificar el estado del pago. Por favor, revisa 'Mis Pedidos'.");
+          setError('No se pudo verificar el estado del pago. Por favor, revisa \'Mis Pedidos\'.');
         }
       }
     }, 1000);
@@ -340,25 +340,25 @@ export default function Checkout() {
   const handleCulqiCallback = useCallback(async () => {
     // Prevenir múltiples ejecuciones
     if (callbackExecutedRef.current) {
-      console.warn("⚠️ Callback ya ejecutado, ignorando...");
+      console.warn('⚠️ Callback ya ejecutado, ignorando...');
       return;
     }
 
     if (processingPaymentRef.current) {
-      console.warn("⚠️ Ya hay un pago en proceso");
+      console.warn('⚠️ Ya hay un pago en proceso');
       return;
     }
 
     const currentOrder = orderRef.current;
     if (!currentOrder || !culqiOrderId) {
-      console.error("⚠️ No hay orden activa");
+      console.error('⚠️ No hay orden activa');
       return;
     }
 
     if (window.Culqi?.token) {
       const tokenId = window.Culqi.token.id;
-      console.log("✅ Token recibido:", tokenId);
-      console.log("💳 Procesando pago directamente con create-charge...");
+      console.log('✅ Token recibido:', tokenId);
+      console.log('💳 Procesando pago directamente con create-charge...');
       
       callbackExecutedRef.current = true;
       processingPaymentRef.current = true;
@@ -373,11 +373,11 @@ export default function Checkout() {
           email: currentOrder.customer?.email,
         });
 
-        console.log("📊 Respuesta del cargo:", response.data);
+        console.log('📊 Respuesta del cargo:', response.data);
 
         // Si ya está pagado, evitar procesamiento duplicado
         if (response.data.alreadyPaid) {
-          console.log("✅ Pago ya procesado anteriormente");
+          console.log('✅ Pago ya procesado anteriormente');
           const dbOrderId = response.data.orderId || response.data.order?._id;
           processingPaymentRef.current = false;
           callbackExecutedRef.current = false;
@@ -385,7 +385,7 @@ export default function Checkout() {
           // ✅ Cerrar modal de Culqi
           if (window.Culqi?.close) {
             window.Culqi.close();
-            console.log("🔒 Modal de Culqi cerrado");
+            console.log('🔒 Modal de Culqi cerrado');
           }
           
           // Pequeño delay para asegurar que el modal se cierre antes de navegar
@@ -401,7 +401,7 @@ export default function Checkout() {
 
         if (response.data.success) {
           // ✅ PAGO EXITOSO
-          console.log("✅ Pago completado exitosamente");
+          console.log('✅ Pago completado exitosamente');
           const dbOrderId = response.data.orderId || response.data.order?._id;
           
           // Resetear flags antes de navegar
@@ -411,7 +411,7 @@ export default function Checkout() {
           // ✅ Cerrar modal de Culqi
           if (window.Culqi?.close) {
             window.Culqi.close();
-            console.log("🔒 Modal de Culqi cerrado");
+            console.log('🔒 Modal de Culqi cerrado');
           }
           
           // Pequeño delay para asegurar que el modal se cierre antes de navegar
@@ -424,23 +424,23 @@ export default function Checkout() {
           }, 300);
         } else {
           // ❌ PAGO RECHAZADO
-          console.error("❌ Pago rechazado:", response.data.message);
-          setError(response.data.message || "El pago fue rechazado. Por favor, intenta con otro método de pago.");
+          console.error('❌ Pago rechazado:', response.data.message);
+          setError(response.data.message || 'El pago fue rechazado. Por favor, intenta con otro método de pago.');
           setProcessing(false);
           processingPaymentRef.current = false;
           callbackExecutedRef.current = false;
         }
       } catch (err: any) {
-        console.error("❌ Error al procesar pago:", err);
-        setError(err.response?.data?.message || "Error al procesar el pago. Por favor, intenta nuevamente.");
+        console.error('❌ Error al procesar pago:', err);
+        setError(err.response?.data?.message || 'Error al procesar el pago. Por favor, intenta nuevamente.');
         setProcessing(false);
         processingPaymentRef.current = false;
         callbackExecutedRef.current = false;
       }
       
     } else if (window.Culqi?.error) {
-      console.error("❌ Error de Culqi:", window.Culqi.error);
-      setError(window.Culqi.error.user_message || "Error en el proceso de pago");
+      console.error('❌ Error de Culqi:', window.Culqi.error);
+      setError(window.Culqi.error.user_message || 'Error en el proceso de pago');
       setProcessing(false);
       processingPaymentRef.current = false;
       callbackExecutedRef.current = false;

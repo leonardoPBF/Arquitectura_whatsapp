@@ -25,41 +25,41 @@ Usa los números (1, 2, 3) únicamente para seleccionar productos/acciones del m
 }
 
 export function formatProductList(products: any[]) {
-  if (!products.length) return "No hay productos disponibles.";
+  if (!products.length) return 'No hay productos disponibles.';
 
   // Devolver un array de mensajes: cada producto como media (si tiene imageUrl) con caption
   const messages: any[] = [];
 
   products.forEach((p, i) => {
-    const caption = `${i + 1}. *${p.name}*\n💰 S/. ${p.price}\n📦 Stock: ${p.stock}\n\n${p.description || ""}`;
+    const caption = `${i + 1}. *${p.name}*\n💰 S/. ${p.price}\n📦 Stock: ${p.stock}\n\n${p.description || ''}`;
 
     if (p.imageUrl) {
-      messages.push({ type: "media", mediaUrl: p.imageUrl, caption });
+      messages.push({ type: 'media', mediaUrl: p.imageUrl, caption });
     } else {
-      messages.push({ type: "text", text: caption });
+      messages.push({ type: 'text', text: caption });
     }
   });
 
   // Mensaje final con instrucciones
-  messages.push({ type: "text", text: "Envía el número del producto que quieres agregar." });
+  messages.push({ type: 'text', text: 'Envía el número del producto que quieres agregar.' });
 
   return messages;
 }
 
 export function invalidOption() {
-  return "⚠️ Opción no válida. Escribe 'menu' para comenzar de nuevo.";
+  return '⚠️ Opción no válida. Escribe \'menu\' para comenzar de nuevo.';
 }
 
 export function showCart(ctx: any) {
-  if (!ctx.cart.length) return "🛒 Tu carrito está vacío.";
+  if (!ctx.cart.length) return '🛒 Tu carrito está vacío.';
 
-  let msg = "🛒 *Tu carrito actual:*\n\n";
+  let msg = '🛒 *Tu carrito actual:*\n\n';
   let total = 0;
 
   ctx.cart.forEach((item: { quantity: number; price: number; name?: any; productName?: any; }, i: number) => {
     const subtotal = item.quantity * item.price;
     total += subtotal;
-    const name = item.productName || item.name || "(producto)";
+    const name = item.productName || item.name || '(producto)';
     msg += `${i + 1}. ${name} - ${item.quantity}x S/.${item.price} = S/.${subtotal}\n`;
   });
 

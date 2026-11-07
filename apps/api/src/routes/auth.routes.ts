@@ -1,11 +1,11 @@
-import { Router } from "express";
+import { Router } from 'express';
 import {
   register,
   registerFromWhatsApp,
   login,
   getCurrentUser,
   createAdmin,
-} from "../controllers/auth.controller";
+} from '../controllers/auth.controller';
 
 const router = Router();
 
@@ -60,7 +60,7 @@ const router = Router();
  *       201:
  *         description: Usuario registrado
  */
-router.post("/register", register);
+router.post('/register', register);
 
 /**
  * @swagger
@@ -85,7 +85,7 @@ router.post("/register", register);
  *       201:
  *         description: Usuario creado con contraseña generada
  */
-router.post("/register-from-whatsapp", registerFromWhatsApp);
+router.post('/register-from-whatsapp', registerFromWhatsApp);
 
 /**
  * @swagger
@@ -108,7 +108,7 @@ router.post("/register-from-whatsapp", registerFromWhatsApp);
  *       200:
  *         description: Login exitoso
  */
-router.post("/login", login);
+router.post('/login', login);
 
 /**
  * @swagger
@@ -122,7 +122,7 @@ router.post("/login", login);
  *       200:
  *         description: Usuario actual
  */
-router.get("/me", getCurrentUser);
+router.get('/me', getCurrentUser);
 
 /**
  * @swagger
@@ -147,7 +147,7 @@ router.get("/me", getCurrentUser);
  *       201:
  *         description: Administrador creado
  */
-router.post("/create-admin", createAdmin);
+router.post('/create-admin', createAdmin);
 
 export default router;
 

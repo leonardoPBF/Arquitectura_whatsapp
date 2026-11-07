@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router } from 'express';
 import {
   getCustomers,
   getCustomerById,
@@ -6,7 +6,7 @@ import {
   updateCustomer,
   deleteCustomer,
   getCustomerByPhone,
-} from "../controllers/customers.controller";
+} from '../controllers/customers.controller';
 
 const router = Router();
 
@@ -52,7 +52,7 @@ const router = Router();
  *       200:
  *         description: Lista de clientes
  */
-router.get("/", getCustomers);
+router.get('/', getCustomers);
 
 /**
  * @swagger
@@ -72,7 +72,7 @@ router.get("/", getCustomers);
  *       404:
  *         description: Cliente no encontrado
  */
-router.get("/:id", getCustomerById);
+router.get('/:id', getCustomerById);
 
 /**
  * @swagger
@@ -92,7 +92,7 @@ router.get("/:id", getCustomerById);
  *       404:
  *         description: Cliente no encontrado
  */
-router.get("/phone/:phone", getCustomerByPhone);
+router.get('/phone/:phone', getCustomerByPhone);
 
 /**
  * @swagger
@@ -110,7 +110,7 @@ router.get("/phone/:phone", getCustomerByPhone);
  *       201:
  *         description: Cliente creado
  */
-router.post("/", createCustomer);
+router.post('/', createCustomer);
 
 /**
  * @swagger
@@ -134,7 +134,7 @@ router.post("/", createCustomer);
  *       200:
  *         description: Cliente actualizado
  */
-router.put("/:id", updateCustomer);
+router.put('/:id', updateCustomer);
 
 /**
  * @swagger
@@ -152,6 +152,6 @@ router.put("/:id", updateCustomer);
  *       200:
  *         description: Cliente eliminado
  */
-router.delete("/:id", deleteCustomer);
+router.delete('/:id', deleteCustomer);
 
 export default router;

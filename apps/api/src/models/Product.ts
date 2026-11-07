@@ -1,4 +1,4 @@
-import { Schema, model, Document, Types } from "mongoose";
+import { Schema, model, Document, Types } from 'mongoose';
 
 export interface IProduct extends Document {
   _id: Types.ObjectId;
@@ -25,4 +25,4 @@ const ProductSchema = new Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
-export const Product = model<IProduct>("Product", ProductSchema);
+export const Product = model<IProduct>('Product', ProductSchema);

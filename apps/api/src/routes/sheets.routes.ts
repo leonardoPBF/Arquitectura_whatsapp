@@ -1,5 +1,5 @@
-import { Router } from "express";
-import { exportOrders, exportOrdersCSV } from "../controllers/sheets.controller";
+import { Router } from 'express';
+import { exportOrders, exportOrdersCSV } from '../controllers/sheets.controller';
 
 const router = Router();
 
@@ -13,7 +13,7 @@ const router = Router();
  *       200:
  *         description: Datos preparados para exportación
  */
-router.get("/export", exportOrders);
+router.get('/export', exportOrders);
 
 /**
  * @swagger
@@ -29,6 +29,6 @@ router.get("/export", exportOrders);
  *             schema:
  *               type: string
  */
-router.get("/export/csv", exportOrdersCSV);
+router.get('/export/csv', exportOrdersCSV);
 
-export default router
+export default router;

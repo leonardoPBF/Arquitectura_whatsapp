@@ -1,6 +1,6 @@
 // models/Order.ts
-import { Schema, model, Document } from "mongoose";
-import { Counter } from "./Counter";
+import { Schema, model, Document } from 'mongoose';
+import { Counter } from './Counter';
 
 export interface IOrderItem {
   productId: Schema.Types.ObjectId;
@@ -15,8 +15,8 @@ export interface IOrder extends Document {
   customerPhone: string;
   items: IOrderItem[];
   totalAmount: number;
-  status: "pending" | "confirmed" | "preparing" | "shipped" | "delivered" | "cancelled";
-  paymentStatus: "pending" | "paid" | "refunded" | "failed";
+  status: 'pending' | 'confirmed' | 'preparing' | 'shipped' | 'delivered' | 'cancelled';
+  paymentStatus: 'pending' | 'paid' | 'refunded' | 'failed';
   deliveryAddress?: string;
   notes?: string;
   createdAt: Date;
@@ -25,10 +25,10 @@ export interface IOrder extends Document {
 
 const OrderSchema = new Schema<IOrder>({
   orderNumber: { type: String, unique: true, default: null },
-  customerId: { type: Schema.Types.ObjectId, ref: "Customer", required: true },
+  customerId: { type: Schema.Types.ObjectId, ref: 'Customer', required: true },
   customerPhone: { type: String, required: true },
   items: [{
-    productId: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+    productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
     productName: { type: String, required: true },
     quantity: { type: Number, required: true, min: 1 },
     price: { type: Number, required: true, min: 0 },
@@ -36,13 +36,13 @@ const OrderSchema = new Schema<IOrder>({
   totalAmount: { type: Number, required: true, min: 0 },
   status: { 
     type: String, 
-    enum: ["pending", "confirmed", "preparing", "shipped", "delivered", "cancelled"],
-    default: "pending" 
+    enum: ['pending', 'confirmed', 'preparing', 'shipped', 'delivered', 'cancelled'],
+    default: 'pending'
   },
   paymentStatus: { 
     type: String, 
-    enum: ["pending", "paid", "refunded", "failed"],
-    default: "pending" 
+    enum: ['pending', 'paid', 'refunded', 'failed'],
+    default: 'pending'
   },
   deliveryAddress: String,
   notes: String,
@@ -51,21 +51,21 @@ const OrderSchema = new Schema<IOrder>({
 });
 
 // Antes de guardar, genera el número de orden incremental
-OrderSchema.pre("save", async function (next) {
+OrderSchema.pre('save', async function (next) {
   const order = this as IOrder;
 
   if (!order.isNew) return next();
 
   const counter = await Counter.findOneAndUpdate(
-    { name: "orderNumber" },
+    { name: 'orderNumber' },
     { $inc: { seq: 1 } },
     { new: true, upsert: true }
   );
 
   // genera formato corto tipo ORD-000001
-  order.orderNumber = `ORD-${counter.seq.toString().padStart(6, "0")}`;
+  order.orderNumber = `ORD-${counter.seq.toString().padStart(6, '0')}`;
 
   next();
 });
 
-export const Order = model<IOrder>("Order", OrderSchema);
+export const Order = model<IOrder>('Order', OrderSchema);

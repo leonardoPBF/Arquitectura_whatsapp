@@ -26,16 +26,15 @@ export const errorHandler = (
   err: AppError | Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
+  void _next; // Preserve Express error middleware arity.
   let statusCode = 500;
   let message = 'Error interno del servidor';
-  let isOperational = false;
 
   if (err instanceof AppError) {
     statusCode = err.statusCode;
     message = err.message;
-    isOperational = err.isOperational;
   } else if (err.name === 'ValidationError') {
     statusCode = 400;
     message = err.message;
@@ -73,7 +72,7 @@ export const errorHandler = (
 };
 
 // Middleware para async/await sin try-catch
-export const asyncHandler = (fn: Function) => {
+export const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => unknown) => {
   return (req: Request, res: Response, next: NextFunction) => {
     Promise.resolve(fn(req, res, next)).catch(next);
   };

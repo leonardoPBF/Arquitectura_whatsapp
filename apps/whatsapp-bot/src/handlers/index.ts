@@ -1,23 +1,23 @@
-import { Client, Message, MessageMedia } from "whatsapp-web.js";
-import { getMainMenu } from "../utils/messages";
-import { api } from "../services/whatsapp.service";
-import { getSession, updateSession } from "../utils/context";
+import { Client, Message, MessageMedia } from 'whatsapp-web.js';
+import { getMainMenu } from '../utils/messages';
+import { api } from '../services/whatsapp.service';
+import { getSession, updateSession } from '../utils/context';
 
-import { handleGreeting } from "./greeting.handler";
-import { handleMenu } from "./menu.handler";
-import { handleProduct } from "./product.handler";
-import { handleCart } from "./cart.handler";
-import { handleQuantity } from "./quantity.handler";
-import { handleOrder } from "./order.handler";
+import { handleGreeting } from './greeting.handler';
+import { handleMenu } from './menu.handler';
+import { handleProduct } from './product.handler';
+import { handleCart } from './cart.handler';
+import { handleQuantity } from './quantity.handler';
+import { handleOrder } from './order.handler';
 
 export async function handleMessage(client: Client, msg: Message, contact?: { phone: string; name: string }) {
-  const phone = contact?.phone || msg.from.replace("@c.us", "");
+  const phone = contact?.phone || msg.from.replace('@c.us', '');
   const text = msg.body.trim().toLowerCase();
 
   let session = getSession(phone);
   if (!session) {
     // intentar rehidratar sesión desde backend
-    session = { step: "greeting", cart: [], phone, contactName: undefined };
+    session = { step: 'greeting', cart: [], phone, contactName: undefined };
     try {
       const conv = await api.getConversationByPhone(phone);
       if (conv) {
@@ -29,12 +29,12 @@ export async function handleMessage(client: Client, msg: Message, contact?: { ph
           quantity: it.quantity ?? 0,
           productId: it.productId || it.id || it._id,
         }));
-        session.step = conv.currentStep || "menu";
+        session.step = conv.currentStep || 'menu';
         // ensure phone/contactName available for handlers
         session.phone = phone;
         session.contactName = conv.contactName || session.contactName;
       }
-    } catch (err) {
+    } catch {
       // no existe en backend o error, quedamos en greeting por defecto
     }
   }
@@ -44,8 +44,8 @@ export async function handleMessage(client: Client, msg: Message, contact?: { ph
   updateSession(phone, session);
 
   // comandos globales para reiniciar flujo (tienen prioridad)
-  if (["menu", "inicio", "volver", "exit", "salir"].includes(text)) {
-    session.step = "menu";
+  if (['menu', 'inicio', 'volver', 'exit', 'salir'].includes(text)) {
+    session.step = 'menu';
     session.orderPhase = undefined;
     updateSession(phone, session);
     await msg.reply(getMainMenu());
@@ -53,103 +53,103 @@ export async function handleMessage(client: Client, msg: Message, contact?: { ph
   }
 
   // ayuda global (texto solamente, los números están reservados para seleccionar productos)
-  if (text === "ayuda") {
-    const { getCommandsHelp } = await import("../utils/messages");
+  if (text === 'ayuda') {
+    const { getCommandsHelp } = await import('../utils/messages');
     await msg.reply(getCommandsHelp());
     return;
   }
 
   // atajos globales de texto (productos, carrito, finalizar)
-  if (["productos", "ver productos"].includes(text)) {
+  if (['productos', 'ver productos'].includes(text)) {
     // delegar al menu con la opción 1
-    session.step = "product";
+    session.step = 'product';
     updateSession(phone, session);
-    const resp = await handleMenu(session, "1");
+    const resp = await handleMenu(session, '1');
     await msg.reply(resp as any);
     return;
   }
 
-  if (["carrito", "ver carrito"].includes(text)) {
-    session.step = "cart";
+  if (['carrito', 'ver carrito'].includes(text)) {
+    session.step = 'cart';
     updateSession(phone, session);
-    const resp = await handleMenu(session, "2");
+    const resp = await handleMenu(session, '2');
     await msg.reply(resp as any);
     return;
   }
 
-  if (["finalizar"].includes(text)) {
-    session.step = "order";
+  if (['finalizar'].includes(text)) {
+    session.step = 'order';
     updateSession(phone, session);
-    const resp = await handleMenu(session, "3");
+    const resp = await handleMenu(session, '3');
     await msg.reply(resp as any);
     return;
   }
 
   // vaciar carrito: iniciamos confirmación global si no hay confirmación en curso
-  if (text === "vaciar carrito" || text === "vaciar" || text === "vaciarcarrito") {
+  if (text === 'vaciar carrito' || text === 'vaciar' || text === 'vaciarcarrito') {
     if (!session.cart || !session.cart.length) {
-      await msg.reply("🛒 Tu carrito está vacío.");
+      await msg.reply('🛒 Tu carrito está vacío.');
       return;
     }
     session.pendingClear = true;
     updateSession(phone, session);
-    await msg.reply("⚠️ ¿Seguro que deseas vaciar tu carrito? Responde 'SI' para confirmar o 'NO' para cancelar.");
+    await msg.reply('⚠️ ¿Seguro que deseas vaciar tu carrito? Responde \'SI\' para confirmar o \'NO\' para cancelar.');
     return;
   }
 
   // si estamos en confirmación de vaciado de carrito
   if (session.pendingClear) {
-    if (["si", "sí"].includes(text)) {
+    if (['si', 'sí'].includes(text)) {
       try {
         if (session.phone) await api.clearConversationCart(session.phone);
       } catch (err) {
-        console.error("Error clearing backend cart:", err);
+        console.error('Error clearing backend cart:', err);
       }
       session.cart = [];
       session.pendingClear = false;
-      session.step = "menu";
+      session.step = 'menu';
       updateSession(phone, session);
-      await msg.reply("🧹 Carrito vaciado correctamente. Escribe 'menu' para volver al inicio.");
+      await msg.reply('🧹 Carrito vaciado correctamente. Escribe \'menu\' para volver al inicio.');
       return;
     }
-    if (text === "no") {
+    if (text === 'no') {
       session.pendingClear = false;
       updateSession(phone, session);
-      await msg.reply("Operación cancelada. Tu carrito se mantiene.");
+      await msg.reply('Operación cancelada. Tu carrito se mantiene.');
       return;
     }
     // si la respuesta no es SI/NO, pedir que confirme
-    await msg.reply("Por favor responde 'SI' o 'NO' para confirmar el vaciado del carrito.");
+    await msg.reply('Por favor responde \'SI\' o \'NO\' para confirmar el vaciado del carrito.');
     return;
   }
 
   try {
 
   // response can be string or an object { type: 'media', mediaUrl, caption }
-  let response: any = "";
+  let response: any = '';
 
     switch (session.step) {
-      case "greeting":
+      case 'greeting':
         response = await handleGreeting(session);
         break;
-      case "menu":
+      case 'menu':
         response = await handleMenu(session, text);
         break;
-      case "product":
+      case 'product':
         response = await handleProduct(session, text);
         break;
-      case "quantity_selection":
+      case 'quantity_selection':
         response = await handleQuantity(session, text);
         break;
-      case "cart":
+      case 'cart':
         response = await handleCart(session, text);
         break;
-      case "order":
+      case 'order':
         response = await handleOrder(session, text);
         break;
       default:
         response = getMainMenu();
-        session.step = "menu";
+        session.step = 'menu';
     }
 
     updateSession(phone, session);
@@ -157,7 +157,7 @@ export async function handleMessage(client: Client, msg: Message, contact?: { ph
     // soportar array de respuestas
     if (Array.isArray(response)) {
       for (const r of response) {
-        if (r && typeof r === "object" && r.type === "media" && r.mediaUrl) {
+        if (r && typeof r === 'object' && r.type === 'media' && r.mediaUrl) {
           try {
             const media = await MessageMedia.fromUrl(r.mediaUrl);
             if (r.caption) {
@@ -166,18 +166,18 @@ export async function handleMessage(client: Client, msg: Message, contact?: { ph
               await msg.reply(media);
             }
           } catch (err) {
-            console.error("Error al descargar/enviar media:", err);
+            console.error('Error al descargar/enviar media:', err);
             if (r.caption) await msg.reply(r.caption);
           }
-        } else if (r && typeof r === "object" && r.type === "text" && r.text) {
+        } else if (r && typeof r === 'object' && r.type === 'text' && r.text) {
           await msg.reply(r.text);
-        } else if (typeof r === "string") {
+        } else if (typeof r === 'string') {
           await msg.reply(r);
         }
       }
     } else {
       // si el handler devolvió un media, enviarlo como media + caption
-      if (response && typeof response === "object" && response.type === "media" && response.mediaUrl) {
+      if (response && typeof response === 'object' && response.type === 'media' && response.mediaUrl) {
         try {
           const media = await MessageMedia.fromUrl(response.mediaUrl);
           if (response.caption) {
@@ -186,9 +186,9 @@ export async function handleMessage(client: Client, msg: Message, contact?: { ph
             await msg.reply(media);
           }
         } catch (err) {
-          console.error("Error al descargar/enviar media:", err);
+          console.error('Error al descargar/enviar media:', err);
           if (response.caption) await msg.reply(response.caption);
-          else await msg.reply("No se pudo enviar la imagen.");
+          else await msg.reply('No se pudo enviar la imagen.');
         }
       } else {
         await msg.reply(response);
@@ -196,7 +196,7 @@ export async function handleMessage(client: Client, msg: Message, contact?: { ph
     }
 
   } catch (err) {
-    console.error("❌ Error en flujo:", err);
-    await msg.reply("⚠️ Ocurrió un error. Escribe 'menu' para volver al inicio.");
+    console.error('❌ Error en flujo:', err);
+    await msg.reply('⚠️ Ocurrió un error. Escribe \'menu\' para volver al inicio.');
   }
 }

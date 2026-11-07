@@ -99,7 +99,7 @@ export default function CheckoutCart() {
       } else {
         console.log('Reutilizando orden existente en backend:', orderId);
         // Actualizar la dirección de entrega por si el usuario la modificó antes de reintentar
-        const finalAddress = [formData.address, formData.city, formData.zipCode].filter(Boolean).join(", ");
+        const finalAddress = [formData.address, formData.city, formData.zipCode].filter(Boolean).join(', ');
         await api.put(`/api/orders/${orderId}`, {
           deliveryAddress: finalAddress,
         });

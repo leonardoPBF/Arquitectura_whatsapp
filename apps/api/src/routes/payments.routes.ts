@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router } from 'express';
 import {
   getPayments,
   getPaymentById,
@@ -6,7 +6,7 @@ import {
   updatePayment,
   updatePaymentStatus,
   deletePayment
-} from "../controllers/payments.controller";
+} from '../controllers/payments.controller';
 
 const router = Router();
 
@@ -64,7 +64,7 @@ const router = Router();
  *               items:
  *                 $ref: '#/components/schemas/Payment'
  */
-router.get("/", getPayments);
+router.get('/', getPayments);
 
 /**
  * @swagger
@@ -84,7 +84,7 @@ router.get("/", getPayments);
  *       404:
  *         description: Pago no encontrado
  */
-router.get("/:id", getPaymentById);
+router.get('/:id', getPaymentById);
 
 /**
  * @swagger
@@ -102,7 +102,7 @@ router.get("/:id", getPaymentById);
  *       201:
  *         description: Pago registrado
  */
-router.post("/", createPayment);
+router.post('/', createPayment);
 
 /**
  * @swagger
@@ -130,8 +130,8 @@ router.post("/", createPayment);
  *       200:
  *         description: Estado de pago actualizado
  */
-router.put("/:id", updatePayment);
-router.patch("/:id/status", updatePaymentStatus);
-router.delete("/:id", deletePayment);
+router.put('/:id', updatePayment);
+router.patch('/:id/status', updatePaymentStatus);
+router.delete('/:id', deletePayment);
 
 export default router;

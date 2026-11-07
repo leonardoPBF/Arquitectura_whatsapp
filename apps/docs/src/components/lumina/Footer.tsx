@@ -1,4 +1,4 @@
-import { Sparkles, Mail, MapPin, Linkedin, Twitter, Github } from "lucide-react";
+import { Sparkles, Mail, MapPin, Linkedin, Twitter, Github } from 'lucide-react';
 
 const Footer = () => {
   return (

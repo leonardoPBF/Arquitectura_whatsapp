@@ -1,11 +1,11 @@
-import { Request, Response } from "express";
-import jwt from "jsonwebtoken";
-import crypto from "crypto";
-import { User } from "../models/User";
-import { Customer } from "../models/Customer";
+import { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
+import { User } from '../models/User';
+import { Customer } from '../models/Customer';
 
 import { jwtSecret, identity } from '../middlewares/security';
-const JWT_EXPIRES_IN = "7d";
+const JWT_EXPIRES_IN = '7d';
 
 // POST /api/auth/register
 export const register = async (req: Request, res: Response) => {
@@ -20,13 +20,13 @@ export const register = async (req: Request, res: Response) => {
     // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "El email ya está registrado" });
+      return res.status(400).json({ message: 'El email ya está registrado' });
     }
 
     let customerId = null;
 
     // If role is customer, create or find customer record
-    if (role === "customer" || !role) {
+    if (role === 'customer' || !role) {
       if (phone) {
         let customer = await Customer.findOne({ phone });
         if (customer) return res.status(409).json({ message: 'El teléfono ya está vinculado; inicia sesión o solicita asistencia' });
@@ -48,7 +48,7 @@ export const register = async (req: Request, res: Response) => {
       password,
       name,
       phone,
-      role: role || "customer",
+      role: role || 'customer',
       customerId,
     });
 
@@ -62,7 +62,7 @@ export const register = async (req: Request, res: Response) => {
     );
 
     res.status(201).json({
-      message: "Usuario registrado exitosamente",
+      message: 'Usuario registrado exitosamente',
       token,
       user: {
         id: user._id,
@@ -72,9 +72,9 @@ export const register = async (req: Request, res: Response) => {
         customerId: user.customerId,
       },
     });
-  } catch (error) {
+  } catch {
     console.error('auth.operation_failed');
-    res.status(500).json({ message: "Error al registrar usuario" });
+    res.status(500).json({ message: 'Error al registrar usuario' });
   }
 };
 
@@ -86,7 +86,7 @@ export const registerFromWhatsApp = async (req: Request, res: Response) => {
 
     if (typeof email !== 'string' || typeof name !== 'string' || typeof phone !== 'string' || !/^\+?\d{7,15}$/.test(phone)) {
       return res.status(400).json({ 
-        message: "Email, nombre y teléfono son requeridos" 
+        message: 'Email, nombre y teléfono son requeridos'
       });
     }
 
@@ -99,7 +99,7 @@ export const registerFromWhatsApp = async (req: Request, res: Response) => {
       if (user.phone !== phone || user.email !== email || user.role !== 'customer') return res.status(409).json({ message: 'Identidad ya vinculada' });
       // Si ya existe, retornar info sin crear duplicado
       return res.status(200).json({
-        message: "Usuario ya existe",
+        message: 'Usuario ya existe',
         userExists: true,
         user: {
           id: user._id,
@@ -137,7 +137,7 @@ export const registerFromWhatsApp = async (req: Request, res: Response) => {
       password: generatedPassword,
       name,
       phone,
-      role: "customer", // Siempre customer para WhatsApp
+      role: 'customer', // Siempre customer para WhatsApp
       customerId: customer._id,
     });
 
@@ -151,7 +151,7 @@ export const registerFromWhatsApp = async (req: Request, res: Response) => {
     );
 
     res.status(201).json({
-      message: "Usuario creado exitosamente desde WhatsApp",
+      message: 'Usuario creado exitosamente desde WhatsApp',
       userExists: false,
       generatedPassword, // Enviar la contraseña generada
       token,
@@ -164,9 +164,9 @@ export const registerFromWhatsApp = async (req: Request, res: Response) => {
         phone: user.phone,
       },
     });
-  } catch (error) {
+  } catch {
     console.error('auth.operation_failed');
-    res.status(500).json({ message: "Error al registrar usuario desde WhatsApp" });
+    res.status(500).json({ message: 'Error al registrar usuario desde WhatsApp' });
   }
 };
 
@@ -179,13 +179,13 @@ export const login = async (req: Request, res: Response) => {
     // Find user
     const user = await User.findOne({ email, isActive: true });
     if (!user) {
-      return res.status(401).json({ message: "Credenciales inválidas" });
+      return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
     // Check password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Credenciales inválidas" });
+      return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
     // Generate token
@@ -196,7 +196,7 @@ export const login = async (req: Request, res: Response) => {
     );
 
     res.json({
-      message: "Login exitoso",
+      message: 'Login exitoso',
       token,
       user: {
         id: user._id,
@@ -206,26 +206,26 @@ export const login = async (req: Request, res: Response) => {
         customerId: user.customerId,
       },
     });
-  } catch (error) {
+  } catch {
     console.error('auth.operation_failed');
-    res.status(500).json({ message: "Error al iniciar sesión" });
+    res.status(500).json({ message: 'Error al iniciar sesión' });
   }
 };
 
 // GET /api/auth/me - Get current user
 export const getCurrentUser = async (req: Request, res: Response) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
+    const token = req.headers.authorization?.split(' ')[1];
     
     if (!token) {
-      return res.status(401).json({ message: "No token provided" });
+      return res.status(401).json({ message: 'No token provided' });
     }
 
     const decoded = { userId: identity(res).id };
-    const user = await User.findById(decoded.userId).select("-password");
+    const user = await User.findById(decoded.userId).select('-password');
 
     if (!user) {
-      return res.status(404).json({ message: "Usuario no encontrado" });
+      return res.status(404).json({ message: 'Usuario no encontrado' });
     }
 
     res.json({
@@ -237,9 +237,9 @@ export const getCurrentUser = async (req: Request, res: Response) => {
         customerId: user.customerId,
       },
     });
-  } catch (error) {
+  } catch {
     console.error('auth.operation_failed');
-    res.status(401).json({ message: "Token inválido" });
+    res.status(401).json({ message: 'Token inválido' });
   }
 };
 
@@ -251,7 +251,7 @@ export const createAdmin = async (req: Request, res: Response) => {
     // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "El email ya está registrado" });
+      return res.status(400).json({ message: 'El email ya está registrado' });
     }
 
     // Create admin user
@@ -259,13 +259,13 @@ export const createAdmin = async (req: Request, res: Response) => {
       email,
       password,
       name,
-      role: "admin",
+      role: 'admin',
     });
 
     await user.save();
 
     res.status(201).json({
-      message: "Administrador creado exitosamente",
+      message: 'Administrador creado exitosamente',
       user: {
         id: user._id,
         email: user.email,
@@ -273,8 +273,8 @@ export const createAdmin = async (req: Request, res: Response) => {
         role: user.role,
       },
     });
-  } catch (error) {
+  } catch {
     console.error('auth.operation_failed');
-    res.status(500).json({ message: "Error al crear administrador" });
+    res.status(500).json({ message: 'Error al crear administrador' });
   }
 };

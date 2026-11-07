@@ -1,5 +1,5 @@
-import app from "./app";
-import { connectDB } from "./database";
+import app from './app';
+import { connectDB } from './database';
 import { jwtSecret } from './middlewares/security';
 
 jwtSecret();

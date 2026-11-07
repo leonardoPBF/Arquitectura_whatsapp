@@ -1,4 +1,4 @@
-import { Schema, model, Document, Types } from "mongoose";
+import { Schema, model, Document, Types } from 'mongoose';
 
 export interface ICustomer extends Document<Types.ObjectId> {
   phone: string;
@@ -22,4 +22,4 @@ const CustomerSchema = new Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
-export const Customer = model<ICustomer>("Customer", CustomerSchema);
+export const Customer = model<ICustomer>('Customer', CustomerSchema);

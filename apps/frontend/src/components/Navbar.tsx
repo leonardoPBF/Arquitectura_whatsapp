@@ -13,7 +13,7 @@ export const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-8">
-            <Link to={isAdmin ? "/dashboard" : "/"} className="flex items-center gap-2 text-gray-900 dark:text-white hover:opacity-80 transition-opacity">
+            <Link to={isAdmin ? '/dashboard' : '/'} className="flex items-center gap-2 text-gray-900 dark:text-white hover:opacity-80 transition-opacity">
               <Logo className="w-8 h-8" />
               <span className="font-bold text-lg bg-gradient-to-r from-[#10B981] to-[#14B8A6] bg-clip-text text-transparent">LUMINA</span>
             </Link>

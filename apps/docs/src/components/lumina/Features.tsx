@@ -1,12 +1,12 @@
-import { Zap, Shield, Layers, Globe2, Clock, TrendingUp } from "lucide-react";
+import { Zap, Shield, Layers, Globe2, Clock, TrendingUp } from 'lucide-react';
 
 const features = [
-  { icon: Zap, title: "Tiempo real", desc: "Respuestas instantáneas con arquitectura asincrónica." },
-  { icon: Shield, title: "Seguridad", desc: "Protección de datos y cumplimiento integrado." },
-  { icon: Layers, title: "Escalable", desc: "Crece sin fricción de 100 a 1M de conversaciones." },
-  { icon: Globe2, title: "LATAM-first", desc: "Pensado para el mercado latinoamericano." },
-  { icon: Clock, title: "24/7", desc: "Tu negocio nunca duerme. Tu atención tampoco." },
-  { icon: TrendingUp, title: "Más ingresos", desc: "Convierte conversaciones en revenue medible." },
+  { icon: Zap, title: 'Tiempo real', desc: 'Respuestas instantáneas con arquitectura asincrónica.' },
+  { icon: Shield, title: 'Seguridad', desc: 'Protección de datos y cumplimiento integrado.' },
+  { icon: Layers, title: 'Escalable', desc: 'Crece sin fricción de 100 a 1M de conversaciones.' },
+  { icon: Globe2, title: 'LATAM-first', desc: 'Pensado para el mercado latinoamericano.' },
+  { icon: Clock, title: '24/7', desc: 'Tu negocio nunca duerme. Tu atención tampoco.' },
+  { icon: TrendingUp, title: 'Más ingresos', desc: 'Convierte conversaciones en revenue medible.' },
 ];
 
 const Features = () => {

@@ -1,5 +1,5 @@
-import { ArrowRight, MessageCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, MessageCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Hero = () => {
   return (
@@ -38,9 +38,9 @@ const Hero = () => {
 
           <div className="mt-16 grid grid-cols-3 gap-8 md:gap-16 text-center">
             {[
-              { k: "99.9%", v: "Uptime garantizado" },
-              { k: "+30%", v: "Conversión de ventas" },
-              { k: "<2s", v: "Tiempo de respuesta" },
+              { k: '99.9%', v: 'Uptime garantizado' },
+              { k: '+30%', v: 'Conversión de ventas' },
+              { k: '<2s', v: 'Tiempo de respuesta' },
             ].map((s) => (
               <div key={s.k}>
                 <div className="font-display text-3xl md:text-4xl font-bold text-gradient">{s.k}</div>

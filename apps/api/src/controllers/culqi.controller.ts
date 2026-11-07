@@ -1,10 +1,10 @@
-import { Request, Response } from "express";
-import Culqi from "culqi-node";
-import { Order } from "../models/Order";
-import { Payment } from "../models/Payment";
-import { Conversation } from "../models/Conversation";
-import dotenv from "dotenv";
-import { Customer } from "../models/Customer";
+import { Request, Response } from 'express';
+import Culqi from 'culqi-node';
+import { Order } from '../models/Order';
+import { Payment } from '../models/Payment';
+import { Conversation } from '../models/Conversation';
+import dotenv from 'dotenv';
+import { Customer } from '../models/Customer';
 
 dotenv.config();
 
@@ -22,23 +22,23 @@ const getCulqi = () => new Culqi({
  */
 export const createCulqiOrder = async (req: Request, res: Response) => {
   try {
-    const { orderId, currency = "PEN", method } = req.body;
+    const { orderId, currency = 'PEN', method } = req.body;
 
     if (!orderId || !method)
-      return res.status(400).json({ message: "orderId y method son requeridos" });
+      return res.status(400).json({ message: 'orderId y method son requeridos' });
 
     const order = await Order.findById(orderId);
-    if (!order) return res.status(404).json({ message: "Orden no encontrada" });
+    if (!order) return res.status(404).json({ message: 'Orden no encontrada' });
 
     const user = await Customer.findById(order.customerId);
-    if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
+    if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
 
     // Si ya existe un Payment para esta orden y gateway culqi, reutilizarlo
-    let payment = await Payment.findOne({ orderId: order._id, gateway: "culqi" });
+    let payment = await Payment.findOne({ orderId: order._id, gateway: 'culqi' });
     if (payment && payment.checkoutUrl) {
       return res.status(200).json({
         success: true,
-        message: "Payment existente encontrado",
+        message: 'Payment existente encontrado',
         checkoutUrl: payment.checkoutUrl,
         culqiOrder: { id: payment.culqiOrderId },
         payment,
@@ -48,14 +48,14 @@ export const createCulqiOrder = async (req: Request, res: Response) => {
     // ✅ Mapear método de pago a payment_methods de Culqi
     // Culqi acepta: card, billetera_movil, pagoefectivo
     const paymentMethodsMap: Record<string, string[]> = {
-      card: ["card"],
-      billetera_movil: ["billetera_movil"],
-      pagoefectivo: ["pagoefectivo"],
+      card: ['card'],
+      billetera_movil: ['billetera_movil'],
+      pagoefectivo: ['pagoefectivo'],
       // Si se quiere permitir múltiples métodos, se puede especificar
-      all: ["card", "billetera_movil", "pagoefectivo"],
+      all: ['card', 'billetera_movil', 'pagoefectivo'],
     };
 
-    const paymentMethods = paymentMethodsMap[method] || ["card"]; // Default a card si no se reconoce
+    const paymentMethods = paymentMethodsMap[method] || ['card']; // Default a card si no se reconoce
 
     // 1️⃣ Crear la orden en Culqi
     const orderPayload = {
@@ -65,9 +65,9 @@ export const createCulqiOrder = async (req: Request, res: Response) => {
       order_number: order.orderNumber,
       client_details: {
         first_name: user.name.split(' ')[0] || user.name,
-        last_name: user.name.split(' ').slice(1).join(' ') || "Cliente",
-        email: String(user.email || "cliente@example.com"),
-        phone_number: user.phone || "+51999999999",
+        last_name: user.name.split(' ').slice(1).join(' ') || 'Cliente',
+        email: String(user.email || 'cliente@example.com'),
+        phone_number: user.phone || '+51999999999',
       },
       expiration_date: Math.floor(Date.now() / 1000) + 86400, // 24 horas
       // ✅ Agregar métodos de pago permitidos
@@ -75,7 +75,7 @@ export const createCulqiOrder = async (req: Request, res: Response) => {
     };
     const culqiOrder = await getCulqi().orders.createOrder(orderPayload);
 
-    console.log("✅ Orden Culqi creada:", culqiOrder.id);
+    console.log('✅ Orden Culqi creada:', culqiOrder.id);
 
     // Generar checkout URL local
     const checkoutUrl = `${process.env.LOCAL_LINK}?order=${culqiOrder.id}`;
@@ -85,25 +85,25 @@ export const createCulqiOrder = async (req: Request, res: Response) => {
       orderNumber: order.orderNumber,
       customerId: order.customerId,
       amount: order.totalAmount,
-      gateway: "culqi",
+      gateway: 'culqi',
       culqiOrderId: culqiOrder.id,
       checkoutUrl,
       method,
-      status: "pending",
+      status: 'pending',
       gatewayResponse: culqiOrder,
     });
 
     res.status(201).json({
       success: true,
-      message: "Orden y link de pago creados correctamente",
+      message: 'Orden y link de pago creados correctamente',
       checkoutUrl,
       culqiOrder,
       payment,
     });
   } catch (error: any) {
-    console.error("❌ Error al crear orden Culqi:", error.response?.data || error);
+    console.error('❌ Error al crear orden Culqi:', error.response?.data || error);
     res.status(500).json({
-      message: "Error al crear orden en Culqi",
+      message: 'Error al crear orden en Culqi',
       error: error.response?.data || error.message,
       details: error.response?.data || null,
     });
@@ -123,18 +123,18 @@ export const createCulqiCharge = async (req: Request, res: Response) => {
     if (typeof tokenId !== 'string' || typeof culqiOrderId !== 'string') {
       return res.status(400).json({ 
         success: false,
-        message: "tokenId y culqiOrderId son requeridos"
+        message: 'tokenId y culqiOrderId son requeridos'
       });
     }
 
     const payment = await Payment.findOne({ culqiOrderId })
-      .populate("orderId")
-      .populate("customerId");
+      .populate('orderId')
+      .populate('customerId');
 
     if (!payment || !payment.orderId) {
       return res.status(404).json({ 
         success: false,
-        message: "No se encontró la orden asociada al culqiOrderId" 
+        message: 'No se encontró la orden asociada al culqiOrderId'
       });
     }
 
@@ -144,12 +144,12 @@ export const createCulqiCharge = async (req: Request, res: Response) => {
     }
 
     // ✅ PREVENIR DUPLICADOS: Si ya está completado, no procesar de nuevo
-    if (payment.status === "completed") {
+    if (payment.status === 'completed') {
       console.warn(`⚠️ Payment ${payment._id} ya está completado`);
       const order = payment.orderId as any;
       return res.json({ 
         success: true, 
-        message: "Este pago ya fue procesado anteriormente",
+        message: 'Este pago ya fue procesado anteriormente',
         charge: payment.gatewayResponse,
         payment, 
         order,
@@ -171,16 +171,16 @@ export const createCulqiCharge = async (req: Request, res: Response) => {
     if (!customer) {
       return res.status(404).json({ 
         success: false,
-        message: "No se encontró el cliente asociado a la orden" 
+        message: 'No se encontró el cliente asociado a la orden'
       });
     }
 
     // ✅ Separar nombres y apellidos
     const nameParts = customer.name.split(' ');
     const firstName = nameParts[0] || customer.name;
-    const lastName = nameParts.slice(1).join(' ') || "Cliente";
-    const customerEmail = email || customer.email || order.customerId?.email || "cliente@example.com";
-    const customerPhone = order.customerPhone || customer.phone || "+51999999999";
+    const lastName = nameParts.slice(1).join(' ') || 'Cliente';
+    const customerEmail = email || customer.email || order.customerId?.email || 'cliente@example.com';
+    const customerPhone = order.customerPhone || customer.phone || '+51999999999';
 
     console.log(`💳 Creando cargo directo para orden ${order.orderNumber} con token ${tokenId.substring(0, 20)}...`);
     console.log(`👤 Cliente: ${firstName} ${lastName} - ${customerEmail} - ${customerPhone}`);
@@ -188,7 +188,7 @@ export const createCulqiCharge = async (req: Request, res: Response) => {
     // ✅ Crear el cargo directo en Culqi con datos completos del cliente
     const chargePayload = {
       amount: Math.round(amount * 100),
-      currency_code: "PEN",
+      currency_code: 'PEN',
       email: customerEmail,
       source_id: tokenId,
       description: `Pago Orden #${order.orderNumber}`,
@@ -210,18 +210,18 @@ export const createCulqiCharge = async (req: Request, res: Response) => {
     const charge = await getCulqi().charges.createCharge(
       chargePayload as unknown as Parameters<ReturnType<typeof getCulqi>['charges']['createCharge']>[0]
     );
-    console.log(`📊 Resultado del cargo:`, charge.outcome?.type);
+    console.log('📊 Resultado del cargo:', charge.outcome?.type);
 
-    const isSuccessful = charge.outcome?.type === "venta_exitosa";
+    const isSuccessful = charge.outcome?.type === 'venta_exitosa';
 
     if (isSuccessful) {
       // ✅ Actualizar orden
-      order.status = "confirmed";
-      order.paymentStatus = "paid";
+      order.status = 'confirmed';
+      order.paymentStatus = 'paid';
       await order.save();
 
       // ✅ Actualizar payment
-      payment.status = "completed";
+      payment.status = 'completed';
       payment.transactionId = charge.id;
       payment.receiptUrl = (charge as any).receipt_url;
       payment.gatewayResponse = charge;
@@ -231,7 +231,7 @@ export const createCulqiCharge = async (req: Request, res: Response) => {
 
       return res.json({ 
         success: true, 
-        message: "Pago procesado exitosamente",
+        message: 'Pago procesado exitosamente',
         charge, 
         order, 
         payment,
@@ -241,7 +241,7 @@ export const createCulqiCharge = async (req: Request, res: Response) => {
     }
 
     // ❌ Cargo rechazado
-    payment.status = "failed";
+    payment.status = 'failed';
     payment.gatewayResponse = charge;
     await payment.save();
 
@@ -249,14 +249,14 @@ export const createCulqiCharge = async (req: Request, res: Response) => {
 
     return res.status(400).json({ 
       success: false, 
-      message: charge.outcome?.merchant_message || "Cargo rechazado", 
+      message: charge.outcome?.merchant_message || 'Cargo rechazado',
       charge 
     });
   } catch (error: any) {
-    console.error("❌ Error al crear cargo:", error);
+    console.error('❌ Error al crear cargo:', error);
     res.status(500).json({ 
       success: false,
-      message: "Error al procesar pago", 
+      message: 'Error al procesar pago',
       error: error.message || error.merchant_message 
     });
   }
@@ -275,26 +275,26 @@ export const verifyCulqiPayment = async (req: Request, res: Response) => {
     if (!culqiOrderId) {
       return res.status(400).json({ 
         success: false,
-        message: "culqiOrderId es requerido" 
+        message: 'culqiOrderId es requerido'
       });
     }
      
-    const payment = await Payment.findOne({ culqiOrderId }).populate("orderId");
+    const payment = await Payment.findOne({ culqiOrderId }).populate('orderId');
 
     if (!payment || !payment.orderId) {
       return res.status(404).json({ 
         success: false,
-        message: "No se encontró la orden asociada al culqiOrderId" 
+        message: 'No se encontró la orden asociada al culqiOrderId'
       });
     }
 
     // ✅ PREVENIR DUPLICADOS: Si ya está completado, no procesar de nuevo
-    if (payment.status === "completed") {
+    if (payment.status === 'completed') {
       console.warn(`⚠️ Payment ${payment._id} ya está completado`);
       const order = payment.orderId as any;
       return res.json({ 
         success: true, 
-        message: "Este pago ya fue procesado anteriormente",
+        message: 'Este pago ya fue procesado anteriormente',
         payment, 
         order,
         paymentId: payment._id, 
@@ -327,7 +327,7 @@ export const verifyCulqiPayment = async (req: Request, res: Response) => {
         
         return res.status(400).json({
           success: false,
-          message: "La orden de pago ha expirado. Por favor, genera un nuevo enlace de pago.",
+          message: 'La orden de pago ha expirado. Por favor, genera un nuevo enlace de pago.',
           orderExpired: true,
           error: getOrderError.merchant_message,
           paymentId: payment._id,
@@ -340,13 +340,13 @@ export const verifyCulqiPayment = async (req: Request, res: Response) => {
 
     // ✅ Procesar según el estado de Culqi
     switch (culqiOrder.state) {
-      case "paid":
+      case 'paid':
         // ✅ PAGO EXITOSO
-        order.status = "confirmed";
-        order.paymentStatus = "paid";
+        order.status = 'confirmed';
+        order.paymentStatus = 'paid';
         await order.save();
 
-        payment.status = "completed";
+        payment.status = 'completed';
         payment.transactionId = culqiOrder.id;
         payment.gatewayResponse = culqiOrder;
         await payment.save();
@@ -355,7 +355,7 @@ export const verifyCulqiPayment = async (req: Request, res: Response) => {
 
         return res.json({ 
           success: true, 
-          message: "Pago confirmado exitosamente",
+          message: 'Pago confirmado exitosamente',
           culqiOrder, 
           order, 
           payment, 
@@ -363,7 +363,7 @@ export const verifyCulqiPayment = async (req: Request, res: Response) => {
           orderId: order._id 
         });
 
-      case "pending":
+      case 'pending':
         // ⏳ PAGO EN PROCESO
         console.log(`⏳ Pago aún en proceso para orden ${order.orderNumber}`);
         
@@ -372,7 +372,7 @@ export const verifyCulqiPayment = async (req: Request, res: Response) => {
 
         return res.json({
           success: false,
-          message: "El pago está siendo procesado. Por favor, espera unos momentos.",
+          message: 'El pago está siendo procesado. Por favor, espera unos momentos.',
           pending: true,
           culqiState: culqiOrder.state,
           payment,
@@ -380,47 +380,47 @@ export const verifyCulqiPayment = async (req: Request, res: Response) => {
           orderId: order._id
         });
 
-      case "expired":
+      case 'expired':
         // ⌛ ORDEN EXPIRADA
         console.warn(`⌛ Orden ${culqiOrderId} expiró`);
         
-        payment.status = "expired";
+        payment.status = 'expired';
         payment.gatewayResponse = culqiOrder;
         await payment.save();
 
         return res.status(400).json({
           success: false,
-          message: "La orden de pago ha expirado. Por favor, genera un nuevo enlace de pago.",
+          message: 'La orden de pago ha expirado. Por favor, genera un nuevo enlace de pago.',
           orderExpired: true,
           culqiState: culqiOrder.state,
           paymentId: payment._id,
           orderId: order._id
         });
 
-      case "rejected":
+      case 'rejected':
         // ❌ PAGO RECHAZADO
         console.warn(`❌ Pago rechazado para orden ${order.orderNumber}`);
         
-        payment.status = "failed";
+        payment.status = 'failed';
         payment.gatewayResponse = culqiOrder;
         await payment.save();
 
         return res.status(400).json({
           success: false,
-          message: "El pago fue rechazado. Por favor, intenta con otro método de pago.",
+          message: 'El pago fue rechazado. Por favor, intenta con otro método de pago.',
           rejected: true,
           culqiState: culqiOrder.state,
           paymentId: payment._id,
           orderId: order._id
         });
 
-      case "created":
+      case 'created':
         // 📝 ORDEN CREADA PERO SIN PAGO
         console.log(`📝 Orden creada pero sin pago iniciado: ${order.orderNumber}`);
         
         return res.json({
           success: false,
-          message: "La orden está creada pero el pago no ha sido iniciado.",
+          message: 'La orden está creada pero el pago no ha sido iniciado.',
           pending: true,
           culqiState: culqiOrder.state,
           payment,
@@ -443,10 +443,10 @@ export const verifyCulqiPayment = async (req: Request, res: Response) => {
     }
 
   } catch (error: any) {
-    console.error("❌ Error al verificar pago:", error);
+    console.error('❌ Error al verificar pago:', error);
     res.status(500).json({ 
       success: false,
-      message: "Error al verificar pago", 
+      message: 'Error al verificar pago',
       error: error.message || error.merchant_message
     });
   }
@@ -463,23 +463,23 @@ export const confirmCulqiOrder = async (req: Request, res: Response) => {
     const { culqiOrderId } = req.body;
     if (!culqiOrderId) return res.status(400).json({ 
       success: false,
-      message: "culqiOrderId es requerido" 
+      message: 'culqiOrderId es requerido'
     });
 
     console.log(`🔍 Confirmando orden: ${culqiOrderId}`);
 
-    const payment = await Payment.findOne({ culqiOrderId }).populate("orderId");
+    const payment = await Payment.findOne({ culqiOrderId }).populate('orderId');
     if (!payment) {
       console.warn(`Payment no encontrado para culqiOrderId: ${culqiOrderId}`);
       return res.status(404).json({ 
         success: false,
-        message: "Pago no encontrado" 
+        message: 'Pago no encontrado'
       });
     }
 
     // Obtener estado actual de Culqi con manejo de errores
     let culqiOrder: any = null;
-    let orderExpired = false;
+
 
     try {
       culqiOrder = await getCulqi().orders.getOrder({ id: culqiOrderId });
@@ -489,7 +489,7 @@ export const confirmCulqiOrder = async (req: Request, res: Response) => {
       
       // Si la orden no existe o expiró
       if (culqiError.type === 'parameter_error' || culqiError.merchant_message?.includes('No existe')) {
-        orderExpired = true;
+
         
         // Marcar como expirado
         if (payment.status === 'pending') {
@@ -505,7 +505,7 @@ export const confirmCulqiOrder = async (req: Request, res: Response) => {
         
         return res.json({
           success: false,
-          message: "La orden de pago ha expirado en Culqi",
+          message: 'La orden de pago ha expirado en Culqi',
           orderExpired: true,
           payment,
         });
@@ -514,24 +514,24 @@ export const confirmCulqiOrder = async (req: Request, res: Response) => {
       throw culqiError;
     }
 
-    const isPaid = culqiOrder.state === "paid";
+    const isPaid = culqiOrder.state === 'paid';
 
     if (isPaid) {
-      payment.status = "completed";
+      payment.status = 'completed';
       payment.gatewayResponse = culqiOrder;
       await payment.save();
 
       const order = await Order.findById(payment.orderId);
       if (order) {
-        order.status = "confirmed";
-        order.paymentStatus = "paid";
+        order.status = 'confirmed';
+        order.paymentStatus = 'paid';
         await order.save();
         console.log(`✅ Orden ${order.orderNumber} confirmada como pagada`);
       }
 
       return res.json({
         success: true,
-        message: "Pago confirmado",
+        message: 'Pago confirmado',
         payment,
         order,
       });
@@ -539,16 +539,16 @@ export const confirmCulqiOrder = async (req: Request, res: Response) => {
 
     res.json({
       success: false,
-      message: "Pago aún pendiente",
+      message: 'Pago aún pendiente',
       status: payment.status,
       culqiState: culqiOrder.state,
       payment,
     });
   } catch (error: any) {
-    console.error("❌ Error al confirmar orden:", error);
+    console.error('❌ Error al confirmar orden:', error);
     res.status(500).json({ 
       success: false,
-      message: "Error al confirmar orden", 
+      message: 'Error al confirmar orden',
       error: error.message || error.merchant_message 
     });
   }
@@ -564,31 +564,31 @@ export const handleCulqiWebhook = async (req: Request, res: Response) => {
   try {
     const event = req.body;
     if (!event.type || !event.data)
-      return res.status(400).json({ message: "Evento inválido" });
+      return res.status(400).json({ message: 'Evento inválido' });
 
-    console.log("📦 Webhook Culqi recibido:", event.type);
+    console.log('📦 Webhook Culqi recibido:', event.type);
 
     switch (event.type) {
-      case "order.status.changed":
+      case 'order.status.changed':
         await handleOrderStatusChanged(event.data);
         break;
-      case "charge.succeeded":
+      case 'charge.succeeded':
         await handleChargeSucceeded(event.data);
         break;
-      case "charge.failed":
+      case 'charge.failed':
         await handleChargeFailed(event.data);
         break;
-      case "refund.created":
+      case 'refund.created':
         await handleRefundCreated(event.data);
         break;
       default:
-        console.log("Tipo de evento no manejado:", event.type);
+        console.log('Tipo de evento no manejado:', event.type);
     }
 
     res.json({ received: true });
   } catch (error: any) {
-    console.error("❌ Error en webhook:", error);
-    res.status(500).json({ message: "Error al procesar webhook", error: error.message });
+    console.error('❌ Error en webhook:', error);
+    res.status(500).json({ message: 'Error al procesar webhook', error: error.message });
   }
 };
 
@@ -605,26 +605,26 @@ export const getCulqiOrderStatus = async (req: Request, res: Response) => {
     // Buscar el pago preferentemente por culqiOrderId (ruta /order/:culqiOrderId)
     let payment: any = null;
     if (culqiOrderId) {
-      payment = await Payment.findOne({ culqiOrderId }).populate("orderId").populate("customerId");
+      payment = await Payment.findOne({ culqiOrderId }).populate('orderId').populate('customerId');
     } else if (paymentId) {
-      payment = await Payment.findById(paymentId).populate("orderId").populate("customerId");
+      payment = await Payment.findById(paymentId).populate('orderId').populate('customerId');
     }
 
     if (!payment) {
       console.warn(`Pago no encontrado para params: ${JSON.stringify(req.params)}`);
       return res.status(404).json({ 
         success: false,
-        message: "Pago no encontrado" 
+        message: 'Pago no encontrado'
       });
     }
 
     // Obtener el estado actual desde Culqi (usar culqiOrderId del payment si no vino en la ruta)
     const culqiIdToQuery = culqiOrderId || payment.culqiOrderId;
     if (!culqiIdToQuery) {
-      console.warn("El payment no tiene culqiOrderId asociado:", payment);
+      console.warn('El payment no tiene culqiOrderId asociado:', payment);
       return res.status(400).json({ 
         success: false,
-        message: "El pago no tiene un culqiOrderId asociado" 
+        message: 'El pago no tiene un culqiOrderId asociado'
       });
     }
 
@@ -636,8 +636,8 @@ export const getCulqiOrderStatus = async (req: Request, res: Response) => {
       culqiOrder = await getCulqi().orders.getOrder({ id: culqiIdToQuery });
 
       // ✅ Actualizar si ya fue pagado
-      if (culqiOrder.state === "paid" && payment.status !== "completed") {
-        payment.status = "completed";
+      if (culqiOrder.state === 'paid' && payment.status !== 'completed') {
+        payment.status = 'completed';
         payment.gatewayResponse = culqiOrder;
         await payment.save();
         console.log(`✅ Payment ${payment._id} actualizado a completed`);
@@ -672,18 +672,18 @@ export const getCulqiOrderStatus = async (req: Request, res: Response) => {
     return res.status(200).json({
       success: true,
       message: orderExpired 
-        ? "La orden ha expirado en Culqi" 
-        : "Estado de pago obtenido correctamente",
+        ? 'La orden ha expirado en Culqi'
+        : 'Estado de pago obtenido correctamente',
       payment,
       culqiOrder,
       orderExpired,
     });
   } catch (error: any) {
-    console.error("❌ Error al obtener orden:", error);
+    console.error('❌ Error al obtener orden:', error);
     return res.status(500).json({
       success: false,
-      message: "Error al obtener orden",
-      error: error.message || error.merchant_message || "Error desconocido",
+      message: 'Error al obtener orden',
+      error: error.message || error.merchant_message || 'Error desconocido',
     });
   }
 };
@@ -701,15 +701,15 @@ export const getPaymentById = async (req: Request, res: Response) => {
   try {
     const { paymentId } = req.params;
     const payment = await Payment.findById(paymentId)
-      .populate("orderId")
-      .populate("customerId");
+      .populate('orderId')
+      .populate('customerId');
 
-    if (!payment) return res.status(404).json({ message: "Pago no encontrado" });
+    if (!payment) return res.status(404).json({ message: 'Pago no encontrado' });
 
     res.json({ success: true, payment });
   } catch (error: any) {
-    console.error("❌ Error al obtener pago:", error);
-    res.status(500).json({ message: "Error al obtener pago", error: error.message });
+    console.error('❌ Error al obtener pago:', error);
+    res.status(500).json({ message: 'Error al obtener pago', error: error.message });
   }
 };
 
@@ -719,18 +719,18 @@ export const getPaymentByCulqiId = async (req: Request, res: Response) => {
     const { culqiOrderId } = req.params;
     console.log(`🔎 Buscando Payment con culqiOrderId=${culqiOrderId}`);
     const payment = await Payment.findOne({ culqiOrderId })
-      .populate("orderId")
-      .populate("customerId");
+      .populate('orderId')
+      .populate('customerId');
 
     if (!payment) {
       console.warn(`Payment no encontrado para culqiOrderId=${culqiOrderId}`);
-      return res.status(404).json({ success: false, message: "Pago no encontrado" });
+      return res.status(404).json({ success: false, message: 'Pago no encontrado' });
     }
 
     res.json({ success: true, payment });
   } catch (error: any) {
-    console.error("❌ Error getPaymentByCulqiId:", error);
-    res.status(500).json({ success: false, message: "Error interno", error: error.message });
+    console.error('❌ Error getPaymentByCulqiId:', error);
+    res.status(500).json({ success: false, message: 'Error interno', error: error.message });
   }
 };
 
@@ -742,30 +742,30 @@ async function handleOrderStatusChanged(data: any) {
     const payment = await Payment.findOne({ culqiOrderId: data.id });
     if (!payment) return;
 
-    if (data.state === "paid") payment.status = "completed";
-    else if (data.state === "expired") payment.status = "failed";
+    if (data.state === 'paid') payment.status = 'completed';
+    else if (data.state === 'expired') payment.status = 'failed';
 
     payment.gatewayResponse = data;
     payment.updatedAt = new Date();
     await payment.save();
 
-    if (data.state === "paid") {
+    if (data.state === 'paid') {
       const order = await Order.findById(payment.orderId);
       if (order) {
-        order.status = "confirmed";
-        order.paymentStatus = "paid";
+        order.status = 'confirmed';
+        order.paymentStatus = 'paid';
         await order.save();
 
         const conversation = await Conversation.findOne({ phone: order.customerPhone });
         if (conversation) {
-          conversation.currentStep = "completed";
-          conversation.lastMessage = "Pago completado exitosamente";
+          conversation.currentStep = 'completed';
+          conversation.lastMessage = 'Pago completado exitosamente';
           await conversation.save();
         }
       }
     }
   } catch (error) {
-    console.error("❌ Error handleOrderStatusChanged:", error);
+    console.error('❌ Error handleOrderStatusChanged:', error);
   }
 }
 
@@ -777,20 +777,20 @@ async function handleChargeSucceeded(data: any) {
     const order = await Order.findById(orderId);
     if (!order) return;
 
-    order.status = "confirmed";
-    order.paymentStatus = "paid";
+    order.status = 'confirmed';
+    order.paymentStatus = 'paid';
     await order.save();
 
     const payment = await Payment.findOne({ transactionId: data.id });
     if (payment) {
-      payment.status = "completed";
+      payment.status = 'completed';
       payment.receiptUrl = data.receipt_url || undefined;
       payment.gatewayResponse = data;
       payment.updatedAt = new Date();
       await payment.save();
     }
   } catch (error) {
-    console.error("❌ Error handleChargeSucceeded:", error);
+    console.error('❌ Error handleChargeSucceeded:', error);
   }
 }
 
@@ -798,19 +798,19 @@ async function handleChargeFailed(data: any) {
   try {
     const payment = await Payment.findOne({ transactionId: data.id });
     if (payment) {
-      payment.status = "failed";
+      payment.status = 'failed';
       payment.gatewayResponse = data;
       payment.updatedAt = new Date();
       await payment.save();
 
       const order = await Order.findById(payment.orderId);
       if (order) {
-        order.paymentStatus = "failed";
+        order.paymentStatus = 'failed';
         await order.save();
       }
     }
   } catch (error) {
-    console.error("❌ Error handleChargeFailed:", error);
+    console.error('❌ Error handleChargeFailed:', error);
   }
 }
 
@@ -818,20 +818,20 @@ async function handleRefundCreated(data: any) {
   try {
     const payment = await Payment.findOne({ transactionId: data.charge_id });
     if (payment) {
-      payment.status = "refunded";
+      payment.status = 'refunded';
       payment.gatewayResponse = data;
       payment.updatedAt = new Date();
       await payment.save();
 
       const order = await Order.findById(payment.orderId);
       if (order) {
-        order.status = "cancelled";
-        order.paymentStatus = "refunded";
+        order.status = 'cancelled';
+        order.paymentStatus = 'refunded';
         await order.save();
       }
     }
   } catch (error) {
-    console.error("❌ Error handleRefundCreated:", error);
+    console.error('❌ Error handleRefundCreated:', error);
   }
 }
 
@@ -849,14 +849,14 @@ export const getOrderForCheckout = async (req: Request, res: Response) => {
     console.log(`🔍 Buscando orden con culqiOrderId: ${culqiOrderId}`);
     
     const payment = await Payment.findOne({ culqiOrderId })
-      .populate("orderId")
-      .populate("customerId");
+      .populate('orderId')
+      .populate('customerId');
 
     if (!payment) {
       console.warn(`Payment no encontrado para culqiOrderId: ${culqiOrderId}`);
       return res.status(404).json({ 
         success: false,
-        message: "Orden no encontrada" 
+        message: 'Orden no encontrada'
       });
     }
 
@@ -869,31 +869,31 @@ export const getOrderForCheckout = async (req: Request, res: Response) => {
       console.log(`✅ Orden Culqi obtenida, estado: ${culqiOrder.state}`);
       
       // ✅ IMPORTANTE: Actualizar estado si ya fue pagado en Culqi
-      if (culqiOrder.state === "paid" && payment.status !== "completed") {
-        payment.status = "completed";
+      if (culqiOrder.state === 'paid' && payment.status !== 'completed') {
+        payment.status = 'completed';
         payment.gatewayResponse = culqiOrder;
         await payment.save();
         
         // Actualizar la orden también
         if (payment.orderId) {
           const order = payment.orderId as any;
-          order.status = "confirmed";
-          order.paymentStatus = "paid";
+          order.status = 'confirmed';
+          order.paymentStatus = 'paid';
           await order.save();
           console.log(`✅ Orden ${order.orderNumber} actualizada a 'paid'`);
         }
       }
     } catch (culqiError: any) {
-      console.error("Error obteniendo orden de Culqi:", culqiError.message);
+      console.error('Error obteniendo orden de Culqi:', culqiError.message);
       // Continuar con la info local si Culqi falla
       culqiOrder = payment.gatewayResponse || null;
     }
 
     // Verificar si ya fue pagado
-    if (payment.status === "completed" || culqiOrder?.state === "paid") {
+    if (payment.status === 'completed' || culqiOrder?.state === 'paid') {
       return res.status(200).json({ 
         success: true,
-        message: "Esta orden ya fue pagada",
+        message: 'Esta orden ya fue pagada',
         alreadyPaid: true,
         payment: payment.toObject(),
         orderId: payment.orderId ? (payment.orderId as any)._id : null
@@ -909,17 +909,17 @@ export const getOrderForCheckout = async (req: Request, res: Response) => {
         order_number: culqiOrder.order_number,
         description: culqiOrder.description,
         amount: culqiOrder.amount,
-        currency: culqiOrder.currency_code || "PEN",
+        currency: culqiOrder.currency_code || 'PEN',
         state: culqiOrder.state,
         expiration_date: culqiOrder.expiration_date,
         customer: culqiOrder.client_details || {},
       } : null
     });
   } catch (error: any) {
-    console.error("❌ Error al obtener orden para checkout:", error);
+    console.error('❌ Error al obtener orden para checkout:', error);
     res.status(500).json({ 
       success: false,
-      message: "Error al obtener orden", 
+      message: 'Error al obtener orden',
       error: error.message 
     });
   }
@@ -934,17 +934,17 @@ export const getOrderForCheckout = async (req: Request, res: Response) => {
  */
 export const syncPendingPayments = async (req: Request, res: Response) => {
   try {
-    console.log("🔄 Iniciando sincronización de pagos pendientes...");
+    console.log('🔄 Iniciando sincronización de pagos pendientes...');
 
     // Obtener todos los pagos pendientes
-    const pendingPayments = await Payment.find({ status: "pending" })
-      .populate("orderId")
-      .populate("customerId");
+    const pendingPayments = await Payment.find({ status: 'pending' })
+      .populate('orderId')
+      .populate('customerId');
 
     if (!pendingPayments || pendingPayments.length === 0) {
       return res.json({
         success: true,
-        message: "No hay pagos pendientes para sincronizar",
+        message: 'No hay pagos pendientes para sincronizar',
         synced: 0,
         total: 0,
       });
@@ -963,8 +963,8 @@ export const syncPendingPayments = async (req: Request, res: Response) => {
           console.warn(`⚠️ Payment ${payment._id} no tiene culqiOrderId`);
           results.push({
             paymentId: payment._id,
-            status: "skipped",
-            reason: "No culqiOrderId",
+            status: 'skipped',
+            reason: 'No culqiOrderId',
           });
           continue;
         }
@@ -974,9 +974,9 @@ export const syncPendingPayments = async (req: Request, res: Response) => {
         console.log(`🔍 Payment ${payment._id} - Estado en Culqi: ${culqiOrder.state}`);
 
         // Si el estado cambió a "paid", actualizar localmente
-        if (culqiOrder.state === "paid" && payment.status !== "completed") {
+        if (culqiOrder.state === 'paid' && payment.status !== 'completed') {
           // Actualizar payment
-          payment.status = "completed";
+          payment.status = 'completed';
           payment.gatewayResponse = culqiOrder;
           payment.updatedAt = new Date();
           await payment.save();
@@ -985,8 +985,8 @@ export const syncPendingPayments = async (req: Request, res: Response) => {
           if (payment.orderId) {
             const order = await Order.findById(payment.orderId);
             if (order) {
-              order.status = "confirmed";
-              order.paymentStatus = "paid";
+              order.status = 'confirmed';
+              order.paymentStatus = 'paid';
               await order.save();
               console.log(`✅ Orden ${order.orderNumber} sincronizada y marcada como pagada`);
             }
@@ -996,29 +996,29 @@ export const syncPendingPayments = async (req: Request, res: Response) => {
           results.push({
             paymentId: payment._id,
             culqiOrderId: payment.culqiOrderId,
-            status: "synced",
-            previousStatus: "pending",
-            newStatus: "completed",
+            status: 'synced',
+            previousStatus: 'pending',
+            newStatus: 'completed',
             orderId: payment.orderId,
           });
-        } else if (culqiOrder.state === "expired") {
+        } else if (culqiOrder.state === 'expired') {
           // Marcar como fallido si expiró
-          payment.status = "failed";
+          payment.status = 'failed';
           payment.gatewayResponse = culqiOrder;
           await payment.save();
 
           results.push({
             paymentId: payment._id,
             culqiOrderId: payment.culqiOrderId,
-            status: "expired",
-            message: "Pago expirado en Culqi",
+            status: 'expired',
+            message: 'Pago expirado en Culqi',
           });
         } else {
           // Sin cambios
           results.push({
             paymentId: payment._id,
             culqiOrderId: payment.culqiOrderId,
-            status: "unchanged",
+            status: 'unchanged',
             culqiState: culqiOrder.state,
           });
         }
@@ -1028,7 +1028,7 @@ export const syncPendingPayments = async (req: Request, res: Response) => {
         results.push({
           paymentId: payment._id,
           culqiOrderId: payment.culqiOrderId,
-          status: "error",
+          status: 'error',
           error: paymentError.message,
         });
       }
@@ -1038,17 +1038,17 @@ export const syncPendingPayments = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      message: `Sincronización completada`,
+      message: 'Sincronización completada',
       synced: syncedCount,
       errors: errorCount,
       total: pendingPayments.length,
       results,
     });
   } catch (error: any) {
-    console.error("❌ Error en sincronización de pagos:", error);
+    console.error('❌ Error en sincronización de pagos:', error);
     res.status(500).json({
       success: false,
-      message: "Error al sincronizar pagos",
+      message: 'Error al sincronizar pagos',
       error: error.message,
     });
   }
@@ -1067,7 +1067,7 @@ export const syncSpecificOrder = async (req: Request, res: Response) => {
     if (!culqiOrderId) {
       return res.status(400).json({
         success: false,
-        message: "culqiOrderId es requerido",
+        message: 'culqiOrderId es requerido',
       });
     }
 
@@ -1075,13 +1075,13 @@ export const syncSpecificOrder = async (req: Request, res: Response) => {
 
     // Buscar el payment asociado
     const payment = await Payment.findOne({ culqiOrderId })
-      .populate("orderId")
-      .populate("customerId");
+      .populate('orderId')
+      .populate('customerId');
 
     if (!payment) {
       return res.status(404).json({
         success: false,
-        message: "Pago no encontrado en la base de datos",
+        message: 'Pago no encontrado en la base de datos',
       });
     }
 
@@ -1095,8 +1095,8 @@ export const syncSpecificOrder = async (req: Request, res: Response) => {
       console.log(`Estado en Culqi: ${culqiOrder.state}`);
 
       // Actualizar si el estado cambió
-      if (culqiOrder.state === "paid" && payment.status !== "completed") {
-        payment.status = "completed";
+      if (culqiOrder.state === 'paid' && payment.status !== 'completed') {
+        payment.status = 'completed';
         payment.gatewayResponse = culqiOrder;
         payment.updatedAt = new Date();
         await payment.save();
@@ -1105,8 +1105,8 @@ export const syncSpecificOrder = async (req: Request, res: Response) => {
         if (payment.orderId) {
           const order = await Order.findById(payment.orderId);
           if (order) {
-            order.status = "confirmed";
-            order.paymentStatus = "paid";
+            order.status = 'confirmed';
+            order.paymentStatus = 'paid';
             await order.save();
             console.log(`✅ Orden ${order.orderNumber} actualizada`);
           }
@@ -1136,7 +1136,7 @@ export const syncSpecificOrder = async (req: Request, res: Response) => {
         
         return res.json({
           success: true,
-          message: "La orden ha expirado en Culqi. Estado local actualizado.",
+          message: 'La orden ha expirado en Culqi. Estado local actualizado.',
           orderExpired: true,
           payment,
           updated,
@@ -1148,17 +1148,17 @@ export const syncSpecificOrder = async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      message: updated ? "Orden sincronizada exitosamente" : "Orden sin cambios",
+      message: updated ? 'Orden sincronizada exitosamente' : 'Orden sin cambios',
       payment,
       culqiOrder,
       orderExpired,
       updated,
     });
   } catch (error: any) {
-    console.error("❌ Error sincronizando orden específica:", error);
+    console.error('❌ Error sincronizando orden específica:', error);
     res.status(500).json({
       success: false,
-      message: "Error al sincronizar orden",
+      message: 'Error al sincronizar orden',
       error: error.message || error.merchant_message,
     });
   }

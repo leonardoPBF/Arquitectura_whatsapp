@@ -1,14 +1,14 @@
-import { Box } from "lucide-react";
+import { Box } from 'lucide-react';
 
 const integrations = [
-  { name: "Stripe", icon: "💳", desc: "Pagos en tiempo real" },
-  { name: "Shopify", icon: "🛒", desc: "Sincronización de productos" },
-  { name: "HubSpot", icon: "🎯", desc: "CRM y automatización" },
-  { name: "Zapier", icon: "⚙️", desc: "1000+ integraciones" },
-  { name: "Google Sheets", icon: "📊", desc: "Sincronización de datos" },
-  { name: "Slack", icon: "💬", desc: "Notificaciones en equipo" },
-  { name: "Telegram", icon: "✈️", desc: "Mensajería adicional" },
-  { name: "Make", icon: "🔗", desc: "Automatización avanzada" },
+  { name: 'Stripe', icon: '💳', desc: 'Pagos en tiempo real' },
+  { name: 'Shopify', icon: '🛒', desc: 'Sincronización de productos' },
+  { name: 'HubSpot', icon: '🎯', desc: 'CRM y automatización' },
+  { name: 'Zapier', icon: '⚙️', desc: '1000+ integraciones' },
+  { name: 'Google Sheets', icon: '📊', desc: 'Sincronización de datos' },
+  { name: 'Slack', icon: '💬', desc: 'Notificaciones en equipo' },
+  { name: 'Telegram', icon: '✈️', desc: 'Mensajería adicional' },
+  { name: 'Make', icon: '🔗', desc: 'Automatización avanzada' },
 ];
 
 const Integrations = () => {

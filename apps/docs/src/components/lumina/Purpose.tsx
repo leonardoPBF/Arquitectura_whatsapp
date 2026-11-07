@@ -1,4 +1,4 @@
-import { Target, Eye } from "lucide-react";
+import { Target, Eye } from 'lucide-react';
 
 const Purpose = () => {
   return (

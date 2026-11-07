@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router } from 'express';
 import {
   getConversations,
   getConversationByPhone,
@@ -9,7 +9,7 @@ import {
   getConversationCart,
   addItemToConversationCart,
   removeItemFromConversationCart,
-} from "../controllers/conversation.controller";
+} from '../controllers/conversation.controller';
 
 const router = Router();
 
@@ -59,7 +59,7 @@ const router = Router();
  *       200:
  *         description: Lista de conversaciones activas
  */
-router.get("/", getConversations);
+router.get('/', getConversations);
 
 /**
  * @swagger
@@ -79,7 +79,7 @@ router.get("/", getConversations);
  *       404:
  *         description: Conversación no encontrada
  */
-router.get("/:phone", getConversationByPhone);
+router.get('/:phone', getConversationByPhone);
 
 /**
  * @swagger
@@ -88,7 +88,7 @@ router.get("/:phone", getConversationByPhone);
  *     summary: Obtener carrito de la conversación
  *     tags: [Conversations]
  */
-router.get("/:phone/cart", getConversationCart);
+router.get('/:phone/cart', getConversationCart);
 
 /**
  * @swagger
@@ -141,7 +141,7 @@ router.get("/:phone/cart", getConversationCart);
  *         description: Error al crear conversación
  */
 
-router.post("/", createConversation);
+router.post('/', createConversation);
 
 /**
  * @swagger
@@ -186,7 +186,7 @@ router.post("/", createConversation);
  *         description: Error al actualizar carrito
  */
 
-router.patch("/:phone/cart", updateConversationCart);
+router.patch('/:phone/cart', updateConversationCart);
 
 /**
  * @swagger
@@ -195,7 +195,7 @@ router.patch("/:phone/cart", updateConversationCart);
  *     summary: Agregar un item al carrito de la conversación
  *     tags: [Conversations]
  */
-router.post("/:phone/cart/add", addItemToConversationCart);
+router.post('/:phone/cart/add', addItemToConversationCart);
 
 /**
  * @swagger
@@ -204,7 +204,7 @@ router.post("/:phone/cart/add", addItemToConversationCart);
  *     summary: Remover/unidades de un item del carrito de la conversación
  *     tags: [Conversations]
  */
-router.post("/:phone/cart/remove", removeItemFromConversationCart);
+router.post('/:phone/cart/remove', removeItemFromConversationCart);
 
 /**
  * @swagger
@@ -231,7 +231,7 @@ router.post("/:phone/cart/remove", removeItemFromConversationCart);
  *       200:
  *         description: Paso actualizado
  */
-router.patch("/:phone/step", updateConversationStep);
+router.patch('/:phone/step', updateConversationStep);
 
 /**
  * @swagger
@@ -249,6 +249,6 @@ router.patch("/:phone/step", updateConversationStep);
  *       200:
  *         description: Carrito limpiado exitosamente
  */
-router.post("/:phone/clear-cart", clearConversationCart);
+router.post('/:phone/clear-cart', clearConversationCart);
 
 export default router;

@@ -1,5 +1,5 @@
 // src/routes/culqi.routes.ts
-import { Router } from "express";
+import { Router } from 'express';
 import {
   createCulqiOrder,
   createCulqiCharge,
@@ -12,7 +12,7 @@ import {
   getPaymentByCulqiId,
   syncPendingPayments,
   syncSpecificOrder,
-} from "../controllers/culqi.controller";
+} from '../controllers/culqi.controller';
 
 const router = Router();
 
@@ -52,7 +52,7 @@ const router = Router();
  *       201:
  *         description: Orden creada correctamente
  */
-router.post("/create-order", createCulqiOrder);
+router.post('/create-order', createCulqiOrder);
 
 /**
  * @swagger
@@ -79,7 +79,7 @@ router.post("/create-order", createCulqiOrder);
  *       200:
  *         description: Cargo creado exitosamente
  */
-router.post("/create-charge", createCulqiCharge);
+router.post('/create-charge', createCulqiCharge);
 
 /**
  * @swagger
@@ -106,7 +106,7 @@ router.post("/create-charge", createCulqiCharge);
  *       200:
  *         description: Cargo creado exitosamente
  */
-router.post("/verify-payment", verifyCulqiPayment);
+router.post('/verify-payment', verifyCulqiPayment);
 
 /**
  * @swagger
@@ -127,7 +127,7 @@ router.post("/verify-payment", verifyCulqiPayment);
  *       200:
  *         description: Estado de pago actualizado
  */
-router.post("/confirm-order", confirmCulqiOrder);
+router.post('/confirm-order', confirmCulqiOrder);
 
 /**
  * @swagger
@@ -139,7 +139,7 @@ router.post("/confirm-order", confirmCulqiOrder);
  *       200:
  *         description: Webhook procesado correctamente
  */
-router.post("/webhook", handleCulqiWebhook);
+router.post('/webhook', handleCulqiWebhook);
 
 /**
  * @swagger
@@ -158,7 +158,7 @@ router.post("/webhook", handleCulqiWebhook);
  *       200:
  *         description: Detalle de la orden
  */
-router.get("/order/:culqiOrderId", getCulqiOrderStatus);
+router.get('/order/:culqiOrderId', getCulqiOrderStatus);
 
 // Debug: get payment by culqiOrderId
 router.get('/payment/culqi/:culqiOrderId', getPaymentByCulqiId);
@@ -180,7 +180,7 @@ router.get('/payment/culqi/:culqiOrderId', getPaymentByCulqiId);
  *       200:
  *         description: Detalle del pago
  */
-router.get("/payment/:paymentId", getPaymentById);
+router.get('/payment/:paymentId', getPaymentById);
 
 /**
  * @swagger
@@ -199,7 +199,7 @@ router.get("/payment/:paymentId", getPaymentById);
  *       200:
  *         description: checkout del pago
  */
-router.get("/payment/order-checkout", getOrderForCheckout);
+router.get('/payment/order-checkout', getOrderForCheckout);
 
 /**
  * @swagger
@@ -212,7 +212,7 @@ router.get("/payment/order-checkout", getOrderForCheckout);
  *       200:
  *         description: Sincronización completada
  */
-router.post("/sync-payments", syncPendingPayments);
+router.post('/sync-payments', syncPendingPayments);
 
 /**
  * @swagger
@@ -232,6 +232,6 @@ router.post("/sync-payments", syncPendingPayments);
  *       200:
  *         description: Orden sincronizada exitosamente
  */
-router.post("/sync-order/:culqiOrderId", syncSpecificOrder);
+router.post('/sync-order/:culqiOrderId', syncSpecificOrder);
 
 export default router;

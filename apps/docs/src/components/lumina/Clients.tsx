@@ -1,12 +1,12 @@
 const clients = [
-  { name: "StyleHub", logo: "🛍️" },
-  { name: "PizzaExpress", logo: "🍕" },
-  { name: "TiendaMax", logo: "🏬" },
-  { name: "BizConsult", logo: "📊" },
-  { name: "FashionBox", logo: "👗" },
-  { name: "DigitalMarket", logo: "💻" },
-  { name: "RetailPro", logo: "💳" },
-  { name: "ServiceHub", logo: "🛠️" },
+  { name: 'StyleHub', logo: '🛍️' },
+  { name: 'PizzaExpress', logo: '🍕' },
+  { name: 'TiendaMax', logo: '🏬' },
+  { name: 'BizConsult', logo: '📊' },
+  { name: 'FashionBox', logo: '👗' },
+  { name: 'DigitalMarket', logo: '💻' },
+  { name: 'RetailPro', logo: '💳' },
+  { name: 'ServiceHub', logo: '🛠️' },
 ];
 
 const Clients = () => {

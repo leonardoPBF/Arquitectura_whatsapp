@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import { Customer } from "../models/Customer";
+import { Request, Response } from 'express';
+import { Customer } from '../models/Customer';
 
 // GET /api/customers
 export const getCustomers = async (_: Request, res: Response) => {
@@ -7,7 +7,7 @@ export const getCustomers = async (_: Request, res: Response) => {
     const customers = await Customer.find();
     res.json(customers);
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener clientes", error });
+    res.status(500).json({ message: 'Error al obtener clientes', error });
   }
 };
 
@@ -15,10 +15,10 @@ export const getCustomers = async (_: Request, res: Response) => {
 export const getCustomerById = async (req: Request, res: Response) => {
   try {
     const customer = await Customer.findById(req.params.id);
-    if (!customer) return res.status(404).json({ message: "Cliente no encontrado" });
+    if (!customer) return res.status(404).json({ message: 'Cliente no encontrado' });
     res.json(customer);
   } catch (error) {
-    res.status(500).json({ message: "Error al obtener cliente", error });
+    res.status(500).json({ message: 'Error al obtener cliente', error });
   }
 };
 
@@ -26,10 +26,10 @@ export const getCustomerById = async (req: Request, res: Response) => {
 export const getCustomerByPhone = async (req: Request, res: Response) => {
   try {
     const customer = await Customer.findOne({ phone: req.params.phone });
-    if (!customer) return res.status(404).json({ message: "Cliente no encontrado" });
+    if (!customer) return res.status(404).json({ message: 'Cliente no encontrado' });
     res.json(customer);
   } catch (error) {
-    res.status(500).json({ message: "Error al buscar cliente", error });
+    res.status(500).json({ message: 'Error al buscar cliente', error });
   }
 };
 
@@ -43,7 +43,7 @@ export const createCustomer = async (req: Request, res: Response) => {
     await customer.save();
     res.status(201).json(customer);
   } catch (error) {
-    res.status(400).json({ message: "Error al crear cliente", error });
+    res.status(400).json({ message: 'Error al crear cliente', error });
   }
 };
 
@@ -51,10 +51,10 @@ export const createCustomer = async (req: Request, res: Response) => {
 export const updateCustomer = async (req: Request, res: Response) => {
   try {
     const customer = await Customer.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!customer) return res.status(404).json({ message: "Cliente no encontrado" });
+    if (!customer) return res.status(404).json({ message: 'Cliente no encontrado' });
     res.json(customer);
   } catch (error) {
-    res.status(400).json({ message: "Error al actualizar cliente", error });
+    res.status(400).json({ message: 'Error al actualizar cliente', error });
   }
 };
 
@@ -63,7 +63,7 @@ export const updateCustomerSpent = async (req: Request, res: Response) => {
   try {
     const { amount } = req.body;
     const customer = await Customer.findById(req.params.id);
-    if (!customer) return res.status(404).json({ message: "Cliente no encontrado" });
+    if (!customer) return res.status(404).json({ message: 'Cliente no encontrado' });
 
     customer.totalOrders += 1;
     customer.totalSpent += amount;
@@ -71,7 +71,7 @@ export const updateCustomerSpent = async (req: Request, res: Response) => {
 
     res.json(customer);
   } catch (error) {
-    res.status(400).json({ message: "Error al actualizar gasto del cliente", error });
+    res.status(400).json({ message: 'Error al actualizar gasto del cliente', error });
   }
 };
 
@@ -79,9 +79,9 @@ export const updateCustomerSpent = async (req: Request, res: Response) => {
 export const deleteCustomer = async (req: Request, res: Response) => {
   try {
     const customer = await Customer.findByIdAndDelete(req.params.id);
-    if (!customer) return res.status(404).json({ message: "Cliente no encontrado" });
-    res.json({ message: "Cliente eliminado" });
+    if (!customer) return res.status(404).json({ message: 'Cliente no encontrado' });
+    res.json({ message: 'Cliente eliminado' });
   } catch (error) {
-    res.status(500).json({ message: "Error al eliminar cliente", error });
+    res.status(500).json({ message: 'Error al eliminar cliente', error });
   }
 };

@@ -1,35 +1,35 @@
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 
 const faqs = [
   {
-    question: "¿Cómo empiezo con Lumina?",
+    question: '¿Cómo empiezo con Lumina?',
     answer:
-      "Simplemente crea una cuenta, conecta tu número de WhatsApp escaneando un código QR, configura tus flujos y listo. El proceso toma menos de 5 minutos.",
+      'Simplemente crea una cuenta, conecta tu número de WhatsApp escaneando un código QR, configura tus flujos y listo. El proceso toma menos de 5 minutos.',
   },
   {
-    question: "¿Es seguro conectar mi WhatsApp a Lumina?",
+    question: '¿Es seguro conectar mi WhatsApp a Lumina?',
     answer:
-      "Sí, absolutamente. Utilizamos encriptación end-to-end y cumplimos con todas las regulaciones de privacidad de datos. Tu información está protegida.",
+      'Sí, absolutamente. Utilizamos encriptación end-to-end y cumplimos con todas las regulaciones de privacidad de datos. Tu información está protegida.',
   },
   {
-    question: "¿Puedo integrar múltiples números de WhatsApp?",
+    question: '¿Puedo integrar múltiples números de WhatsApp?',
     answer:
-      "Sí, según tu plan puedes conectar desde 1 hasta bots ilimitados. Cada uno funciona de forma independiente pero con mismo dashboard.",
+      'Sí, según tu plan puedes conectar desde 1 hasta bots ilimitados. Cada uno funciona de forma independiente pero con mismo dashboard.',
   },
   {
-    question: "¿Qué pasa si tengo un pico de mensajes?",
+    question: '¿Qué pasa si tengo un pico de mensajes?',
     answer:
-      "Nuestros servidores escalan automáticamente. Procesamos desde 100 hasta millones de mensajes sin problemas ni costo adicional por uso.",
+      'Nuestros servidores escalan automáticamente. Procesamos desde 100 hasta millones de mensajes sin problemas ni costo adicional por uso.',
   },
   {
-    question: "¿Puedo cancelar cuando quiera?",
-    answer: "Claro. No hay contratos a largo plazo. Cancela tu suscripción cuando quieras sin penalizaciones. Tus datos se exportan automáticamente.",
+    question: '¿Puedo cancelar cuando quiera?',
+    answer: 'Claro. No hay contratos a largo plazo. Cancela tu suscripción cuando quieras sin penalizaciones. Tus datos se exportan automáticamente.',
   },
   {
-    question: "¿Hay soporte en español?",
+    question: '¿Hay soporte en español?',
     answer:
-      "Sí, nuestro equipo de soporte en Latinoamérica está disponible 24/7 en español. También tenemos documentación completa en tu idioma.",
+      'Sí, nuestro equipo de soporte en Latinoamérica está disponible 24/7 en español. También tenemos documentación completa en tu idioma.',
   },
 ];
 
@@ -59,7 +59,7 @@ const FAQ = () => {
                 <h3 className="text-left font-semibold text-foreground">{faq.question}</h3>
                 <ChevronDown
                   className={`h-5 w-5 text-muted-foreground transition-transform ${
-                    openIndex === idx ? "rotate-180" : ""
+                    openIndex === idx ? 'rotate-180' : ''
                   }`}
                 />
               </button>
@@ -74,7 +74,7 @@ const FAQ = () => {
 
         <div className="mt-12 text-center">
           <p className="text-muted-foreground">
-            ¿Tienes más preguntas?{" "}
+            ¿Tienes más preguntas?{' '}
             <button className="text-primary hover:underline font-medium">Contacta con nuestro equipo</button>
           </p>
         </div>
