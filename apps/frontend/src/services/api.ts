@@ -17,6 +17,7 @@ export interface OrderResponse {
 }
 
 interface ConfirmPaymentResponse {
+  pending?: boolean;
   success: boolean;
   message: string;
   charge?: any;
@@ -29,6 +30,7 @@ interface ConfirmPaymentResponse {
 }
 
 interface CreateOrderResponse {
+  orderId?: string;
   success: boolean;
   message: string;
   checkoutUrl: string;
@@ -159,7 +161,8 @@ export const culqiAPI = {
    */
   createCharge: (data: {
     tokenId: string;
-    culqiOrderId: string;
+    orderId: string;
+    culqiOrderId?: string;
     amount: number;
     email?: string;
   }): Promise<AxiosResponse<ConfirmPaymentResponse>> => {

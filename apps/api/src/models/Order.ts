@@ -10,6 +10,10 @@ export interface IOrderItem {
 }
 
 export interface IOrder extends Document {
+  paymentLock?: boolean;
+  paymentSetup?: string;
+  checkoutKey?: string;
+  checkoutFingerprint?: string;
   orderNumber: string;
   customerId: Schema.Types.ObjectId;
   customerPhone: string;
@@ -24,6 +28,10 @@ export interface IOrder extends Document {
 }
 
 const OrderSchema = new Schema<IOrder>({
+  paymentLock: { type: Boolean, default: false },
+  paymentSetup: String,
+  checkoutKey: { type: String, unique: true, sparse: true },
+  checkoutFingerprint: String,
   orderNumber: { type: String, unique: true, default: null },
   customerId: { type: Schema.Types.ObjectId, ref: 'Customer', required: true },
   customerPhone: { type: String, required: true },

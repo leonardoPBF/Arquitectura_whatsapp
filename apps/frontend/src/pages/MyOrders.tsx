@@ -75,7 +75,9 @@ export default function MyOrders() {
         method: 'card',
       });
 
-      if (response.data.checkoutUrl) {
+      if (response.data.orderId) {
+        navigate(`/checkout?order=${response.data.orderId}`);
+      } else if (response.data.checkoutUrl) {
         // Si hay checkout URL, redirigir
         navigate(`/checkout?order=${response.data.culqiOrder.id}`);
       } else if (response.data.culqiOrder?.id) {

@@ -27,7 +27,7 @@ const router = Router();
  * @swagger
  * /api/culqi/create-order:
  *   post:
- *     summary: Crea una orden de pago en Culqi
+ *     summary: Prepara el pago; tarjeta reutiliza el pedido interno sin crear orden Culqi
  *     tags: [Culqi]
  *     requestBody:
  *       required: true
@@ -69,6 +69,9 @@ router.post('/create-order', createCulqiOrder);
  *             properties:
  *               tokenId:
  *                 type: string
+ *               orderId:
+ *                 type: string
+ *                 description: ID del pedido interno (preferido)
  *               culqiOrderId:
  *                 type: string
  *               amount:
@@ -85,7 +88,7 @@ router.post('/create-charge', createCulqiCharge);
  * @swagger
  * /api/culqi/verify-payment:
  *   post:
- *     summary: Crea un cargo directo (pago inmediato con token)
+ *     summary: Consulta el estado del pago sin crear cargos
  *     tags: [Culqi]
  *     requestBody:
  *       required: true
@@ -94,17 +97,13 @@ router.post('/create-charge', createCulqiCharge);
  *           schema:
  *             type: object
  *             properties:
- *               tokenId:
- *                 type: string
  *               orderId:
  *                 type: string
- *               amount:
- *                 type: number
- *               email:
+ *               culqiOrderId:
  *                 type: string
  *     responses:
  *       200:
- *         description: Cargo creado exitosamente
+ *         description: Estado del pago
  */
 router.post('/verify-payment', verifyCulqiPayment);
 

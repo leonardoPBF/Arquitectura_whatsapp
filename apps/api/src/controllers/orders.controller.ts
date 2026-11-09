@@ -4,6 +4,7 @@ import { IProduct, Product } from '../models/Product';
 import { Customer } from '../models/Customer';
 
 import { identity } from '../middlewares/security';
+import { createHash } from 'crypto';
 
 
 // GET /api/orders
@@ -45,6 +46,8 @@ export const getOrdersByCustomer = async (req: Request, res: Response) => {
 
 // POST /api/orders
 export const createOrder = async (req: Request, res: Response) => {
+  let checkoutKey: string | undefined;
+  let checkoutFingerprint: string | undefined;
   try {
     let { customerId } = req.body;
     const { items } = req.body;
@@ -85,6 +88,16 @@ export const createOrder = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Datos incompletos' });
     }
 
+    if (req.body.checkoutKey !== undefined) {
+      if (typeof req.body.checkoutKey !== 'string' || !/^[a-f\d-]{36}$/i.test(req.body.checkoutKey)) return res.status(400).json({ message: 'Identificador de compra inválido' });
+      checkoutKey = `${customerId}:${req.body.checkoutKey}`;
+      checkoutFingerprint = createHash('sha256').update(JSON.stringify(items.map(item =>
+        ({ productId: item.productId, quantity: item.quantity })).sort((a, b) => a.productId.localeCompare(b.productId)))).digest('hex');
+      const previous = await Order.findOne({ checkoutKey });
+      if (previous) return previous.checkoutFingerprint === checkoutFingerprint ? res.json(previous)
+        : res.status(409).json({ message: 'La compra ya existe con otros productos' });
+    }
+
     const products = await Product.find({ _id: { $in: items.map(i => i.productId) } }) as (IProduct & { _id: any })[];
     let totalAmount = 0;
 
@@ -106,6 +119,7 @@ export const createOrder = async (req: Request, res: Response) => {
     }
 
     const order = new Order({
+      checkoutKey, checkoutFingerprint,
       customerId,
       customerPhone: customer.phone,
       items: detailedItems,
@@ -119,6 +133,11 @@ export const createOrder = async (req: Request, res: Response) => {
     await order.save();
     res.status(201).json(order);
   } catch (error) {
+    if (checkoutKey && (error as { code?: number }).code === 11000) {
+      const existing = await Order.findOne({ checkoutKey });
+      if (existing && existing.checkoutFingerprint === checkoutFingerprint) return res.json(existing);
+      return res.status(409).json({ message: 'La compra ya existe; revisa Mis Pedidos' });
+    }
     res.status(400).json({ message: 'Error al crear orden', error });
   }
 };
@@ -134,11 +153,11 @@ async function transition(req: Request, res: Response, target: unknown) {
     const order = await Order.findById(req.params.id);
     if (!order) return res.sendStatus(404);
     if (order.status === target) return res.json(order); // Idempotent retry.
-    if (!transitions[order.status]?.includes(target) || (target === 'cancelled' && order.paymentStatus !== 'pending')) {
+    if (!transitions[order.status]?.includes(target) || (target === 'cancelled' && (order.paymentStatus !== 'pending' || order.paymentLock))) {
       return res.status(409).json({ message: 'Transición no permitida; los pagos requieren gestión de reembolso' });
     }
     const updated = await Order.findOneAndUpdate(
-      { _id: order._id, status: order.status, paymentStatus: order.paymentStatus },
+      { _id: order._id, status: order.status, paymentStatus: order.paymentStatus, ...(target === 'cancelled' ? { paymentLock: { $ne: true } } : {}) },
       { $set: { status: target, updatedAt: new Date() } }, { new: true, runValidators: true });
     if (!updated) return res.status(409).json({ message: 'La orden cambió; actualiza antes de continuar' });
     console.info('order.transition', { actor: identity(res).id, orderId: String(order._id), from: order.status, to: target });

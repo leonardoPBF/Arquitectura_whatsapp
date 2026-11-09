@@ -120,7 +120,7 @@ test('mass assignment and invalid transitions are rejected', async () => {
 test('unpaid cancellation preserves the order and uses compare-and-set', async () => {
   mock.method(Order, 'findById', async () => ({ _id: orderId, status: 'pending', paymentStatus: 'pending' }));
   let update;
-  mock.method(Order, 'findOneAndUpdate', async (filter, change) => { assert.deepEqual(filter, { _id: orderId, status: 'pending', paymentStatus: 'pending' }); update = change; return { _id: orderId, status: 'cancelled' }; });
+  mock.method(Order, 'findOneAndUpdate', async (filter, change) => { assert.deepEqual(filter, { _id: orderId, status: 'pending', paymentStatus: 'pending', paymentLock: { $ne: true } }); update = change; return { _id: orderId, status: 'cancelled' }; });
   assert.equal((await request(`/orders/${orderId}/cancel`, { method: 'POST', bearer: token(admin), body: {} })).status, 200);
   assert.equal(update.$set.status, 'cancelled');
 });
@@ -157,6 +157,9 @@ test('a customer may edit delivery details only while their unpaid order is pend
   assert.equal((await request(`/orders/${orderId}`, { method: 'PUT', bearer: token(customer), body: { status: 'confirmed' } })).status, 403);
 });
 test('payment amounts cannot be supplied by the caller', async () => {
-  mock.method(Payment, 'findOne', () => query({ orderId: { _id: orderId }, amount: 100 }));
-  assert.equal((await request('/culqi/create-charge', { method: 'POST', bearer: token(admin), body: { tokenId: 'fixture', culqiOrderId: 'fixture', amount: 1 } })).status, 400);
+  mock.method(Payment, 'findOne', () => query({ orderId, amount: 100 }));
+  mock.method(Order, 'findById', async () => ({ _id: orderId }));
+  const response = await request('/culqi/create-charge', { method: 'POST', bearer: token(admin), body: { tokenId: 'tkn_test_fixture', culqiOrderId: 'ord_test_fixture', amount: 1 } });
+  assert.equal(response.status, 400);
+  assert.match((await response.json()).message, /importe/);
 });

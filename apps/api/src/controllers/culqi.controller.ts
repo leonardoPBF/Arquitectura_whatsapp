@@ -5,6 +5,7 @@ import { Payment } from '../models/Payment';
 import { Conversation } from '../models/Conversation';
 import dotenv from 'dotenv';
 import { Customer } from '../models/Customer';
+import { prepareCardPayment, directCharge, verifyDirectPayment } from '../service/direct-payment';
 
 dotenv.config();
 
@@ -23,6 +24,12 @@ const getCulqi = () => new Culqi({
 export const createCulqiOrder = async (req: Request, res: Response) => {
   try {
     const { orderId, currency = 'PEN', method } = req.body;
+    if (!['card', 'billetera_movil', 'pagoefectivo'].includes(method) || currency !== 'PEN') return res.status(400).json({ message: 'Método o moneda inválidos' });
+    if (method === 'card' && typeof orderId === 'string') {
+      const payment = await prepareCardPayment(orderId);
+      return res.json({ success: true, checkoutUrl: payment.checkoutUrl, orderId: String(payment.orderId),
+        culqiOrder: payment.culqiOrderId ? { id: payment.culqiOrderId } : null, payment });
+    }
 
     if (!orderId || !method)
       return res.status(400).json({ message: 'orderId y method son requeridos' });
@@ -44,6 +51,10 @@ export const createCulqiOrder = async (req: Request, res: Response) => {
         payment,
       });
     }
+
+    if (payment) return res.status(409).json({ message: 'Este pedido ya tiene un pago; revisa su estado' });
+    const claim = await Order.findOneAndUpdate({ _id: order._id, status: 'pending', paymentStatus: 'pending', paymentLock: { $ne: true }, paymentSetup: { $exists: false } }, { $set: { paymentSetup: 'creating', paymentLock: true } });
+    if (!claim) return res.status(409).json({ message: 'El pedido ya tiene un pago activo o en verificación' });
 
     // ✅ Mapear método de pago a payment_methods de Culqi
     // Culqi acepta: card, billetera_movil, pagoefectivo
@@ -93,6 +104,7 @@ export const createCulqiOrder = async (req: Request, res: Response) => {
       gatewayResponse: culqiOrder,
     });
 
+    await Order.updateOne({ _id: order._id }, { $set: { paymentSetup: 'ready' } });
     res.status(201).json({
       success: true,
       message: 'Orden y link de pago creados correctamente',
@@ -116,151 +128,7 @@ export const createCulqiOrder = async (req: Request, res: Response) => {
  * Crea un cargo directo (pago inmediato con token)
  * ============================================
  */
-export const createCulqiCharge = async (req: Request, res: Response) => {
-  try {
-    const { tokenId, culqiOrderId, email } = req.body;
-
-    if (typeof tokenId !== 'string' || typeof culqiOrderId !== 'string') {
-      return res.status(400).json({ 
-        success: false,
-        message: 'tokenId y culqiOrderId son requeridos'
-      });
-    }
-
-    const payment = await Payment.findOne({ culqiOrderId })
-      .populate('orderId')
-      .populate('customerId');
-
-    if (!payment || !payment.orderId) {
-      return res.status(404).json({ 
-        success: false,
-        message: 'No se encontró la orden asociada al culqiOrderId'
-      });
-    }
-
-    const amount = payment.amount;
-    if (req.body.amount !== undefined && req.body.amount !== amount) {
-      return res.status(400).json({ message: 'El importe debe coincidir con el pago registrado' });
-    }
-
-    // ✅ PREVENIR DUPLICADOS: Si ya está completado, no procesar de nuevo
-    if (payment.status === 'completed') {
-      console.warn(`⚠️ Payment ${payment._id} ya está completado`);
-      const order = payment.orderId as any;
-      return res.json({ 
-        success: true, 
-        message: 'Este pago ya fue procesado anteriormente',
-        charge: payment.gatewayResponse,
-        payment, 
-        order,
-        paymentId: payment._id, 
-        orderId: order._id,
-        alreadyPaid: true
-      });
-    }
-
-    const order = payment.orderId as any;
-    
-    // ✅ Obtener datos del cliente
-    let customer = payment.customerId as any;
-    if (!customer && order.customerId) {
-      // Si no se populó el customerId en payment, obtenerlo desde la orden
-      customer = await Customer.findById(order.customerId);
-    }
-
-    if (!customer) {
-      return res.status(404).json({ 
-        success: false,
-        message: 'No se encontró el cliente asociado a la orden'
-      });
-    }
-
-    // ✅ Separar nombres y apellidos
-    const nameParts = customer.name.split(' ');
-    const firstName = nameParts[0] || customer.name;
-    const lastName = nameParts.slice(1).join(' ') || 'Cliente';
-    const customerEmail = email || customer.email || order.customerId?.email || 'cliente@example.com';
-    const customerPhone = order.customerPhone || customer.phone || '+51999999999';
-
-    console.log(`💳 Creando cargo directo para orden ${order.orderNumber} con token ${tokenId.substring(0, 20)}...`);
-    console.log(`👤 Cliente: ${firstName} ${lastName} - ${customerEmail} - ${customerPhone}`);
-
-    // ✅ Crear el cargo directo en Culqi con datos completos del cliente
-    const chargePayload = {
-      amount: Math.round(amount * 100),
-      currency_code: 'PEN',
-      email: customerEmail,
-      source_id: tokenId,
-      description: `Pago Orden #${order.orderNumber}`,
-      // ✅ Agregar datos completos del cliente en antifraud_details (formato recomendado por Culqi)
-      antifraud_details: {
-        first_name: firstName,
-        last_name: lastName,
-        phone_number: customerPhone,
-      },
-      metadata: { 
-        order_id: order._id.toString(), 
-        order_number: order.orderNumber,
-        culqi_order_id: culqiOrderId
-      },
-    };
-
-    // culqi-node 2.x declares amount/antifraud_details differently from the HTTP payload.
-    // Keep the existing numeric amount and phone_number unchanged at this boundary.
-    const charge = await getCulqi().charges.createCharge(
-      chargePayload as unknown as Parameters<ReturnType<typeof getCulqi>['charges']['createCharge']>[0]
-    );
-    console.log('📊 Resultado del cargo:', charge.outcome?.type);
-
-    const isSuccessful = charge.outcome?.type === 'venta_exitosa';
-
-    if (isSuccessful) {
-      // ✅ Actualizar orden
-      order.status = 'confirmed';
-      order.paymentStatus = 'paid';
-      await order.save();
-
-      // ✅ Actualizar payment
-      payment.status = 'completed';
-      payment.transactionId = charge.id;
-      payment.receiptUrl = (charge as any).receipt_url;
-      payment.gatewayResponse = charge;
-      await payment.save();
-
-      console.log(`✅ Pago completado exitosamente para orden ${order.orderNumber}`);
-
-      return res.json({ 
-        success: true, 
-        message: 'Pago procesado exitosamente',
-        charge, 
-        order, 
-        payment,
-        paymentId: payment._id, 
-        orderId: order._id
-      });
-    }
-
-    // ❌ Cargo rechazado
-    payment.status = 'failed';
-    payment.gatewayResponse = charge;
-    await payment.save();
-
-    console.warn(`❌ Cargo rechazado para orden ${order.orderNumber}:`, charge.outcome?.merchant_message);
-
-    return res.status(400).json({ 
-      success: false, 
-      message: charge.outcome?.merchant_message || 'Cargo rechazado',
-      charge 
-    });
-  } catch (error: any) {
-    console.error('❌ Error al crear cargo:', error);
-    res.status(500).json({ 
-      success: false,
-      message: 'Error al procesar pago',
-      error: error.message || error.merchant_message 
-    });
-  }
-};
+export const createCulqiCharge = directCharge;
 
 /**
  * ============================================
@@ -269,6 +137,7 @@ export const createCulqiCharge = async (req: Request, res: Response) => {
  * ============================================
  */
 export const verifyCulqiPayment = async (req: Request, res: Response) => {
+  if (typeof req.body.orderId === 'string') return verifyDirectPayment(req, res);
   try {
     const { culqiOrderId } = req.body;
 

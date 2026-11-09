@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Lock } from 'lucide-react';
 import api, { culqiAPI } from '@/services/api';
 import toast from 'react-hot-toast';
+import { createCheckoutKey } from '@/lib/checkout-attempt';
 
 export default function CheckoutCart() {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export default function CheckoutCart() {
 
   const [processing, setProcessing] = useState(false);
   const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
+  const submitting = useRef(false);
 
   if (items.length === 0) {
     return (
@@ -60,14 +62,20 @@ export default function CheckoutCart() {
   };
 
   const handleCulqiPayment = async () => {
+    if (submitting.current) return;
+    submitting.current = true;
     setProcessing(true);
 
     try {
       let orderId = createdOrderId;
 
       if (!orderId) {
+        const storageKey = `checkout:${user?.id}:${JSON.stringify(items.map(item => [item._id, item.quantity]).sort())}`;
+        const checkoutKey = sessionStorage.getItem(storageKey) || createCheckoutKey();
+        sessionStorage.setItem(storageKey, checkoutKey);
         // 1. Crear orden en backend (primera vez)
         const orderResponse = await api.post('/api/orders', {
+          checkoutKey,
           customerId: user?.customerId || null,
           customer: {
             name: formData.fullName,
@@ -112,17 +120,21 @@ export default function CheckoutCart() {
       });
 
       clearCart();
+      const storageKey = `checkout:${user?.id}:${JSON.stringify(items.map(item => [item._id, item.quantity]).sort())}`;
+      sessionStorage.removeItem(storageKey);
 
       const checkoutUrlParam = culqiResponse.data.checkoutUrl
         ? `&checkoutUrl=${encodeURIComponent(culqiResponse.data.checkoutUrl)}`
         : '';
 
       // Redirigir a la página de checkout con la orden de Culqi
-      navigate(`/checkout?order=${culqiResponse.data.culqiOrder.id}${checkoutUrlParam}`);
+      navigate(`/checkout?order=${culqiResponse.data.orderId || orderId}${checkoutUrlParam}`);
     } catch (error: any) {
       console.error('Error creando orden:', error);
       toast.error(error.response?.data?.message || 'Error al crear la orden');
       setProcessing(false);
+    } finally {
+      submitting.current = false;
     }
   };
 
