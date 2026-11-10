@@ -83,7 +83,7 @@ export async function securityGate(req: Request, res: Response, next: NextFuncti
     if (path === '/culqi/create-order' && req.method === 'POST' && objectId(req.body.orderId)) {
       return await Order.exists({ _id: req.body.orderId, customerId: cid }) ? next() : res.sendStatus(404);
     }
-    if (req.method === 'POST' && ['/culqi/create-charge', '/culqi/verify-payment', '/culqi/confirm-order'].includes(path)) {
+    if (req.method === 'POST' && ['/culqi/create-charge', '/culqi/verify-payment', '/culqi/confirm-order', '/culqi/cancel-authentication'].includes(path)) {
       if (path !== '/culqi/confirm-order' && objectId(req.body.orderId)) {
         return await Order.exists({ _id: req.body.orderId, customerId: cid }) ? next() : res.sendStatus(404);
       }

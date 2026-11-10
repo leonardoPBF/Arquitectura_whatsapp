@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { culqiAPI } from '../services/api';
 import api from '../services/api';
+import { authenticate3DS, loadCulqi3DS } from '@/lib/culqi-3ds';
 import { Navbar } from '@/components/Navbar';
 import { culqiRsaSettings, isCulqiCheckoutUrl } from '../lib/culqi-config';
 
@@ -39,7 +40,13 @@ export default function Checkout() {
   const [checkingPayment, setCheckingPayment] = useState(false);
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState('card');
+  const [awaitingSettlement, setAwaitingSettlement] = useState(false);
   const [paymentBlocked, setPaymentBlocked] = useState(false);
+  const [authenticating, setAuthenticating] = useState(false);
+  const [needsRestart, setNeedsRestart] = useState(false);
+  const [retryAuthentication, setRetryAuthentication] = useState(false);
+  const authenticationRef = useRef<AbortController | null>(null);
+  const continuationRef = useRef<{ tokenId: string; deviceId: string; attemptId: string } | null>(null);
   const [culqiOrderId, setCulqiOrderId] = useState<string | null>(null);
 
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -52,9 +59,10 @@ export default function Checkout() {
     loadOrderData();
     
     return () => {
+      authenticationRef.current?.abort();
       // Limpiar polling al desmontar o cambiar orderId
       if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
+        clearTimeout(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
       }
       isPollingActiveRef.current = false;
@@ -118,7 +126,9 @@ export default function Checkout() {
         const paymentRes = await api.get(`/api/payments?orderId=${order._id}`);
         const payment = paymentRes.data?.[0];
         setPaymentMethod(payment?.method || 'card');
-        setPaymentBlocked(['processing', 'review'].includes(payment?.status));
+        setNeedsRestart(payment?.status === 'requires_action');
+        setAwaitingSettlement(['processing', 'review'].includes(payment?.status));
+        setPaymentBlocked(['processing', 'review', 'requires_action'].includes(payment?.status));
 
         if (payment?.culqiOrderId) {
           setCulqiOrderId(payment.culqiOrderId);
@@ -157,7 +167,9 @@ export default function Checkout() {
         }
 
         setPaymentMethod(payment?.method || 'card');
-        setPaymentBlocked(['processing', 'review'].includes(payment?.status));
+        setNeedsRestart(payment?.status === 'requires_action');
+        setAwaitingSettlement(['processing', 'review'].includes(payment?.status));
+        setPaymentBlocked(['processing', 'review', 'requires_action'].includes(payment?.status));
         setCulqiOrderId(orderId);
         console.log('✅ culqiOrderId (desde URL):', orderId);
 
@@ -215,6 +227,7 @@ export default function Checkout() {
           lang: 'es',
           modal: true,
           installments: false,
+          style: { bannerColor: '#203e34', buttonBackground: '#305941', buttonTextColor: '#ffffff', linksColor: '#305941', priceColor: '#305941' },
           paymentMethods: {
             tarjeta: paymentMethod === 'card',
             yape: paymentMethod === 'card',
@@ -225,6 +238,7 @@ export default function Checkout() {
           },
         });
 
+        setError('');
         window.Culqi.open();
         return;
       } catch (err) {
@@ -247,7 +261,7 @@ export default function Checkout() {
 
     // Limpiar cualquier polling anterior
     if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
+      clearTimeout(pollingIntervalRef.current);
       pollingIntervalRef.current = null;
     }
 
@@ -258,14 +272,14 @@ export default function Checkout() {
     let attempts = 0;
     const maxAttempts = 24; // 2 minutos
 
-    pollingIntervalRef.current = setInterval(async () => {
+    pollingIntervalRef.current = setTimeout(async function poll() {
       attempts++;
       console.log(`🔍 Verificando pago... intento ${attempts}/${maxAttempts}`);
 
       try {
         if (!orderRef.current?.id && !culqiOrderId) {
           console.error('No hay culqiOrderId para verificar');
-          clearInterval(pollingIntervalRef.current!);
+          clearTimeout(pollingIntervalRef.current!);
           pollingIntervalRef.current = null;
           isPollingActiveRef.current = false;
           setCheckingPayment(false);
@@ -277,8 +291,16 @@ export default function Checkout() {
           ...(paymentMethod === 'card' ? { orderId: orderRef.current?.id } : { culqiOrderId }),
         });
 
+        if (response.data.requiresAction) {
+          isPollingActiveRef.current = false;
+          setAwaitingSettlement(false);
+          setCheckingPayment(false);
+          setPaymentBlocked(true);
+          setError('El banco requiere autenticación. Retoma el intento original de pago; verificar el estado no completa el Challenge.');
+          return;
+        }
         if (response.data.payment?.status === 'failed') {
-          clearInterval(pollingIntervalRef.current!);
+          clearTimeout(pollingIntervalRef.current!);
           pollingIntervalRef.current = null;
           isPollingActiveRef.current = false;
           processingPaymentRef.current = false;
@@ -292,7 +314,7 @@ export default function Checkout() {
         // Si ya está pagado, evitar procesamiento duplicado
         if (response.data.alreadyPaid) {
           console.log('✅ Pago ya procesado anteriormente');
-          clearInterval(pollingIntervalRef.current!);
+          clearTimeout(pollingIntervalRef.current!);
           pollingIntervalRef.current = null;
           isPollingActiveRef.current = false;
           setCheckingPayment(false);
@@ -307,7 +329,7 @@ export default function Checkout() {
 
         if (response.data.orderExpired) {
           console.warn('⚠️ La orden de pago ha expirado');
-          clearInterval(pollingIntervalRef.current!);
+          clearTimeout(pollingIntervalRef.current!);
           pollingIntervalRef.current = null;
           isPollingActiveRef.current = false;
           setCheckingPayment(false);
@@ -321,7 +343,7 @@ export default function Checkout() {
 
         if (response.data.success && response.data.payment?.status === 'completed') {
           console.log('✅ Pago confirmado!');
-          clearInterval(pollingIntervalRef.current!);
+          clearTimeout(pollingIntervalRef.current!);
           pollingIntervalRef.current = null;
           isPollingActiveRef.current = false;
           setCheckingPayment(false);
@@ -338,7 +360,7 @@ export default function Checkout() {
           }
         } else if (attempts >= maxAttempts) {
           console.log('⏱️ Timeout alcanzado');
-          clearInterval(pollingIntervalRef.current!);
+          clearTimeout(pollingIntervalRef.current!);
           pollingIntervalRef.current = null;
           isPollingActiveRef.current = false;
           setCheckingPayment(false);
@@ -347,12 +369,14 @@ export default function Checkout() {
       } catch (err) {
         console.error('Error al verificar pago:', err);
         if (attempts >= maxAttempts) {
-          clearInterval(pollingIntervalRef.current!);
+          clearTimeout(pollingIntervalRef.current!);
           pollingIntervalRef.current = null;
           isPollingActiveRef.current = false;
           setCheckingPayment(false);
           setError('No se pudo verificar el estado del pago. Por favor, revisa \'Mis Pedidos\'.');
         }
+      } finally {
+        if (isPollingActiveRef.current && attempts < maxAttempts) pollingIntervalRef.current = setTimeout(poll, 5000);
       }
     }, 5000);
   }, [culqiOrderId, navigate, paymentMethod]);
@@ -378,8 +402,8 @@ export default function Checkout() {
       return;
     }
 
-    if (window.Culqi?.token) {
-      const tokenId = window.Culqi.token.id;
+    if (window.Culqi?.token || continuationRef.current) {
+      const tokenId = continuationRef.current?.tokenId || window.Culqi.token.id;
       console.log('💳 Procesando pago directamente con create-charge...');
       
       callbackExecutedRef.current = true;
@@ -388,14 +412,33 @@ export default function Checkout() {
       
       try {
         // ✅ Crear cargo directo con el token
-        const response = await culqiAPI.createCharge({
-          tokenId: tokenId,
-          orderId: currentOrder.id,
-          email: currentOrder.customer?.email,
-        });
+        window.Culqi?.close();
+        const client = await loadCulqi3DS(CULQI_PUBLIC_KEY);
+        const previous = continuationRef.current;
+        const deviceId = previous?.deviceId || await client.generateDevice();
+        if (!deviceId) throw new Error('No se pudo identificar el dispositivo. Reintenta antes de pagar.');
+        let response;
+        if (previous) {
+          response = { data: { requiresAction: true, attemptId: previous.attemptId, success: false } };
+        } else {
+          response = await culqiAPI.createCharge({ tokenId, deviceId, orderId: currentOrder.id });
+        }
+        if (response.data.requiresAction && response.data.attemptId) {
+          const originalToken = previous?.tokenId || tokenId;
+          continuationRef.current = { tokenId: originalToken, deviceId, attemptId: response.data.attemptId };
+          setAuthenticating(true); setProcessing(false); setRetryAuthentication(false); setPaymentBlocked(true);
+          const controller = new AbortController(); authenticationRef.current = controller;
+          const parameters = await authenticate3DS(client, originalToken, currentOrder.amount, currentOrder.customer.email, controller.signal);
+          setAuthenticating(false); setProcessing(true);
+          const attemptId = continuationRef.current.attemptId;
+          continuationRef.current = null;
+          response = await culqiAPI.createCharge({ tokenId: originalToken, deviceId, attemptId, authentication3DS: parameters, orderId: currentOrder.id });
+        }
+        client.reset();
 
 
         if (response.data.pending) {
+          setAwaitingSettlement(true);
           setPaymentBlocked(true);
           setProcessing(false);
           window.Culqi?.close();
@@ -459,13 +502,22 @@ export default function Checkout() {
           callbackExecutedRef.current = false;
         }
       } catch (err: any) {
+        setAuthenticating(false);
+        if (continuationRef.current) {
+          setRetryAuthentication(true); setProcessing(false);
+          processingPaymentRef.current = false; callbackExecutedRef.current = false;
+          setError(err.message || 'Completa la autenticación bancaria.');
+          return;
+        }
         console.error('❌ Error al procesar pago:', err);
         setError(err.response?.data?.message || 'No se recibió el resultado. Verificaremos el pago antes de permitir otro intento.');
-        if (!err.response || err.response.data?.pending) {
+        if ((!err.response && processingPaymentRef.current && err.isAxiosError) || err.response?.data?.pending) {
+          setAwaitingSettlement(true);
           setPaymentBlocked(true);
           window.Culqi?.close();
           startPaymentPolling();
         }
+        if (err.response && !err.response.data?.pending) setPaymentBlocked(false);
         setProcessing(false);
         processingPaymentRef.current = false;
         callbackExecutedRef.current = false;
@@ -500,12 +552,13 @@ export default function Checkout() {
   }, [orderData?.id, handleCulqiCallback]);
 
   useEffect(() => {
-    if (paymentBlocked && orderData?.id) startPaymentPolling();
-  }, [paymentBlocked, orderData?.id, startPaymentPolling]);
+    if (awaitingSettlement && orderData?.id) startPaymentPolling();
+  }, [awaitingSettlement, orderData?.id, startPaymentPolling]);
 
   return (
     <>
       <Navbar />
+      {authenticating && <div role="status" className="fixed bottom-4 left-4 right-4 z-40 rounded-xl border border-border bg-card p-4 text-center text-foreground">Completa la autenticación en la ventana de tu banco. Todavía no se ha confirmado el pago.</div>}
       <div className="min-h-screen bg-background flex items-center justify-center p-5">
         {(loading || processing || checkingPayment) && (
           <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center">
@@ -548,6 +601,13 @@ export default function Checkout() {
             </div>
           </div>
 
+          {needsRestart && <button className="w-full rounded-xl border border-border p-4 mb-4" onClick={async () => {
+            setProcessing(true);
+            try { await api.post('/api/culqi/cancel-authentication', { orderId }); setNeedsRestart(false); setPaymentBlocked(false); setError('Autenticación anterior cancelada. Puedes iniciar un nuevo intento.'); }
+            catch { setError('El pago cambió de estado. Revisa Mis Pedidos antes de reintentar.'); }
+            finally { setProcessing(false); }
+          }}>Reiniciar autenticación pendiente</button>}
+          {retryAuthentication && <button className="w-full rounded-xl bg-primary text-primary-foreground p-4 mb-4" onClick={() => handleCulqiCallback()}>Reintentar autenticación bancaria</button>}
           <button
             onClick={openCulqiCheckout}
             disabled={processing || checkingPayment || paymentBlocked || !orderData || (paymentMethod !== 'card' && !culqiOrderId)}

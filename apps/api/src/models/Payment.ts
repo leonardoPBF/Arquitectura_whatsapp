@@ -9,10 +9,12 @@ export interface IPayment extends Document {
   culqiOrderId?: string;
   attemptId?: string;
   attemptStartedAt?: Date;
+  tokenFingerprint?: string;
+  deviceId?: string;
   orderSynced?: boolean;
   checkoutUrl: string;
   method: 'card' | 'billetera_movil' | 'pagoefectivo';
-  status: 'pending' | 'processing' | 'review' | 'completed' | 'failed' | 'refunded' | 'expired';
+  status: 'pending' | 'requires_action' | 'processing' | 'review' | 'completed' | 'failed' | 'refunded' | 'expired';
   transactionId?: string;
   receiptUrl?: string;
   gatewayResponse?: Record<string, any>;
@@ -29,6 +31,8 @@ const PaymentSchema = new Schema({
   culqiOrderId: { type: String },
   attemptId: String,
   attemptStartedAt: Date,
+  tokenFingerprint: String,
+  deviceId: String,
   orderSynced: Boolean,
   checkoutUrl: { type: String, required: true },
   method: { 
@@ -38,7 +42,7 @@ const PaymentSchema = new Schema({
   },
   status: { 
     type: String, 
-    enum: ['pending', 'processing', 'review', 'completed', 'failed', 'refunded', 'expired'],
+    enum: ['pending', 'requires_action', 'processing', 'review', 'completed', 'failed', 'refunded', 'expired'],
     default: 'pending'
   },
   transactionId: { type: String },

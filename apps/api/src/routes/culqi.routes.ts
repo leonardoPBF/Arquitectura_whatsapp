@@ -1,3 +1,4 @@
+import { cancelCardAuthentication } from '../service/direct-payment';
 // src/routes/culqi.routes.ts
 import { Router } from 'express';
 import {
@@ -232,5 +233,7 @@ router.post('/sync-payments', syncPendingPayments);
  *         description: Orden sincronizada exitosamente
  */
 router.post('/sync-order/:culqiOrderId', syncSpecificOrder);
+
+router.post('/cancel-authentication', cancelCardAuthentication);
 
 export default router;

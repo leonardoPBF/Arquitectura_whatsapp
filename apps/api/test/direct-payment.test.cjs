@@ -68,6 +68,64 @@ const success = payload => ({ id: 'chr_test_' + randomUUID(), amount: payload.am
   currency_code: 'PEN', metadata: payload.metadata, outcome: { type: 'venta_exitosa' } });
 const charge = orderId => request('/culqi/create-charge', { orderId, tokenId: 'tkn_test_fixture', amount: 10 });
 
+integration('real Culqi authentication_required error starts 3DS instead of endless review', async () => {
+  const purchase = await prepared();
+  const initial = { orderId: purchase._id, tokenId: 'tkn_test_fixture', deviceId: 'fixture-device' };
+  mock.method(chargeGateway, 'create', async () => {
+    throw new AxiosError('3DS required', 'ERR_BAD_REQUEST', undefined, undefined, { status: 400,
+      data: { type: 'card_error', charge_id: 'chr_test_denied', code: 'DNGE0116', decline_code: 'authentication_required' } });
+  });
+  const result = await request('/culqi/create-charge', initial);
+  assert.equal(result.data.requiresAction, true);
+  assert.equal((await Payment.findOne({ orderId: purchase._id })).status, 'requires_action');
+  mock.method(chargeGateway, 'create', async payload => success(payload));
+  const completed = await request('/culqi/create-charge', { ...initial, attemptId: result.data.attemptId,
+    authentication3DS: { eci: '05', xid: 'fixture', cavv: 'fixture', protocolVersion: '2.1.0' } });
+  assert.equal(completed.data.success, true);
+});
+
+integration('initial 3DS denial cannot unlock an uncertain authenticated continuation', async () => {
+  const purchase = await prepared();
+  let evidence;
+  mock.method(chargeGateway, 'create', async payload => { evidence = { ...success(payload), outcome: { type: 'operacion_denegada', decline_code: 'authentication_required' } }; throw Error('unknown result'); });
+  await charge(purchase._id);
+  mock.method(chargeGateway, 'list', async () => [evidence]);
+  await reconcileCardPayment(await Payment.findOne({ orderId: purchase._id }));
+  assert.equal((await Order.findById(purchase._id)).paymentLock, true);
+  assert.equal((await Payment.findOne({ orderId: purchase._id })).status, 'review');
+});
+
+integration('3DS challenge is continued exactly once with the same source, device and attempt', async () => {
+  const purchase = await prepared();
+  const initial = { orderId: purchase._id, tokenId: 'tkn_test_fixture', deviceId: 'fixture-device' };
+  mock.method(chargeGateway, 'create', async () => ({ action_code: 'REVIEW' }));
+  const first = await request('/culqi/create-charge', initial);
+  assert.equal(first.data.requiresAction, true);
+  assert.equal((await Payment.findOne({ orderId: purchase._id })).status, 'requires_action');
+  const waiting = await request('/culqi/verify-payment', { orderId: purchase._id });
+  assert.equal(waiting.data.requiresAction, true);
+  assert.equal(waiting.data.pending, false);
+  assert.equal((await request('/culqi/create-charge', initial)).status, 409);
+  const authentication3DS = { eci: '05', xid: 'fixture-xid', cavv: 'fixture-cavv', protocolVersion: '2.1.0', directoryServerTransactionId: 'fixture-directory' };
+  const continuation = { ...initial, attemptId: first.data.attemptId, authentication3DS };
+  assert.equal((await request('/culqi/create-charge', { ...continuation, tokenId: 'another-token' })).status, 409);
+  assert.equal((await request('/culqi/create-charge', { ...continuation, deviceId: 'another-device' })).status, 409);
+  assert.equal((await request('/culqi/create-charge', { ...continuation, attemptId: 'another-attempt' })).status, 409);
+  mock.method(chargeGateway, 'create', async payload => {
+    assert.equal(payload.source_id, initial.tokenId);
+    assert.equal(payload.antifraud_details.device_finger_print_id, initial.deviceId);
+    assert.deepEqual(payload.authentication_3DS, authentication3DS);
+    assert.equal(payload.metadata.payment_attempt, first.data.attemptId);
+    await new Promise(resolve => setTimeout(resolve, 50));
+    return success(payload);
+  });
+  const results = await Promise.all([request('/culqi/create-charge', continuation), request('/culqi/create-charge', continuation)]);
+  assert.ok(results.some(result => result.data.success));
+  assert.equal(chargeGateway.create.mock.calls.length, 1);
+  assert.equal((await Order.findById(purchase._id)).paymentStatus, 'paid');
+  assert.equal((await Payment.findOne({ orderId: purchase._id })).status, 'completed');
+});
+
 integration('same checkout key under concurrent retries creates one internal order', async () => {
   const body = { checkoutKey: randomUUID(), customerId: String(customer._id), items: [{ productId: String(product._id), quantity: 1 }] };
   const responses = await Promise.all(Array.from({ length: 5 }, () => request('/orders', body)));
@@ -75,6 +133,18 @@ integration('same checkout key under concurrent retries creates one internal ord
   assert.equal(new Set(responses.map(r => r.data._id)).size, 1);
   assert.equal(await Order.countDocuments({ checkoutKey: `${customer._id}:${body.checkoutKey}` }), 1);
   assert.equal((await request('/orders', { ...body, items: [{ productId: String(product._id), quantity: 2 }] })).status, 409);
+});
+
+integration('only an unsubmitted 3DS challenge can be restarted; uncertain charges stay locked', async () => {
+  const purchase = await prepared();
+  mock.method(chargeGateway, 'create', async () => ({ action_code: 'REVIEW' }));
+  await request('/culqi/create-charge', { orderId: purchase._id, tokenId: 'tkn_test_fixture', deviceId: 'fixture-device' });
+  assert.equal((await request('/culqi/cancel-authentication', { orderId: purchase._id })).status, 200);
+  assert.equal((await Order.findById(purchase._id)).paymentLock, false);
+  mock.method(chargeGateway, 'create', async () => { throw Error('unknown provider result'); });
+  await charge(purchase._id);
+  assert.equal((await request('/culqi/cancel-authentication', { orderId: purchase._id })).status, 409);
+  assert.equal((await Order.findById(purchase._id)).paymentLock, true);
 });
 
 integration('concurrent preparations reuse one payment, omit provider order and allow multiple card orders', async () => {

@@ -142,3 +142,7 @@
 .auth-benefits span { display: inline-flex; align-items: center; gap: 7px; }
 @media(max-width:800px) { .auth-shell { grid-template-columns: 1fr; } .auth-story { padding: 25px; border-right: 0; border-bottom: 1px solid hsl(var(--border)); } .auth-story h1 { font-size: 34px; margin-block: 25px 15px; } .auth-story p { display: none; } .auth-benefits { display: none; } .auth-form-side { padding: 68px 25px 40px; } .auth-form-side > .theme-toggle { top: 18px; right: 25px; } }
 @media(prefers-reduced-motion:reduce) { .theme-toggle { transition: none; } }
+
+/* Keep the host theme behind Culqi. External payment documents use a light form. */
+#culqi-js { background-color: rgb(0 0 0 / .62) !important; }
+iframe.culqi_checkout { color-scheme: light; background: transparent; }

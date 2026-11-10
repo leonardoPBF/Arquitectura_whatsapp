@@ -1,3 +1,4 @@
+import type { Authentication3DS } from '@/lib/culqi-3ds';
 import axios from 'axios';
 import type { AxiosInstance, AxiosResponse } from 'axios';
 
@@ -18,6 +19,8 @@ export interface OrderResponse {
 
 interface ConfirmPaymentResponse {
   pending?: boolean;
+  requiresAction?: boolean;
+  attemptId?: string;
   success: boolean;
   message: string;
   charge?: any;
@@ -161,6 +164,9 @@ export const culqiAPI = {
    */
   createCharge: (data: {
     tokenId: string;
+    deviceId?: string;
+    authentication3DS?: Authentication3DS;
+    attemptId?: string;
     orderId: string;
     culqiOrderId?: string;
     email?: string;
