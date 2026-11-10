@@ -36,7 +36,7 @@ export async function securityGate(req: Request, res: Response, next: NextFuncti
       const decoded = jwt.verify(bearer, jwtSecret(), { algorithms: ['HS256'] });
       if (typeof decoded === 'string' || !objectId(decoded.userId)) return res.status(401).json({ message: 'Token inválido' });
       const user = await User.findById(decoded.userId);
-      if (!user || !user.isActive) return res.status(401).json({ message: 'Sesión inválida' });
+      if (!user || !user.isActive || (decoded.tokenVersion ?? 0) !== (user.tokenVersion ?? 0)) return res.status(401).json({ message: 'Sesión inválida' });
       principal = { role: user.role, id: String(user._id), customerId: user.customerId ? String(user.customerId) : undefined,
         session: createHmac('sha256', jwtSecret()).update(bearer).digest('hex') };
     }

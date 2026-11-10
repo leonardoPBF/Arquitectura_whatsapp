@@ -31,11 +31,11 @@ export const AbandonedCartsChart = () => {
       <CardContent>
         <div className="space-y-4">
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-amber-600 dark:text-amber-400">{abandonedCarts.length}</span>
+            <span className="text-3xl font-bold text-[var(--chart-3)]">{abandonedCarts.length}</span>
             <span className="text-emerald-700 dark:text-emerald-300 font-medium">carritos</span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-semibold text-amber-600 dark:text-amber-400">S/ {totalAbandoned.toFixed(2)}</span>
+            <span className="text-2xl font-semibold text-[var(--chart-3)]">S/ {totalAbandoned.toFixed(2)}</span>
             <span className="text-emerald-700 dark:text-emerald-300 font-medium">valor total</span>
           </div>
           {abandonedCarts.length > 0 && (
@@ -44,7 +44,7 @@ export const AbandonedCartsChart = () => {
               {abandonedCarts.slice(0, 10).map((cart) => (
                 <div
                   key={cart._id}
-                  className="flex justify-between items-center p-2 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm hover:shadow-md transition-shadow"
+                  className="flex justify-between items-center p-2 bg-muted border border-border rounded-lg text-sm hover:shadow-md transition-shadow"
                 >
                   <div>
                     <p className="font-medium">{cart.orderNumber}</p>

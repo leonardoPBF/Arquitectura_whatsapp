@@ -9,21 +9,34 @@ import { PaymentMethodsChart } from '@/components/dashboard/PaymentMethodsChart'
 import { TopProductsChart } from '@/components/dashboard/TopProductsChart';
 import { ProductStockChart } from '@/components/dashboard/ProductStockChart';
 import { PaymentStatusChart } from '@/components/dashboard/PaymentStatusChart';
+import { useIsFetching } from '@tanstack/react-query';
+import { LoaderCircle } from 'lucide-react';
 
 export default function Dashboard() {
+  const loadingQueries = useIsFetching({
+    predicate: query => query.state.data === undefined,
+  });
+
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-[hsl(200_20%_12%)] dark:via-[hsl(200_18%_14%)] dark:to-[hsl(200_15%_16%)] p-4 md:p-6 lg:p-8">
+      <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-[#10B981] to-[#14B8A6] bg-clip-text text-transparent">Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
             <p className="text-emerald-700 dark:text-emerald-300 font-medium">
               Resumen de LUMINA y análisis de datos
             </p>
           </div>
         </div>
+
+        {loadingQueries > 0 && (
+          <div role="status" aria-live="polite" className="flex items-center gap-3 rounded-lg border border-emerald-200 bg-card p-4 text-emerald-800 dark:border-emerald-800 dark:bg-card dark:text-emerald-200">
+            <LoaderCircle aria-hidden="true" className="h-5 w-5 shrink-0 animate-spin motion-reduce:animate-none" />
+            <p>Cargando datos del dashboard...</p>
+          </div>
+        )}
 
         {/* Stats Cards */}
         <StatsCards />

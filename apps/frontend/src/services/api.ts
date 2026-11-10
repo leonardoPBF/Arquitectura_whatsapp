@@ -163,7 +163,6 @@ export const culqiAPI = {
     tokenId: string;
     orderId: string;
     culqiOrderId?: string;
-    amount: number;
     email?: string;
   }): Promise<AxiosResponse<ConfirmPaymentResponse>> => {
     return api.post('/api/culqi/create-charge', data);

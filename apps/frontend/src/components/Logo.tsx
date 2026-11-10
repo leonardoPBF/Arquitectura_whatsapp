@@ -1,13 +1,5 @@
-import React from 'react';
+import { Sun } from 'lucide-react';
 
-export const Logo: React.FC<{ className?: string }> = ({ className = 'w-8 h-8' }) => {
-  return (
-    <img 
-      src="https://i.ibb.co/9k50nCtb/Whats-App-Image-2025-11-13-at-1-47-03-AM-removebg-preview.png" 
-      alt="LUMINA Logo" 
-      className={className}
-      style={{ objectFit: 'contain' }}
-    />
-  );
-};
-
+export const Logo = ({ className = 'w-8 h-8' }: { className?: string }) => (
+  <Sun aria-label="LUMINA" role="img" className={className} strokeWidth={1.2} />
+);

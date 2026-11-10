@@ -9,6 +9,7 @@ export interface IUser extends Document {
   customerId?: Types.ObjectId;
   phone?: string;
   isActive: boolean;
+  tokenVersion: number;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -21,6 +22,7 @@ const UserSchema = new Schema<IUser>({
   role: { type: String, enum: ['admin', 'customer'], default: 'customer' },
   customerId: { type: Schema.Types.ObjectId, ref: 'Customer' },
   phone: { type: String },
+  tokenVersion: { type: Number, default: 0 },
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

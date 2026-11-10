@@ -11,30 +11,25 @@ import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
 import Login from './pages/Login';
 import MyOrders from './pages/MyOrders';
+import Landing from './pages/Landing';
+import { LoadingScreen } from './components/LoadingScreen';
 
 function AppRoutes() {
   const { isAuthenticated, isAdmin, loading } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Cargando...</p>
-      </div>
-    );
-  }
-
   return (
     <Routes>
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={
-        isAuthenticated ? (
-          isAdmin ? <Navigate to="/dashboard" replace /> : <Navigate to="/" replace />
+        loading ? <LoadingScreen message="Verificando tu sesión..." /> : isAuthenticated ? (
+          isAdmin ? <Navigate to="/dashboard" replace /> : <Navigate to="/tienda" replace />
         ) : (
           <Login />
         )
       } />
       
       {/* Customer Routes */}
-      <Route path="/" element={
+      <Route path="/tienda" element={
         <ProtectedRoute requireCustomer>
           <Home />
         </ProtectedRoute>
@@ -75,15 +70,20 @@ function AppRoutes() {
   );
 }
 
+function UserCart({ children }: { children: React.ReactNode }) {
+  const { user } = useAuth();
+  return <CartProvider key={user?.id || 'guest'}>{children}</CartProvider>;
+}
+
 export default function App() {
   return (
-    <CartProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <UserCart>
         <Router>
-          <Toaster position="top-right" />
+          <Toaster position="top-right" toastOptions={{ style: { background: 'hsl(var(--popover))', color: 'hsl(var(--popover-foreground))', border: '1px solid hsl(var(--border))' } }} />
           <AppRoutes />
         </Router>
-      </AuthProvider>
-    </CartProvider>
+      </UserCart>
+    </AuthProvider>
   );
 }

@@ -24,7 +24,7 @@ export const StatsCards = () => {
   }
 
   const paidOrders = analytics.orders?.filter((o) => o.paymentStatus === 'paid').length || 0;
-  const conversionRate = analytics.totalOrders > 0 
+  const conversionRate = analytics.totalOrders > 0
     ? ((paidOrders / analytics.totalOrders) * 100).toFixed(1)
     : '0';
 
@@ -72,15 +72,15 @@ export const StatsCards = () => {
       {stats.map((stat) => {
         const Icon = stat.icon;
         return (
-          <Card key={stat.title} className={`bg-gradient-to-br ${stat.bgGradient} border-2 ${stat.borderColor} hover:shadow-xl transition-all duration-300`}>
+          <Card key={stat.title} className="border-border bg-card hover:shadow-md transition-shadow duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-semibold">{stat.title}</CardTitle>
-              <div className={`p-2 rounded-lg bg-gradient-to-br ${stat.bgGradient}`}>
-                <Icon className={`h-5 w-5 ${stat.color}`} />
+              <div className="p-2 rounded-lg bg-muted">
+                <Icon className="h-5 w-5 text-primary" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className={`text-3xl font-bold ${stat.color} mb-1`}>{stat.value}</div>
+              <div className="text-3xl font-semibold text-foreground mb-1">{stat.value}</div>
               <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-1 font-medium">{stat.description}</p>
             </CardContent>
           </Card>

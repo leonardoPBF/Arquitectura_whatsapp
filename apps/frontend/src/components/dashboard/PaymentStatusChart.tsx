@@ -42,10 +42,10 @@ export const PaymentStatusChart = () => {
   }, {});
 
   const statusConfig = [
-    { key: 'completed', label: 'Completados', icon: CheckCircle, color: 'text-emerald-600 dark:text-emerald-400', bgColor: 'bg-emerald-100 dark:bg-emerald-900/30' },
-    { key: 'pending', label: 'Pendientes', icon: Clock, color: 'text-amber-600 dark:text-amber-400', bgColor: 'bg-amber-100 dark:bg-amber-900/30' },
-    { key: 'failed', label: 'Fallidos', icon: XCircle, color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-100 dark:bg-red-900/30' },
-    { key: 'refunded', label: 'Reembolsados', icon: RefreshCcw, color: 'text-cyan-600 dark:text-cyan-400', bgColor: 'bg-cyan-100 dark:bg-cyan-900/30' },
+    { key: 'completed', label: 'Completados', icon: CheckCircle, color: 'text-[var(--chart-1)]', bgColor: 'bg-muted' },
+    { key: 'pending', label: 'Pendientes', icon: Clock, color: 'text-[var(--chart-3)]', bgColor: 'bg-muted' },
+    { key: 'failed', label: 'Fallidos', icon: XCircle, color: 'text-[var(--chart-4)]', bgColor: 'bg-muted' },
+    { key: 'refunded', label: 'Reembolsados', icon: RefreshCcw, color: 'text-[var(--chart-2)]', bgColor: 'bg-muted' },
   ];
 
   return (

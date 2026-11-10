@@ -1,3 +1,4 @@
+import { chartTooltipStyle } from './chart-theme';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -41,21 +42,21 @@ export const RevenueChart = () => {
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.3} />
-            <XAxis dataKey="mes" />
-            <YAxis />
-            <Tooltip
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+            <XAxis tick={{ fill: 'hsl(var(--muted-foreground))' }} dataKey="mes" />
+            <YAxis tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+            <Tooltip contentStyle={chartTooltipStyle} labelStyle={{ color: 'hsl(var(--foreground))' }} itemStyle={{ color: 'hsl(var(--foreground))' }}
               formatter={(value: number) => [`S/ ${value.toFixed(2)}`, 'Ingresos']}
             />
             <Legend />
             <Line
               type="monotone"
               dataKey="ingresos"
-              stroke="#10B981"
+              stroke="var(--chart-1)"
               strokeWidth={3}
               name="Ingresos (S/)"
-              dot={{ fill: '#14B8A6', r: 5 }}
-              activeDot={{ r: 7, fill: '#10B981' }}
+              dot={{ fill: 'var(--chart-2)', r: 5 }}
+              activeDot={{ r: 7, fill: 'var(--chart-1)' }}
             />
           </LineChart>
         </ResponsiveContainer>

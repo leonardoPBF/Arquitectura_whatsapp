@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '@/services/api';
+import { createUuid } from '@/lib/uuid';
 
 export interface RasaMessage {
   text: string;
@@ -15,7 +16,7 @@ export interface RasaResponse {
 
 export const useRasa = () => {
   const [messages, setMessages] = useState<Array<{ sender: 'user' | 'bot'; text: string; timestamp: Date }>>([]);
-  const [conversationId, setConversationId] = useState(() => crypto.randomUUID());
+  const [conversationId, setConversationId] = useState(createUuid);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -87,7 +88,7 @@ export const useRasa = () => {
   };
 
   const clearMessages = () => {
-    setConversationId(crypto.randomUUID());
+    setConversationId(createUuid());
     setMessages([]);
     setError(null);
   };

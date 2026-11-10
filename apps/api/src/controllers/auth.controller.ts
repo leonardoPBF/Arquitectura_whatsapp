@@ -56,7 +56,7 @@ export const register = async (req: Request, res: Response) => {
 
     // Generate token
     const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role },
+      { userId: user._id, email: user.email, role: user.role, tokenVersion: user.tokenVersion ?? 0 },
       jwtSecret(),
       { expiresIn: JWT_EXPIRES_IN, jwtid: crypto.randomUUID(), algorithm: 'HS256' }
     );
@@ -145,7 +145,7 @@ export const registerFromWhatsApp = async (req: Request, res: Response) => {
 
     // Generate token
     const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role },
+      { userId: user._id, email: user.email, role: user.role, tokenVersion: user.tokenVersion ?? 0 },
       jwtSecret(),
       { expiresIn: JWT_EXPIRES_IN, jwtid: crypto.randomUUID(), algorithm: 'HS256' }
     );
@@ -190,7 +190,7 @@ export const login = async (req: Request, res: Response) => {
 
     // Generate token
     const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role },
+      { userId: user._id, email: user.email, role: user.role, tokenVersion: user.tokenVersion ?? 0 },
       jwtSecret(),
       { expiresIn: JWT_EXPIRES_IN, jwtid: crypto.randomUUID(), algorithm: 'HS256' }
     );
@@ -276,5 +276,26 @@ export const createAdmin = async (req: Request, res: Response) => {
   } catch {
     console.error('auth.operation_failed');
     res.status(500).json({ message: 'Error al crear administrador' });
+  }
+};
+
+// Reset only the login account linked to this customer, never a customer profile alone.
+export const resetCustomerPassword = async (req: Request, res: Response) => {
+  if (identity(res)?.role !== 'admin') return res.sendStatus(403);
+  const { password } = req.body;
+  if (!/^[a-f\d]{24}$/i.test(String(req.params.customerId))) return res.status(400).json({ message: 'Cliente inválido' });
+  if (typeof password !== 'string' || password.length < 12 || Buffer.byteLength(password, 'utf8') > 72) {
+    return res.status(400).json({ message: 'Usa al menos 12 caracteres y un máximo de 72 bytes' });
+  }
+  try {
+    const user = await User.findOne({ customerId: req.params.customerId, role: 'customer', isActive: true });
+    if (!user) return res.status(404).json({ message: 'Este cliente no tiene una cuenta de acceso activa' });
+    user.password = password;
+    user.tokenVersion = (user.tokenVersion ?? 0) + 1;
+    user.updatedAt = new Date();
+    await user.save();
+    return res.json({ message: 'Contraseña restablecida. Las sesiones anteriores quedaron cerradas.' });
+  } catch {
+    return res.status(500).json({ message: 'No se pudo restablecer la contraseña' });
   }
 };

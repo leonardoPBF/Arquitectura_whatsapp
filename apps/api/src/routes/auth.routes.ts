@@ -5,6 +5,7 @@ import {
   login,
   getCurrentUser,
   createAdmin,
+  resetCustomerPassword,
 } from '../controllers/auth.controller';
 
 const router = Router();
@@ -148,6 +149,8 @@ router.get('/me', getCurrentUser);
  *         description: Administrador creado
  */
 router.post('/create-admin', createAdmin);
+
+router.post('/customers/:customerId/reset-password', resetCustomerPassword);
 
 export default router;
 

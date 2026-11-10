@@ -1,12 +1,13 @@
+import { chartTooltipStyle } from './chart-theme';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '@/services/api';
 
 const COLORS = {
-  bajo: '#ef4444',      // rojo para stock bajo (< 10)
-  medio: '#f59e0b',     // amarillo para stock medio (10-20)
-  alto: '#10b981',      // verde para stock alto (> 20)
+  bajo: 'var(--chart-4)',      // rojo para stock bajo (< 10)
+  medio: 'var(--chart-3)',     // amarillo para stock medio (10-20)
+  alto: 'var(--chart-1)',      // verde para stock alto (> 20)
 };
 
 const getStockColor = (stock: number) => {
@@ -26,7 +27,7 @@ export const ProductStockChart = () => {
 
   if (isLoading) {
     return (
-      <Card className="bg-white dark:bg-[hsl(220_13%_22%)] border-[hsl(var(--border))]">
+      <Card className="bg-card dark:bg-card border-[hsl(var(--border))]">
         <CardHeader>
           <CardTitle>Stock de Productos</CardTitle>
           <CardDescription>Cargando...</CardDescription>
@@ -37,7 +38,7 @@ export const ProductStockChart = () => {
 
   if (!products || products.length === 0) {
     return (
-      <Card className="bg-white dark:bg-[hsl(220_13%_22%)] border-[hsl(var(--border))]">
+      <Card className="bg-card dark:bg-card border-[hsl(var(--border))]">
         <CardHeader>
           <CardTitle>Stock de Productos</CardTitle>
           <CardDescription>No hay productos disponibles</CardDescription>
@@ -60,7 +61,7 @@ export const ProductStockChart = () => {
     }));
 
   return (
-    <Card className="bg-white dark:bg-[hsl(220_13%_22%)] border-[hsl(var(--border))]">
+    <Card className="bg-card dark:bg-card border-[hsl(var(--border))]">
       <CardHeader>
         <CardTitle>Stock de Productos</CardTitle>
         <CardDescription>Top 15 productos con menor stock (requieren atención)</CardDescription>
@@ -69,14 +70,14 @@ export const ProductStockChart = () => {
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData} layout="vertical">
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis 
-              dataKey="name" 
-              type="category" 
+            <XAxis tick={{ fill: 'hsl(var(--muted-foreground))' }} type="number" />
+            <YAxis
+              dataKey="name"
+              type="category"
               width={150}
-              tick={{ fontSize: 13, fontWeight: 500 }}
+              tick={{ fontSize: 13, fontWeight: 500, fill: 'hsl(var(--muted-foreground))' }}
             />
-            <Tooltip
+            <Tooltip contentStyle={chartTooltipStyle} labelStyle={{ color: 'hsl(var(--foreground))' }} itemStyle={{ color: 'hsl(var(--foreground))' }}
               formatter={(value: number) => [`${value} unidades`, 'Stock']}
               labelFormatter={(label, payload) => {
                 if (payload && payload[0]) {
@@ -84,7 +85,7 @@ export const ProductStockChart = () => {
                   return (
                     <div className="mb-2">
                       <div className="text-lg font-bold mb-1">{data.fullName}</div>
-                      <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
+                      <div className="text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-1">
                         Categoría: {data.categoria}
                       </div>
                       <div className="text-sm font-semibold text-blue-600 dark:text-blue-400">
@@ -95,22 +96,15 @@ export const ProductStockChart = () => {
                 }
                 return label;
               }}
-              contentStyle={{
-                backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                padding: '12px',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-              }}
             />
-            <Legend 
+            <Legend
               wrapperStyle={{ paddingTop: '20px' }}
               formatter={(value) => {
                 if (value === 'stock') return 'Stock';
                 return value;
               }}
             />
-            <Bar dataKey="stock" name="stock" radius={[0, 4, 4, 0]}>
+            <Bar fill="var(--chart-1)" dataKey="stock" name="stock" radius={[0, 4, 4, 0]}>
               {chartData.map((entry: any, index: number) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}

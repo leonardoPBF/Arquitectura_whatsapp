@@ -34,13 +34,13 @@ export const CartDrawer = () => {
           />
 
           {/* Panel */}
-          <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white dark:bg-gray-900 shadow-lg flex flex-col">
+          <div className="absolute right-0 top-0 h-full w-full max-w-md bg-card dark:bg-card shadow-lg flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b dark:border-gray-800">
+            <div className="flex items-center justify-between p-6 border-b dark:border-border">
               <h2 className="text-xl font-bold">Carrito de Compras</h2>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="p-2 hover:bg-muted dark:hover:bg-card rounded-lg transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -50,14 +50,14 @@ export const CartDrawer = () => {
             <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {items.length === 0 ? (
                 <div className="text-center py-12">
-                  <ShoppingCart className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400">Tu carrito está vacío</p>
+                  <ShoppingCart className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground dark:text-muted-foreground">Tu carrito está vacío</p>
                 </div>
               ) : (
                 items.map((item) => (
                   <div
                     key={item._id}
-                    className="flex gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                    className="flex gap-4 p-3 bg-muted dark:bg-card rounded-lg"
                   >
                     {item.imageUrl && (
                       <img
@@ -82,7 +82,7 @@ export const CartDrawer = () => {
                           onClick={() =>
                             updateQuantity(item._id, Math.max(1, item.quantity - 1))
                           }
-                          className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                          className="p-1 hover:bg-card dark:hover:bg-card rounded transition-colors"
                         >
                           <Minus className="w-4 h-4" />
                         </button>
@@ -91,7 +91,7 @@ export const CartDrawer = () => {
                         </span>
                         <button
                           onClick={() => updateQuantity(item._id, item.quantity + 1)}
-                          className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                          className="p-1 hover:bg-card dark:hover:bg-card rounded transition-colors"
                         >
                           <Plus className="w-4 h-4" />
                         </button>
@@ -110,7 +110,7 @@ export const CartDrawer = () => {
 
             {/* Footer */}
             {items.length > 0 && (
-              <div className="border-t dark:border-gray-800 p-6 space-y-4">
+              <div className="border-t dark:border-border p-6 space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">Total:</span>
                   <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
@@ -122,7 +122,7 @@ export const CartDrawer = () => {
                   onClick={() => setIsOpen(false)}
                   className="block"
                 >
-                  <Button className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-2">
+                  <Button className="w-full bg-primary text-primary-foreground font-bold py-2">
                     Proceder a Pagar
                   </Button>
                 </Link>

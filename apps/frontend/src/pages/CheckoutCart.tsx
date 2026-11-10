@@ -13,7 +13,7 @@ import { createCheckoutKey } from '@/lib/checkout-attempt';
 
 export default function CheckoutCart() {
   const navigate = useNavigate();
-  const { items, getTotal, clearCart } = useCart();
+  const { items, getTotal } = useCart();
   const { user, refreshUser } = useAuth();
   
   const [formData, setFormData] = useState({
@@ -26,22 +26,21 @@ export default function CheckoutCart() {
   });
 
   const [processing, setProcessing] = useState(false);
-  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
   const submitting = useRef(false);
 
   if (items.length === 0) {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6">
+        <div className="min-h-screen bg-muted dark:bg-background p-6">
           <div className="max-w-2xl mx-auto">
             <Card>
               <CardContent className="py-12 text-center">
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-muted-foreground dark:text-muted-foreground mb-4">
                   Tu carrito está vacío
                 </p>
                 <Button
-                  onClick={() => navigate('/')}
+                  onClick={() => navigate('/tienda')}
                   variant="outline"
                   className="flex items-center gap-2 mx-auto border-emerald-600/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 dark:hover:text-emerald-200 transition-colors"
                 >
@@ -67,9 +66,9 @@ export default function CheckoutCart() {
     setProcessing(true);
 
     try {
-      let orderId = createdOrderId;
+      let orderId: string;
 
-      if (!orderId) {
+      {
         const storageKey = `checkout:${user?.id}:${JSON.stringify(items.map(item => [item._id, item.quantity]).sort())}`;
         const checkoutKey = sessionStorage.getItem(storageKey) || createCheckoutKey();
         sessionStorage.setItem(storageKey, checkoutKey);
@@ -97,20 +96,13 @@ export default function CheckoutCart() {
         });
 
         orderId = orderResponse.data._id;
-        setCreatedOrderId(orderId);
+        localStorage.setItem(`purchase:${user?.id}:${orderId}`, JSON.stringify({ items, storageKey }));
         console.log('Orden creada en backend:', orderId);
 
         // Actualizar el context de usuario para obtener el customerId nuevo si se creó
         if (refreshUser) {
           await refreshUser();
         }
-      } else {
-        console.log('Reutilizando orden existente en backend:', orderId);
-        // Actualizar la dirección de entrega por si el usuario la modificó antes de reintentar
-        const finalAddress = [formData.address, formData.city, formData.zipCode].filter(Boolean).join(', ');
-        await api.put(`/api/orders/${orderId}`, {
-          deliveryAddress: finalAddress,
-        });
       }
 
       // 2. Crear orden en Culqi
@@ -118,10 +110,6 @@ export default function CheckoutCart() {
         orderId: orderId!,
         method: 'card',
       });
-
-      clearCart();
-      const storageKey = `checkout:${user?.id}:${JSON.stringify(items.map(item => [item._id, item.quantity]).sort())}`;
-      sessionStorage.removeItem(storageKey);
 
       const checkoutUrlParam = culqiResponse.data.checkoutUrl
         ? `&checkoutUrl=${encodeURIComponent(culqiResponse.data.checkoutUrl)}`
@@ -155,11 +143,11 @@ export default function CheckoutCart() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-teal-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900 p-6">
+      <div className="min-h-screen bg-background p-6">
         <div className="max-w-6xl mx-auto">
           <div className="mb-6">
             <Button
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/tienda')}
               variant="outline"
               className="flex items-center gap-2 border-emerald-600/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 dark:hover:text-emerald-200 transition-colors"
             >
@@ -269,7 +257,7 @@ export default function CheckoutCart() {
                     <Button
                       type="submit"
                       disabled={processing}
-                      className="w-full bg-gradient-to-r from-[#10B981] to-[#14B8A6] hover:opacity-90 text-white font-bold h-12 shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98] transition-all duration-150"
+                      className="w-full bg-primary text-primary-foreground hover:opacity-90 text-primary-foreground font-bold h-12 shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98] transition-all duration-150"
                     >
                       {processing ? (
                         <>
@@ -284,7 +272,7 @@ export default function CheckoutCart() {
                       )}
                     </Button>
 
-                    <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2 mt-4">
+                    <div className="text-xs text-muted-foreground dark:text-muted-foreground flex items-center gap-2 mt-4">
                       <Lock className="w-3 h-3" />
                       Tu pago es seguro y encriptado con Culqi
                     </div>
@@ -304,11 +292,11 @@ export default function CheckoutCart() {
                     {items.map((item) => (
                       <div
                         key={item._id}
-                        className="flex justify-between items-start text-sm pb-2 border-b dark:border-gray-800"
+                        className="flex justify-between items-start text-sm pb-2 border-b dark:border-border"
                       >
                         <div className="flex-1">
                           <p className="font-medium line-clamp-2">{item.name}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                             Cantidad: {item.quantity}
                           </p>
                         </div>
@@ -319,21 +307,21 @@ export default function CheckoutCart() {
                     ))}
                   </div>
 
-                  <div className="border-t dark:border-gray-800 pt-4 space-y-2">
+                  <div className="border-t dark:border-border pt-4 space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Subtotal</span>
+                      <span className="text-muted-foreground dark:text-muted-foreground">Subtotal</span>
                       <span>S/ {total.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Envío</span>
+                      <span className="text-muted-foreground dark:text-muted-foreground">Envío</span>
                       <span className="text-green-600 dark:text-green-400">Gratis</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600 dark:text-gray-400">Impuestos</span>
+                      <span className="text-muted-foreground dark:text-muted-foreground">Impuestos</span>
                       <span>Incluido</span>
                     </div>
 
-                    <div className="border-t dark:border-gray-800 pt-4 flex justify-between font-bold text-lg">
+                    <div className="border-t dark:border-border pt-4 flex justify-between font-bold text-lg">
                       <span>Total</span>
                       <span className="text-emerald-600 dark:text-emerald-400">
                         S/ {total.toFixed(2)}

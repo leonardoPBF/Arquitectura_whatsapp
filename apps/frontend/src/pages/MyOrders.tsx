@@ -1,26 +1,43 @@
 import { useAuth } from '@/context/AuthContext';
 import { useQuery } from '@tanstack/react-query';
-import { ordersAPI, culqiAPI } from '@/services/api';
+import { ordersAPI } from '@/services/api';
 import { Navbar } from '@/components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Package, Clock, CheckCircle, XCircle, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useCart } from '@/context/CartContext';
+import { takePurchasedCart } from '@/lib/purchased-cart';
+import toast from 'react-hot-toast';
 
 export default function MyOrders() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { removePurchasedItems } = useCart();
   const [loadingPayment, setLoadingPayment] = useState<string | null>(null);
 
-  const { data: allOrders, isLoading } = useQuery({
-    queryKey: ['customer-orders', user?.customerId],
+  const { data: allOrders, isLoading, isError, refetch } = useQuery({
+    queryKey: ['customer-orders', user?.id, user?.customerId],
     queryFn: async () => {
       const response = await ordersAPI.getAllOrders();
+      if (!Array.isArray(response.data)) throw new Error('Respuesta de pedidos inválida');
       return response.data;
     },
-    enabled: !!user?.customerId,
+    enabled: !!user,
+    refetchOnWindowFocus: true,
+    refetchInterval: 30000,
   });
+
+  useEffect(() => {
+    if (!user || !allOrders) return;
+    for (const order of allOrders) {
+      if (order.paymentStatus === 'paid') {
+        const purchased = takePurchasedCart(user.id, order._id);
+        if (purchased.length) removePurchasedItems(purchased);
+      }
+    }
+  }, [allOrders, user, removePurchasedItems]);
 
   // Filter orders by customerId (comparing IDs as strings)
   const myOrders = allOrders?.filter((order: any) => {
@@ -69,26 +86,10 @@ export default function MyOrders() {
     try {
       setLoadingPayment(order._id);
       
-      // Buscar si ya existe una orden de Culqi para este pedido
-      const response = await culqiAPI.createOrder({
-        orderId: order._id,
-        method: 'card',
-      });
-
-      if (response.data.orderId) {
-        navigate(`/checkout?order=${response.data.orderId}`);
-      } else if (response.data.checkoutUrl) {
-        // Si hay checkout URL, redirigir
-        navigate(`/checkout?order=${response.data.culqiOrder.id}`);
-      } else if (response.data.culqiOrder?.id) {
-        // Si solo hay ID de orden Culqi, redirigir al checkout
-        navigate(`/checkout?order=${response.data.culqiOrder.id}`);
-      } else {
-        alert('No se pudo generar el enlace de pago. Intenta nuevamente.');
-      }
+      navigate(`/checkout?order=${encodeURIComponent(order._id)}`);
     } catch (error: any) {
       console.error('Error al procesar pago:', error);
-      alert(error.response?.data?.message || 'Error al iniciar el proceso de pago');
+      toast.error(error.response?.data?.message || 'Error al iniciar el proceso de pago');
     } finally {
       setLoadingPayment(null);
     }
@@ -98,7 +99,7 @@ export default function MyOrders() {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen bg-white dark:bg-gray-950 p-4 md:p-6 lg:p-8">
+        <div className="min-h-screen bg-card dark:bg-background p-4 md:p-6 lg:p-8">
           <div className="max-w-5xl mx-auto">
             <p>Cargando tus pedidos...</p>
           </div>
@@ -110,22 +111,27 @@ export default function MyOrders() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-teal-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-900 p-4 md:p-6 lg:p-8">
+      <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
       <div className="max-w-5xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[#10B981] to-[#14B8A6] bg-clip-text text-transparent mb-1">
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground mb-1">
             Mis Pedidos
           </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground">
             Historial de tus compras y pedidos
           </p>
         </div>
 
-        {myOrders.length === 0 ? (
-          <Card className="border border-gray-150 dark:border-gray-800">
+        {isError ? (
+          <Card><CardContent className="py-8 space-y-4" role="alert">
+            <p>No pudimos cargar tus pedidos. Intenta nuevamente.</p>
+            <Button onClick={() => refetch()}>Reintentar</Button>
+          </CardContent></Card>
+        ) : myOrders.length === 0 ? (
+          <Card className="border border-gray-150 dark:border-border">
             <CardContent className="py-12 text-center">
-              <Package className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-lg text-gray-600 dark:text-gray-400">
+              <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-lg text-muted-foreground dark:text-muted-foreground">
                 No tienes pedidos todavía
               </p>
             </CardContent>
@@ -161,13 +167,13 @@ export default function MyOrders() {
                 <CardContent>
                   <div className="space-y-4">
                     {/* Status */}
-                    <div className="flex items-center justify-between pb-2 border-b dark:border-gray-800">
+                    <div className="flex items-center justify-between pb-2 border-b dark:border-border">
                       <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Estado</p>
+                        <p className="text-sm text-muted-foreground dark:text-muted-foreground">Estado</p>
                         <p className="font-medium">{getStatusLabel(order.status)}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Pago</p>
+                        <p className="text-sm text-muted-foreground dark:text-muted-foreground">Pago</p>
                         <p className="font-medium">{getPaymentStatusLabel(order.paymentStatus)}</p>
                       </div>
                     </div>
@@ -179,11 +185,11 @@ export default function MyOrders() {
                         {order.items?.map((item: any, idx: number) => (
                           <div
                             key={idx}
-                            className="flex justify-between items-center text-sm bg-gray-50 dark:bg-gray-900 p-2 rounded"
+                            className="flex justify-between items-center text-sm bg-muted dark:bg-card p-2 rounded"
                           >
                             <div>
                               <p className="font-medium">{item.productName}</p>
-                              <p className="text-gray-600 dark:text-gray-400">
+                              <p className="text-muted-foreground dark:text-muted-foreground">
                                 Cantidad: {item.quantity}
                               </p>
                             </div>
@@ -198,7 +204,7 @@ export default function MyOrders() {
                     {/* Delivery Address */}
                     {order.deliveryAddress && (
                       <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-muted-foreground dark:text-muted-foreground">
                           Dirección de entrega
                         </p>
                         <p className="text-sm">{order.deliveryAddress}</p>
@@ -208,18 +214,18 @@ export default function MyOrders() {
                     {/* Notes */}
                     {order.notes && (
                       <div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Notas</p>
+                        <p className="text-sm text-muted-foreground dark:text-muted-foreground">Notas</p>
                         <p className="text-sm">{order.notes}</p>
                       </div>
                     )}
 
                     {/* Payment Button */}
-                    {order.paymentStatus === 'pending' && (
-                      <div className="pt-4 border-t dark:border-gray-800">
+                    {order.paymentStatus === 'pending' && order.status !== 'cancelled' && (
+                      <div className="pt-4 border-t dark:border-border">
                         <Button
                           onClick={() => handlePayOrder(order)}
-                          disabled={loadingPayment === order._id}
-                          className="w-full bg-gradient-to-r from-[#10B981] to-[#14B8A6] hover:opacity-90 text-white font-bold h-12 shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98] transition-all duration-150"
+                          disabled={loadingPayment !== null}
+                          className="w-full bg-primary text-primary-foreground hover:opacity-90 text-primary-foreground font-bold h-12 shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98] transition-all duration-150"
                         >
                           {loadingPayment === order._id ? (
                             <>
@@ -238,7 +244,7 @@ export default function MyOrders() {
 
                     {/* Payment Status Info */}
                     {order.paymentStatus === 'paid' && (
-                      <div className="pt-4 border-t dark:border-gray-800">
+                      <div className="pt-4 border-t dark:border-border">
                         <div className="bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border border-emerald-250 dark:border-emerald-900/50 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
                           <CheckCircle className="w-4 h-4" />
                           Pago completado exitosamente
@@ -246,16 +252,16 @@ export default function MyOrders() {
                       </div>
                     )}
 
-                    {order.paymentStatus === 'failed' && (
-                      <div className="pt-4 border-t dark:border-gray-800">
+                    {order.paymentStatus === 'failed' && order.status !== 'cancelled' && (
+                      <div className="pt-4 border-t dark:border-border">
                         <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
                           <XCircle className="w-4 h-4" />
                           Pago fallido. Por favor, intenta nuevamente.
                         </div>
                         <Button
                           onClick={() => handlePayOrder(order)}
-                          disabled={loadingPayment === order._id}
-                          className="w-full mt-2 bg-gradient-to-r from-[#10B981] to-[#14B8A6] hover:opacity-90 text-white font-bold h-12 shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98] transition-all duration-150"
+                          disabled={loadingPayment !== null}
+                          className="w-full mt-2 bg-primary text-primary-foreground hover:opacity-90 text-primary-foreground font-bold h-12 shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98] transition-all duration-150"
                         >
                           <CreditCard className="w-4 h-4 mr-2" />
                           Reintentar Pago

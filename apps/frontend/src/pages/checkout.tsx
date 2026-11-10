@@ -104,6 +104,11 @@ export default function Checkout() {
         const res = await api.get(`/api/orders/${orderId}`);
         const order = res.data;
 
+        if (order.status === 'cancelled' || order.paymentStatus === 'refunded') {
+          setError('Este pedido no admite pagos.');
+          setLoading(false);
+          return;
+        }
         if (order.paymentStatus === 'paid') {
           navigate(`/success?order=${order._id}`);
           return;
@@ -386,7 +391,6 @@ export default function Checkout() {
         const response = await culqiAPI.createCharge({
           tokenId: tokenId,
           orderId: currentOrder.id,
-          amount: currentOrder.amount / 100, // Convertir de centavos a soles
           email: currentOrder.customer?.email,
         });
 
@@ -502,43 +506,43 @@ export default function Checkout() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 dark:from-gray-900 dark:to-gray-950 flex items-center justify-center p-5">
+      <div className="min-h-screen bg-background flex items-center justify-center p-5">
         {(loading || processing || checkingPayment) && (
           <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center">
-            <div className="bg-white rounded-xl p-8 text-center max-w-sm">
+            <div className="bg-card rounded-xl p-8 text-center max-w-sm">
               <div className="inline-block w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-              <p className="text-gray-800 font-semibold text-lg">
+              <p className="text-foreground font-semibold text-lg">
                 {loading ? 'Cargando orden...' : (checkingPayment ? 'Verificando pago...' : 'Procesando pago...')}
               </p>
-              <p className="text-gray-500 text-sm mt-2">
+              <p className="text-muted-foreground text-sm mt-2">
                 No cierres esta ventana
               </p>
             </div>
           </div>
         )}
 
-        <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-10">
-          <div className="w-20 h-20 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl mx-auto flex items-center justify-center text-4xl mb-6">
+        <div className="bg-card rounded-2xl shadow-2xl max-w-lg w-full p-10">
+          <div className="w-20 h-20 bg-primary rounded-2xl mx-auto flex items-center justify-center text-4xl mb-6">
             🛍️
           </div>
           
-          <h1 className="text-3xl font-bold text-gray-800 text-center mb-2">
+          <h1 className="text-3xl font-bold text-foreground text-center mb-2">
             Completar Pago
           </h1>
-          <p className="text-gray-500 text-center mb-8">Pago seguro con Culqi</p>
+          <p className="text-muted-foreground text-center mb-8">Pago seguro con Culqi</p>
 
-          <div className="bg-gray-50 rounded-xl p-6 mb-6">
+          <div className="bg-muted rounded-xl p-6 mb-6">
             <div className="flex justify-between items-center mb-3">
-              <span className="text-gray-600">Orden:</span>
-              <span className="text-gray-800 font-semibold">{orderData?.order_number}</span>
+              <span className="text-muted-foreground">Orden:</span>
+              <span className="text-foreground font-semibold">{orderData?.order_number}</span>
             </div>
             <div className="flex justify-between items-center mb-3">
-              <span className="text-gray-600">Descripción:</span>
-              <span className="text-gray-800 font-semibold">{orderData?.description}</span>
+              <span className="text-muted-foreground">Descripción:</span>
+              <span className="text-foreground font-semibold">{orderData?.description}</span>
             </div>
-            <div className="flex justify-between items-center pt-3 border-t-2 border-gray-200 mt-2">
-              <span className="text-gray-600 font-bold text-lg">Total a pagar:</span>
-              <span className="text-gray-800 font-bold text-xl">
+            <div className="flex justify-between items-center pt-3 border-t-2 border-border mt-2">
+              <span className="text-muted-foreground font-bold text-lg">Total a pagar:</span>
+              <span className="text-foreground font-bold text-xl">
                 S/ {((orderData?.amount || 0) / 100).toFixed(2)}
               </span>
             </div>
@@ -547,7 +551,7 @@ export default function Checkout() {
           <button
             onClick={openCulqiCheckout}
             disabled={processing || checkingPayment || paymentBlocked || !orderData || (paymentMethod !== 'card' && !culqiOrderId)}
-            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-xl font-semibold text-lg hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
+            className="w-full bg-primary text-primary-foreground py-4 rounded-xl font-semibold text-lg hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
           >
             💳 Pagar Ahora
           </button>
@@ -563,7 +567,7 @@ export default function Checkout() {
             </a>
           )}
 
-          <div className="flex items-center justify-center gap-2 text-gray-500 text-sm mt-6">
+          <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm mt-6">
             🔒 Pago 100% seguro y encriptado
           </div>
 

@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { customersAPI, ordersAPI, paymentsAPI, productsAPI } from '@/services/api';
+import api, { customersAPI, ordersAPI, paymentsAPI, productsAPI } from '@/services/api';
 import { Users, Package, CreditCard, ShoppingBag, Plus, Edit, Trash2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
@@ -90,9 +90,9 @@ const getStatusColor = (status: string) => {
     completed: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
     failed: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
     refunded: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-    expired: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+    expired: 'bg-muted text-foreground dark:bg-card dark:text-foreground',
   };
-  return colors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+  return colors[status] || 'bg-muted text-foreground dark:bg-card dark:text-foreground';
 };
 
 const PRODUCT_CATEGORIES = [
@@ -109,6 +109,10 @@ export default function Admin() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [resettingPassword, setResettingPassword] = useState(false);
+
   // Dialog states
   const [customerDialogOpen, setCustomerDialogOpen] = useState(false);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
@@ -163,6 +167,8 @@ export default function Admin() {
     if (activeTab === 'customers') {
       setEditingItem(null);
       setCustomerForm({ phone: '', name: '', email: '', address: '' });
+      setNewPassword('');
+      setConfirmPassword('');
       setCustomerDialogOpen(true);
     } else if (activeTab === 'orders') {
       toast.error('Para crear una orden, use el flujo de checkout');
@@ -194,6 +200,8 @@ export default function Admin() {
         email: item.email || '',
         address: item.address || '',
       });
+      setNewPassword('');
+      setConfirmPassword('');
       setCustomerDialogOpen(true);
     } else if (activeTab === 'orders') {
       setOrderForm({
@@ -345,10 +353,10 @@ export default function Admin() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-[hsl(200_20%_12%)] dark:via-[hsl(200_18%_14%)] dark:to-[hsl(200_15%_16%)] p-4 md:p-6 lg:p-8">
+      <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-6">
-            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-[#10B981] to-[#14B8A6] bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
               Panel de Administración
             </h1>
             <p className="text-emerald-700 dark:text-emerald-300 mt-2 font-medium">
@@ -358,20 +366,20 @@ export default function Admin() {
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
             <div className="flex items-center justify-between">
-              <TabsList className="bg-white dark:bg-[hsl(220_13%_22%)]">
-                <TabsTrigger value="customers" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#10B981] data-[state=active]:to-[#14B8A6] data-[state=active]:text-white">
+              <TabsList className="bg-card dark:bg-card">
+                <TabsTrigger value="customers" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                   <Users className="w-4 h-4 mr-2" />
                   Usuarios
                 </TabsTrigger>
-                <TabsTrigger value="orders" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#10B981] data-[state=active]:to-[#14B8A6] data-[state=active]:text-white">
+                <TabsTrigger value="orders" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                   <Package className="w-4 h-4 mr-2" />
                   Órdenes
                 </TabsTrigger>
-                <TabsTrigger value="payments" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#10B981] data-[state=active]:to-[#14B8A6] data-[state=active]:text-white">
+                <TabsTrigger value="payments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                   <CreditCard className="w-4 h-4 mr-2" />
                   Pagos
                 </TabsTrigger>
-                <TabsTrigger value="products" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-[#10B981] data-[state=active]:to-[#14B8A6] data-[state=active]:text-white">
+                <TabsTrigger value="products" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                   <ShoppingBag className="w-4 h-4 mr-2" />
                   Productos
                 </TabsTrigger>
@@ -379,7 +387,7 @@ export default function Admin() {
 
               <div className="flex items-center gap-2">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
                     placeholder="Buscar..."
                     value={searchTerm}
@@ -387,7 +395,7 @@ export default function Admin() {
                     className="pl-10 w-64"
                   />
                 </div>
-                <Button onClick={handleCreate} className="bg-gradient-to-r from-[#10B981] to-[#14B8A6] hover:opacity-90">
+                <Button onClick={handleCreate} className="bg-primary text-primary-foreground hover:opacity-90">
                   <Plus className="w-4 h-4 mr-2" />
                   {activeTab === 'customers' ? 'Nuevo Usuario' : 
                    activeTab === 'orders' ? 'Nueva Orden' : 
@@ -398,7 +406,7 @@ export default function Admin() {
             </div>
 
             <TabsContent value="customers" className="space-y-4">
-              <Card className="bg-white dark:bg-[hsl(220_13%_22%)] border-[hsl(var(--border))]">
+              <Card className="bg-card dark:bg-card border-[hsl(var(--border))]">
                 <CardHeader>
                   <CardTitle>Usuarios ({filteredCustomers.length})</CardTitle>
                   <CardDescription>Gestiona los clientes del sistema</CardDescription>
@@ -410,7 +418,7 @@ export default function Admin() {
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
-                          <tr className="border-b border-gray-200 dark:border-gray-700">
+                          <tr className="border-b border-border dark:border-border">
                             <th className="text-left p-3 font-semibold">Teléfono</th>
                             <th className="text-left p-3 font-semibold">Nombre</th>
                             <th className="text-left p-3 font-semibold">Email</th>
@@ -421,7 +429,7 @@ export default function Admin() {
                         </thead>
                         <tbody>
                           {filteredCustomers.map((customer) => (
-                            <tr key={customer._id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                            <tr key={customer._id} className="border-b border-border dark:border-border hover:bg-muted dark:hover:bg-card/50">
                               <td className="p-3">{customer.phone}</td>
                               <td className="p-3 font-medium">{customer.name}</td>
                               <td className="p-3">{customer.email || '-'}</td>
@@ -455,7 +463,7 @@ export default function Admin() {
             </TabsContent>
 
             <TabsContent value="orders" className="space-y-4">
-              <Card className="bg-white dark:bg-[hsl(220_13%_22%)] border-[hsl(var(--border))]">
+              <Card className="bg-card dark:bg-card border-[hsl(var(--border))]">
                 <CardHeader>
                   <CardTitle>Órdenes ({filteredOrders.length})</CardTitle>
                   <CardDescription>Gestiona las órdenes del sistema</CardDescription>
@@ -467,7 +475,7 @@ export default function Admin() {
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
-                          <tr className="border-b border-gray-200 dark:border-gray-700">
+                          <tr className="border-b border-border dark:border-border">
                             <th className="text-left p-3 font-semibold">Número</th>
                             <th className="text-left p-3 font-semibold">Cliente</th>
                             <th className="text-left p-3 font-semibold">Total</th>
@@ -479,7 +487,7 @@ export default function Admin() {
                         </thead>
                         <tbody>
                           {filteredOrders.map((order) => (
-                            <tr key={order._id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                            <tr key={order._id} className="border-b border-border dark:border-border hover:bg-muted dark:hover:bg-card/50">
                               <td className="p-3 font-medium">{order.orderNumber}</td>
                               <td className="p-3">
                                 {typeof order.customerId === 'object' ? order.customerId?.name : order.customerPhone}
@@ -501,7 +509,7 @@ export default function Admin() {
                                   {order.paymentStatus}
                                 </span>
                               </td>
-                              <td className="p-3 text-sm text-gray-500">
+                              <td className="p-3 text-sm text-muted-foreground">
                                 {format(new Date(order.createdAt), 'dd/MM/yyyy')}
                               </td>
                               <td className="p-3">
@@ -532,7 +540,7 @@ export default function Admin() {
             </TabsContent>
 
             <TabsContent value="payments" className="space-y-4">
-              <Card className="bg-white dark:bg-[hsl(220_13%_22%)] border-[hsl(var(--border))]">
+              <Card className="bg-card dark:bg-card border-[hsl(var(--border))]">
                 <CardHeader>
                   <CardTitle>Pagos ({filteredPayments.length})</CardTitle>
                   <CardDescription>Gestiona los pagos del sistema</CardDescription>
@@ -544,7 +552,7 @@ export default function Admin() {
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
-                          <tr className="border-b border-gray-200 dark:border-gray-700">
+                          <tr className="border-b border-border dark:border-border">
                             <th className="text-left p-3 font-semibold">Orden</th>
                             <th className="text-left p-3 font-semibold">Monto</th>
                             <th className="text-left p-3 font-semibold">Método</th>
@@ -556,7 +564,7 @@ export default function Admin() {
                         </thead>
                         <tbody>
                           {filteredPayments.map((payment) => (
-                            <tr key={payment._id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                            <tr key={payment._id} className="border-b border-border dark:border-border hover:bg-muted dark:hover:bg-card/50">
                               <td className="p-3 font-medium">{payment.orderNumber}</td>
                               <td className="p-3">S/ {payment.amount.toFixed(2)}</td>
                               <td className="p-3">{payment.method}</td>
@@ -572,7 +580,7 @@ export default function Admin() {
                                 </select>
                               </td>
                               <td className="p-3 text-sm">{payment.transactionId || '-'}</td>
-                              <td className="p-3 text-sm text-gray-500">
+                              <td className="p-3 text-sm text-muted-foreground">
                                 {format(new Date(payment.createdAt), 'dd/MM/yyyy')}
                               </td>
                               <td className="p-3">
@@ -603,7 +611,7 @@ export default function Admin() {
             </TabsContent>
 
             <TabsContent value="products" className="space-y-4">
-              <Card className="bg-white dark:bg-[hsl(220_13%_22%)] border-[hsl(var(--border))]">
+              <Card className="bg-card dark:bg-card border-[hsl(var(--border))]">
                 <CardHeader>
                   <CardTitle>Productos ({filteredProducts.length})</CardTitle>
                   <CardDescription>Gestiona los productos del catálogo</CardDescription>
@@ -615,7 +623,7 @@ export default function Admin() {
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
-                          <tr className="border-b border-gray-200 dark:border-gray-700">
+                          <tr className="border-b border-border dark:border-border">
                             <th className="text-left p-3 font-semibold">Nombre</th>
                             <th className="text-left p-3 font-semibold">Categoría</th>
                             <th className="text-left p-3 font-semibold">Precio</th>
@@ -626,7 +634,7 @@ export default function Admin() {
                         </thead>
                         <tbody>
                           {filteredProducts.map((product) => (
-                            <tr key={product._id} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                            <tr key={product._id} className="border-b border-border dark:border-border hover:bg-muted dark:hover:bg-card/50">
                               <td className="p-3 font-medium">{product.name}</td>
                               <td className="p-3">{product.category}</td>
                               <td className="p-3">S/ {product.price.toFixed(2)}</td>
@@ -672,7 +680,7 @@ export default function Admin() {
 
       {/* Customer Dialog */}
       <Dialog open={customerDialogOpen} onOpenChange={setCustomerDialogOpen}>
-        <DialogContent className="bg-white dark:bg-[hsl(220_13%_22%)]">
+        <DialogContent className="bg-card dark:bg-card">
           <DialogHeader>
             <DialogTitle>{editingItem ? 'Editar Usuario' : 'Nuevo Usuario'}</DialogTitle>
             <DialogDescription>
@@ -718,9 +726,30 @@ export default function Admin() {
               />
             </div>
           </div>
+          {editingItem && (
+            <form className="space-y-3 border-t pt-4" onSubmit={async event => {
+              event.preventDefault();
+              if (resettingPassword) return;
+              if (newPassword !== confirmPassword) { toast.error('Las contraseñas no coinciden'); return; }
+              setResettingPassword(true);
+              try {
+                const response = await api.post(`/api/auth/customers/${editingItem._id}/reset-password`, { password: newPassword });
+                toast.success(response.data.message);
+                setNewPassword(''); setConfirmPassword('');
+              } catch (error: any) {
+                toast.error(error.response?.data?.message || 'No se pudo restablecer la contraseña');
+              } finally { setResettingPassword(false); }
+            }}>
+              <h3 className="font-semibold">Restablecer contraseña de acceso</h3>
+              <p className="text-sm text-muted-foreground dark:text-foreground">Solo para clientes con cuenta de acceso. Se cerrarán sus sesiones anteriores. Comunica la nueva contraseña al cliente.</p>
+              <Input aria-label="Nueva contraseña" type="password" autoComplete="new-password" placeholder="Nueva contraseña (mínimo 12 caracteres)" minLength={12} maxLength={72} required value={newPassword} onChange={event => setNewPassword(event.target.value)} disabled={resettingPassword} />
+              <Input aria-label="Confirmar contraseña" type="password" autoComplete="new-password" placeholder="Confirma la nueva contraseña" minLength={12} maxLength={72} required value={confirmPassword} onChange={event => setConfirmPassword(event.target.value)} disabled={resettingPassword} />
+              <Button type="submit" disabled={resettingPassword} variant="outline">{resettingPassword ? 'Restableciendo...' : 'Restablecer contraseña'}</Button>
+            </form>
+          )}
           <DialogFooter>
             <Button variant="ghost" onClick={() => setCustomerDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSaveCustomer} className="bg-gradient-to-r from-[#10B981] to-[#14B8A6] hover:opacity-90">
+            <Button onClick={handleSaveCustomer} className="bg-primary text-primary-foreground hover:opacity-90">
               Guardar
             </Button>
           </DialogFooter>
@@ -729,7 +758,7 @@ export default function Admin() {
 
       {/* Order Dialog */}
       <Dialog open={orderDialogOpen} onOpenChange={setOrderDialogOpen}>
-        <DialogContent className="bg-white dark:bg-[hsl(220_13%_22%)]">
+        <DialogContent className="bg-card dark:bg-card">
           <DialogHeader>
             <DialogTitle>Editar Orden</DialogTitle>
             <DialogDescription>Modifica el estado y detalles de la orden</DialogDescription>
@@ -781,7 +810,7 @@ export default function Admin() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOrderDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSaveOrder} className="bg-gradient-to-r from-[#10B981] to-[#14B8A6] hover:opacity-90">
+            <Button onClick={handleSaveOrder} className="bg-primary text-primary-foreground hover:opacity-90">
               Guardar
             </Button>
           </DialogFooter>
@@ -790,7 +819,7 @@ export default function Admin() {
 
       {/* Payment Dialog */}
       <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
-        <DialogContent className="bg-white dark:bg-[hsl(220_13%_22%)]">
+        <DialogContent className="bg-card dark:bg-card">
           <DialogHeader>
             <DialogTitle>Editar Pago</DialogTitle>
             <DialogDescription>Modifica los datos del pago</DialogDescription>
@@ -833,7 +862,7 @@ export default function Admin() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setPaymentDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSavePayment} className="bg-gradient-to-r from-[#10B981] to-[#14B8A6] hover:opacity-90">
+            <Button onClick={handleSavePayment} className="bg-primary text-primary-foreground hover:opacity-90">
               Guardar
             </Button>
           </DialogFooter>
@@ -842,7 +871,7 @@ export default function Admin() {
 
       {/* Product Dialog */}
       <Dialog open={productDialogOpen} onOpenChange={setProductDialogOpen}>
-        <DialogContent className="bg-white dark:bg-[hsl(220_13%_22%)] max-w-2xl">
+        <DialogContent className="bg-card dark:bg-card max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editingItem ? 'Editar Producto' : 'Nuevo Producto'}</DialogTitle>
             <DialogDescription>
@@ -865,7 +894,7 @@ export default function Admin() {
                 value={productForm.description}
                 onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
                 placeholder="Descripción del producto"
-                className="w-full mt-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"
+                className="w-full mt-1 px-3 py-2 border border-border dark:border-border rounded-md bg-card dark:bg-card"
                 rows={3}
               />
             </div>
@@ -899,7 +928,7 @@ export default function Admin() {
               <select
                 value={productForm.category}
                 onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                className="w-full mt-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"
+                className="w-full mt-1 px-3 py-2 border border-border dark:border-border rounded-md bg-card dark:bg-card"
               >
                 {PRODUCT_CATEGORIES.map(cat => (
                   <option key={cat} value={cat}>{cat}</option>
@@ -931,7 +960,7 @@ export default function Admin() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setProductDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSaveProduct} className="bg-gradient-to-r from-[#10B981] to-[#14B8A6] hover:opacity-90">
+            <Button onClick={handleSaveProduct} className="bg-primary text-primary-foreground hover:opacity-90">
               Guardar
             </Button>
           </DialogFooter>
@@ -940,7 +969,7 @@ export default function Admin() {
 
       {/* Delete Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="bg-white dark:bg-[hsl(220_13%_22%)]">
+        <DialogContent className="bg-card dark:bg-card">
           <DialogHeader>
             <DialogTitle>Confirmar Eliminación</DialogTitle>
             <DialogDescription>

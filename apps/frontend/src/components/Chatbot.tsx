@@ -51,7 +51,7 @@ export const Chatbot = () => {
       <CardContent className="flex-1 flex flex-col min-h-0">
         <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
           {messages.length === 0 ? (
-            <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+            <div className="text-center text-muted-foreground dark:text-muted-foreground py-8">
               <Bot className="w-12 h-12 mx-auto mb-2 opacity-50" />
               <p>Envía un mensaje para comenzar</p>
             </div>
@@ -64,15 +64,15 @@ export const Chatbot = () => {
                 }`}
               >
                 {msg.sender === 'bot' && (
-                  <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
-                    <Bot className="w-4 h-4 text-gray-900 dark:text-gray-100" />
+                  <div className="w-8 h-8 rounded-full bg-muted dark:bg-card flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-4 h-4 text-foreground dark:text-foreground" />
                   </div>
                 )}
                 <div
                   className={`max-w-[80%] rounded-lg px-4 py-2 ${
                     msg.sender === 'user'
-                      ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900'
-                      : 'bg-gray-100 dark:bg-gray-800'
+                      ? 'bg-card text-white dark:bg-muted dark:text-foreground'
+                      : 'bg-muted dark:bg-card'
                   }`}
                 >
                   <p className="text-sm">{msg.text}</p>
@@ -81,8 +81,8 @@ export const Chatbot = () => {
                   </p>
                 </div>
                 {msg.sender === 'user' && (
-                  <div className="w-8 h-8 rounded-full bg-gray-900 dark:bg-gray-100 flex items-center justify-center flex-shrink-0">
-                    <User className="w-4 h-4 text-white dark:text-gray-900" />
+                  <div className="w-8 h-8 rounded-full bg-card dark:bg-muted flex items-center justify-center flex-shrink-0">
+                    <User className="w-4 h-4 text-white dark:text-foreground" />
                   </div>
                 )}
               </div>
@@ -90,10 +90,10 @@ export const Chatbot = () => {
           )}
           {loading && (
             <div className="flex gap-3 justify-start">
-              <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                <Bot className="w-4 h-4 text-gray-900 dark:text-gray-100" />
+              <div className="w-8 h-8 rounded-full bg-muted dark:bg-card flex items-center justify-center">
+                <Bot className="w-4 h-4 text-foreground dark:text-foreground" />
               </div>
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg px-4 py-2">
+              <div className="bg-muted dark:bg-card rounded-lg px-4 py-2">
                 <p className="text-sm">Pensando...</p>
               </div>
             </div>

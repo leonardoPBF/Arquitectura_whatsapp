@@ -28,6 +28,35 @@ async function request(path, { method = 'GET', body, bearer, service } = {}) {
 }
 const query = value => { const result = Promise.resolve(value); result.populate = () => result; return result; };
 
+test('only an administrator can reset an active customer login password', async () => {
+  const path = `/auth/customers/${customerId}/reset-password`;
+  const body = { password: 'new-password-fixture-123' };
+  assert.equal((await request(path, { method: 'POST', body })).status, 401);
+  assert.equal((await request(path, { method: 'POST', body, bearer: token(customer) })).status, 403);
+  assert.equal((await request(path, { method: 'POST', body: { password: 'short' }, bearer: token(admin) })).status, 400);
+  let saved = false;
+  const account = { tokenVersion: 2, save: async () => { saved = true; } };
+  mock.method(User, 'findOne', async filter => {
+    assert.deepEqual(filter, { customerId, role: 'customer', isActive: true });
+    return account;
+  });
+  assert.equal((await request(path, { method: 'POST', body, bearer: token(admin) })).status, 200);
+  assert.equal(saved, true);
+  assert.equal(account.password, body.password);
+  assert.equal(account.tokenVersion, 3);
+});
+
+test('reset passwords revoke older tokens and missing login accounts return 404', async () => {
+  mock.method(User, 'findOne', async () => null);
+  assert.equal((await request(`/auth/customers/${customerId}/reset-password`, {
+    method: 'POST', body: { password: 'new-password-fixture-123' }, bearer: token(admin),
+  })).status, 404);
+  mock.method(User, 'findById', async () => ({ isActive: true, tokenVersion: 1, role: 'customer', customerId }));
+  assert.equal((await request('/orders', { bearer: token(customer) })).status, 401);
+  mock.method(Order, 'find', () => query([]));
+  assert.equal((await request('/orders', { bearer: token(customer, { tokenVersion: 1 }) })).status, 200);
+});
+
 test('private data, administrative creation and WhatsApp registration require credentials', async () => {
   for (const path of ['/orders', '/customers', '/payments', '/conversations', '/sheets/export', '/culqi/payment/' + orderId]) assert.equal((await request(path)).status, 401);
   for (const path of ['/chatbot', '/auth/create-admin', '/auth/register-from-whatsapp']) assert.equal((await request(path, { method: 'POST', body: {} })).status, 401);

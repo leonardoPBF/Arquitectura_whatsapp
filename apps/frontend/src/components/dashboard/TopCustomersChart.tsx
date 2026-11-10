@@ -1,3 +1,4 @@
+import { chartTooltipStyle } from './chart-theme';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useAnalytics } from '@/hooks/useAnalytics';
@@ -35,7 +36,7 @@ export const TopCustomersChart = () => {
   }));
 
   return (
-    <Card className="bg-white dark:bg-[hsl(220_13%_22%)] border-[hsl(var(--border))]">
+    <Card className="bg-card dark:bg-card border-[hsl(var(--border))]">
       <CardHeader>
         <CardTitle>Mejores Clientes</CardTitle>
         <CardDescription>Top 10 clientes por gasto total</CardDescription>
@@ -43,10 +44,10 @@ export const TopCustomersChart = () => {
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.3} />
-            <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-            <YAxis />
-            <Tooltip
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+            <XAxis tick={{ fill: 'hsl(var(--muted-foreground))' }} dataKey="name" angle={-45} textAnchor="end" height={80} />
+            <YAxis tick={{ fill: 'hsl(var(--muted-foreground))' }} />
+            <Tooltip contentStyle={chartTooltipStyle} labelStyle={{ color: 'hsl(var(--foreground))' }} itemStyle={{ color: 'hsl(var(--foreground))' }}
               formatter={(value: number, name: string) => {
                 if (name === 'gasto' || name === 'Gasto Total (S/)') {
                   return [`S/ ${value.toFixed(2)}`, 'Gasto Total (Soles)'];
@@ -66,17 +67,10 @@ export const TopCustomersChart = () => {
                 }
                 return label;
               }}
-              contentStyle={{
-                backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                padding: '12px',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-              }}
             />
             <Legend />
-            <Bar dataKey="gasto" fill="#10B981" name="Gasto Total (S/)" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="ordenes" fill="#14B8A6" name="Total Órdenes" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="gasto" fill="var(--chart-1)" name="Gasto Total (S/)" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="ordenes" fill="var(--chart-2)" name="Total Órdenes" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

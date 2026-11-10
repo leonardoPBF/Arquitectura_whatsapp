@@ -1,8 +1,9 @@
+import { chartTooltipStyle, chartColors } from './chart-theme';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { useAnalytics } from '@/hooks/useAnalytics';
 
-const COLORS = ['#10B981', '#14B8A6', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+const COLORS = chartColors;
 
 const statusLabels: Record<string, string> = {
   pending: 'Pendiente',
@@ -57,16 +58,16 @@ export const OrdersStatusChart = () => {
               cx="50%"
               cy="50%"
               labelLine={false}
-              label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
+              label={({ percent }) => `${((percent ?? 0) * 100).toFixed(0)}%`}
               outerRadius={80}
-              fill="#8884d8"
+              fill="var(--chart-1)"
               dataKey="value"
             >
               {chartData.map((_, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip />
+            <Tooltip contentStyle={chartTooltipStyle} labelStyle={{ color: 'hsl(var(--foreground))' }} itemStyle={{ color: 'hsl(var(--foreground))' }} />
             <Legend />
           </PieChart>
         </ResponsiveContainer>
